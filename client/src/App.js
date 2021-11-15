@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from './Components/MyNavbar';
 import Frontpage from './Components/Frontpage';
 import Booking from './Components/Booking';
-import { clientOrders } from './classes/ClientOrder';
+import { clientOrders } from './Classes/ClientOrder';
 import API from './API';
 import EmployeePage from './Components/EmployeePage';
 import UserRegistration from './Components/UserRegistration';
