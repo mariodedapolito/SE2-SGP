@@ -7,12 +7,12 @@ import Booking from './Components/Booking';
 import { clientOrders } from './classes/ClientOrder';
 import API from './API';
 import EmployeePage from './Components/EmployeePage';
-import ClientPage from './Components/ClientPage';
 import UserRegistration from './Components/UserRegistration';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 import ProductGallery from './Components/Gallery';
+import ClientArea from './Components/ClientArea';
 
 let r = [];
 
@@ -73,11 +73,11 @@ function App() {
   }, []);
 
   function addTransaction(tr) {
-    API.addTransaction(tr).then((err) => {});
+    API.addTransaction(tr).then((err) => { });
   }
 
   function topUpBalance(amount, client) {
-    API.increaseBalance(amount, client).then((err) => {});
+    API.increaseBalance(amount, client).then((err) => { });
   }
   console.log(time);
   /* local objects to be deleted once we have a backend */
@@ -95,6 +95,19 @@ function App() {
           path="/booking"
           render={() => (
             <Booking
+              isEmployee={false}
+              products={products}
+              updateProps={updateProps}
+              time={time}
+            />
+          )}
+        />
+        <Route
+          path="/staff-booking"
+          render={() => (
+            <Booking
+              clients={clients}
+              isEmployee={true}
               products={products}
               updateProps={updateProps}
               time={time}
@@ -116,7 +129,7 @@ function App() {
         />
         <Route
           path="/client"
-          render={() => <ClientPage clients={clients} clientid={2} />}
+          render={() => <ClientArea clients={clients} clientid={2} />}
         />
         <Route path="/registration" render={() => <UserRegistration />} />
         <Route path="/" render={() => <Frontpage />} />
