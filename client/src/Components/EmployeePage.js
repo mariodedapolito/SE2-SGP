@@ -1,14 +1,14 @@
-
-
-import API from '../API';
-import { Container, Button, Row, Col, ListGroup, ListGroupItem, Image, Modal, Form } from 'react-bootstrap';
-import ris from './reply-all-fill.svg';
+import DeliverList from './DeliverList';
+import { Container, Button, Row, Col, Modal, Form, Dropdown, Card} from 'react-bootstrap';
+import { List} from 'react-bootstrap-icons'
 import { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
+import API from '../API';
 
 function ModalWalletTopUp(props) {
-  const { onClose, onSave, clients, methods } = props;
+  const { onClose, onSave, clients, methods, setClick } = props;
   const [clientId, setClientId] = useState(1)
+  const [selectedUser, setSelectedUser] = useState({ client_id: -1 });
   const [method, setMethod] = useState(methods ? methods[0].method_name : "None")
   const [methodId, setMethodId] = useState(1)
   const [number, setNumber] = useState("")
@@ -27,40 +27,44 @@ function ModalWalletTopUp(props) {
 
   }, [method])
 
+  
+  
+  const SendTopUpNotificationTelegram = async (clientTelegram,transaction) => {
+    const SendNotification = async () => { 
+    await API.sendTelegramTopUpNotification(clientTelegram,transaction)
+      .then((res) => {
+        console.log("telegram message was sent to the user")
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+  SendNotification()
+  };
+
   {/*Should be modified*/ }
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     event.stopPropagation();
-
-
+    let today=new Date()
+    let clientToSendTeleMessage = clients.filter(eachClient=>eachClient.client_id===clientId)
     const newTransaction = Object.assign({}, {
       type: "wallet top-up",
       client_id: clientId,
       method_id: methodId,
       account_num: number,
       amount: amount,
-      date: "14-11-2021",
-      time: "00:00",
+      date: today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(),
+      time: today.getHours()+':'+today.getMinutes() +':'+ today.getSeconds(),
       status: 1
     });
 
-    onSave(newTransaction, amount, clientId)
+   await onSave(newTransaction, amount, clientId)
+    SendTopUpNotificationTelegram(clientToSendTeleMessage[0], newTransaction)
+    setClick(false)
+    //window.location.reload(false);
 
-    // submit a test order.
-    let users = document.getElementById('formUser');
-    let selected_client_id = users.options[users.selectedIndex].id;
-
-    // TODO: once the frontend form is done, obtain the orders array from it and pass it to insertNewOrder.
-    // orders currently has a temporary test order.
-    const orders = [{ product_id: 1, quantity: 8 }, { product_id: 2, quantity: 10 }, { product_id: 10, quantity: 250 }];
-    const new_order = API.insertNewOrder(selected_client_id, orders);
-
-    console.log(new_order.status);
-
-    if (new_order.status === "OK")
-      alert("Order placed successfully!");
-    else
-      alert("Something went wrong while processing your order.");
+    
   };
 
   return (
@@ -69,50 +73,41 @@ function ModalWalletTopUp(props) {
         <Modal.Header closeButton>
           <Modal.Title>Wallet Top-up</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={(event)=>(handleSubmit(event))}>
           <Modal.Body>
             <Form.Group as={Col} controlId="formUser">
 
               <Row>
+                <Col sm={8}>
+                <Form.Label>Select Client</Form.Label>
+                <Dropdown className="d-block mb-3" value={selectedUser.client_id}>
+              <Dropdown.Toggle variant="primary" id="dropdown-basic">
+                Select the desired client
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                {clients.map((c) => (
+                  <Dropdown.Item onClick={() =>{
+                    (setSelectedUser(c))
+                    setClientId(c.client_id)
+
+                  } } key={c.client_id} value={c.client_id} eventKey={c.client_id}><b>{c.name} {c.surname}</b> ({c.email})</Dropdown.Item>
+                ))}
+
+              </Dropdown.Menu>
+            </Dropdown>
+                </Col>
                 <Col sm={4}>
-                  <Form.Label>Select Client</Form.Label>
-                  <Form.Control
-                    as="select"
-                    value={clientId}
-                    onChange={(ev) => {
-                      setClientId(ev.target.value)
-                    }}
-                  >
-                    {
-                      clients.map((client) => {
-                        return (
-                          <option key={`${client.client_id}`} id={`${client.client_id}`}>
-                            {client.client_id}
-                          </option>
-                        )
-                      })
-                    }
-                  </Form.Control>
-                </Col>
-                <Col sm={6}>
-                  <Form.Label>Name & Surname</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="description"
-                    value={`${clients[clientId - 1].name} ${clients[clientId - 1].surname} `}
-                    disabled
-                  />
-                </Col>
-                <Col sm={2}>
                   <Form.Label>Balance</Form.Label>
                   <Form.Control
                     type="text"
                     name="balance"
-                    value={clients[clientId - 1].budget}
+                    value={(selectedUser.client_id !== -1) ? selectedUser.budget  : "0.0"}
                     disabled
                   />
                 </Col>
-
+                {selectedUser.client_id !== -1 ? <h6 className="fw-bold">Wallet top-up for: {selectedUser.name + " " + selectedUser.surname + " " + selectedUser.email}</h6> : ''}
+                
               </Row>
 
 
@@ -130,10 +125,10 @@ function ModalWalletTopUp(props) {
                 }}
               >
                 {
-                  methods.map((method) => {
+                  methods.map((singlemethod) => {
                     return (
                       <option>
-                        {method.method_name}
+                        {singlemethod.method_name}
                       </option>
                     )
                   })
@@ -153,7 +148,7 @@ function ModalWalletTopUp(props) {
                         type="text"
                         name="cardholder"
                         placeholder="Card Holder name"
-                        value={`${clients[clientId - 1].name} ${clients[clientId - 1].surname} `}
+                        value={(selectedUser.client_id !== -1) ? selectedUser.name + " " + selectedUser.surname : "Card Holder"}
                         disabled
                       />
                     </Col>
@@ -162,6 +157,7 @@ function ModalWalletTopUp(props) {
                       <Form.Control
                         type="text"
                         name="cardnumber"
+                        maxLength='16'
                         placeholder="Card Number"
                         value={number}
                         onChange={(ev) => {
@@ -178,6 +174,7 @@ function ModalWalletTopUp(props) {
                         type="text"
                         name="validity"
                         placeholder="MM/YY"
+                        maxLength='5'
                         value={valid}
                         onChange={(ev) => {
                           setValid(ev.target.value)
@@ -187,8 +184,10 @@ function ModalWalletTopUp(props) {
                     <Col sm={4}>
                       <Form.Label>CVV</Form.Label>
                       <Form.Control
-                        type="text"
+                        type="number"
                         name="cvv"
+                        min='0'
+                        max='999'
                         placeholder="CVV"
                         value={cvv}
                         onChange={(ev) => {
@@ -199,8 +198,10 @@ function ModalWalletTopUp(props) {
                     <Col sm={4}>
                       <Form.Label>Amount(€)</Form.Label>
                       <Form.Control
-                        type="text"
+                        type="number"
                         name="amount"
+                        min='0'
+                        max='1000'
                         placeholder="0.0"
                         value={amount}
                         onChange={(ev) => {
@@ -229,6 +230,7 @@ function ModalWalletTopUp(props) {
                         type="text"
                         name="cardnumber"
                         placeholder="Satispay Account Number"
+                        maxLength='16'
                         value={number}
                         onChange={(ev) => {
                           setNumber(ev.target.value)
@@ -239,8 +241,10 @@ function ModalWalletTopUp(props) {
                     <Col sm={4}>
                       <Form.Label>Amount(€)</Form.Label>
                       <Form.Control
-                        type="text"
+                        type="number"
                         name="amount"
+                        min='0'
+                        max='1000'
                         placeholder="0.0"
                         value={amount}
                         onChange={(ev) => {
@@ -267,7 +271,7 @@ function ModalWalletTopUp(props) {
                         type="text"
                         name="cardholder"
                         placeholder="Account Holder name"
-                        value={`${clients[clientId - 1].name} ${clients[clientId - 1].surname} `}
+                        value={(selectedUser.client_id !== -1) ? selectedUser.name + " " + selectedUser.surname : "Account Holder"}
                         disabled
                       />
                     </Col>
@@ -277,6 +281,7 @@ function ModalWalletTopUp(props) {
                         type="text"
                         name="cardnumber"
                         placeholder="IBAN address"
+                        maxLength='16'
                         value={number}
                         onChange={(ev) => {
                           setNumber(ev.target.value)
@@ -304,6 +309,7 @@ function ModalWalletTopUp(props) {
                         type="text"
                         name="SWIF"
                         placeholder="SWIFT code"
+                        maxLength='8'
                         value={cvv}
                         onChange={(ev) => {
                           setCvv(ev.target.value)
@@ -313,8 +319,10 @@ function ModalWalletTopUp(props) {
                     <Col sm={4}>
                       <Form.Label>Amount(€)</Form.Label>
                       <Form.Control
-                        type="text"
+                        type="number"
                         name="amount"
+                        min='0'
+                        max='1000'
                         placeholder="0.0"
                         value={amount}
                         onChange={(ev) => {
@@ -325,6 +333,32 @@ function ModalWalletTopUp(props) {
 
                   </Row>
 
+                </Form.Group>
+
+              </>
+
+            }
+
+             {/*For Cash */}
+             {(method === "Cash") &&
+              <>
+                <Form.Group>
+                  <h5 className="regText" >Enter amount paid in cash</h5>
+                  <Row className="justify-content-md-center">
+                    <Col sm={3}>
+                      <Form.Control
+                        type="number"
+                        name="amount"
+                        min='0'
+                        max='1000'
+                        placeholder="0.0"
+                        value={amount}
+                        onChange={(ev) => {
+                          setAmount(ev.target.value)
+                        }}
+                      />
+                    </Col>
+                  </Row>
                 </Form.Group>
 
               </>
@@ -351,10 +385,13 @@ function EmployeePage(props) {
   const history = useHistory()
   const MODAL = { CLOSED: -2, ADD: -1 };
   const [selectedTask, setSelectedTask] = useState(MODAL.CLOSED);
+  const [clicked, setClicked] = useState(false)
+  const [clickedButtonText, setClickedButtonText] = useState("")
 
   const handleClose = () => {
     setSelectedTask(MODAL.CLOSED);
-
+    setClicked(false)
+    setClickedButtonText("")
   }
 
   const handleSave = (tr, amount, client) => {
@@ -375,78 +412,113 @@ function EmployeePage(props) {
   const [show, setShow] = useState(false);
   let b = "booked";
   return (<>
-    <br />
+    <br/>
+
+{// <div><Button variant="light"style={{'fontSize': 30,'borderStyle':'hidden','backgroundColor':"#ffb6c1",'position':'absolute' , 'right':'30px'}}onClick={props.logout}><Link to="/">LOGOUT</Link></Button></div>
+   }
     <Container fluid>
-      <span className="d-block text-center mt-5 mb-2 display-2">
-        Shop Personnel Area
-      </span>
-      <Row>
-        <Col xs={3} md={2}>
-          <ListGroup variant="flush">
-            <ListGroupItem>
-              <Button variant="light" style={{ 'fontSize': 20, 'borderStyle': 'hidden', 'backgroundColor': "#ffb6c1" }} onClick={() => setShow(true)}>Show products to be delivered</Button>
-            </ListGroupItem>
-            {/*Button for opening a modal form for making a wallet top up */}
-            <ListGroupItem>
-              <Button variant="light" style={{ 'fontSize': 20, 'borderStyle': 'hidden', 'backgroundColor': "#ffb6c1" }}
-                onClick={() => { setShow(false); setSelectedTask(MODAL.ADD) }}
-              > Make a top-up of the client wallet </Button>
-            </ListGroupItem >
-            <ListGroupItem>
-              <Button variant="light" style={{ 'fontSize': 20, 'borderStyle': 'hidden', 'backgroundColor': "#ffb6c1" }}
-                onClick={(event) => {
+    <div >
+    <h3 className="regText">Shop Personnel Area</h3>
+    {/* When one of the cards were pressed */}
+
+   {!clicked && 
+   <>
+   <Row className="mb-3">
+          <div className="col-md-6">
+            <Card className="text-center">
+  <Card.Header>Orders</Card.Header>
+  <Card.Body>
+    <Card.Title>Check orders status</Card.Title>
+    <Card.Text>
+     By clicking this button you can check the list of orders with ordered products and status
+    </Card.Text>
+    <Button variant="primary" onClick={() => {
+      setShow(true)
+      setClicked(true)
+      setClickedButtonText("Orders")
+      }}>Show orders</Button>
+  </Card.Body>
+  <Card.Footer className="text-muted"></Card.Footer>
+</Card>
+                 </div>
+                 <div className="col-md-6">
+            <Card className="text-center">
+  <Card.Header>Client Registration</Card.Header>
+  <Card.Body>
+    <Card.Title>Make a registration of the new Client</Card.Title>
+    <Card.Text>
+     By clicking this button you will be redirected to the Registration page, for registering new client
+    </Card.Text>
+    <Button variant="primary"onClick={(event) => {
                   history.push("/registration")
-                }}
-              > Make a registration for the new client </Button>
-            </ListGroupItem >
-            <ListGroupItem>
-              <Button variant="primary" style={{ 'fontSize': 20, 'borderStyle': 'hidden'}}
-                onClick={(event) => {
+                  setClicked(true)
+                  setClickedButtonText("Client Registration")
+                }}>Go to registration page</Button>
+  </Card.Body>
+  <Card.Footer className="text-muted"></Card.Footer>
+</Card>
+           
+            </div>
+            </Row>
+            <Row className="mb-3">
+            <div className="col-md-6">
+            <Card className="text-center">
+  <Card.Header>Balance Top-up</Card.Header>
+  <Card.Body>
+    <Card.Title>Top-up the balance of the client's wallet</Card.Title>
+    <Card.Text>
+     By clicking this button the wallet top-up form will be opened, where you can modify the balance of the client
+    </Card.Text>
+    <Button variant="primary"onClick={() => { setShow(false); setSelectedTask(MODAL.ADD);  setClicked(true); setClickedButtonText("Balance Top-up") }}>Open top-up form</Button>
+  </Card.Body>
+  <Card.Footer className="text-muted"></Card.Footer>
+</Card>
+            </div>
+
+            <div className="col-md-6">
+            <Card className="text-center">
+  <Card.Header>Ordering on behalf of the Client</Card.Header>
+  <Card.Body>
+    <Card.Title>Make an order for a specific client</Card.Title>
+    <Card.Text>
+     By clicking this button you will be redirected to the page where you can select the client and make an order on behalf of him/her
+    </Card.Text>
+    <Button variant="primary"onClick={(event) => {
                   history.push("/staff-booking")
-                }}
-              > Make order for a client </Button>
-            </ListGroupItem >
-          </ListGroup></Col>
-        {(selectedTask !== MODAL.CLOSED) && <ModalWalletTopUp onSave={handleSave} clients={clients} methods={methods} onClose={handleClose} ></ModalWalletTopUp>}
+                  setClicked(true)
+                  setClickedButtonText("Ordering on behalf of the Client")
+                }}>Open order page</Button>
+  </Card.Body>
+  <Card.Footer className="text-muted"></Card.Footer>
+</Card>
+            </div>  
+            </Row>
+   </>
+   } 
+   
+   {clicked && 
+   <>
+   <Row>
+     <Col sm={4}>  <List size={52} onClick={()=>{
+    setClicked(false)
+    setShow(false)
+  }}></List> </Col>
+  <Col sm={8} > <h3>{clickedButtonText} </h3></Col>
+   </Row>
+ 
+  </>
+   }
 
-        <Col xs={5} md={5}>
-          {show ? <ListGroup variant="flush">
-            <ListGroupItem key={"1000000000000000*"} style={{ 'backgroundColor': "#ffb6c1" }}>
-              <Row>
-                <Col xs={3} md={3}>ORDER_ID</Col>
-                <Col xs={3} md={3}>CLIENT_ID</Col>
-                <Col xs={3} md={3}>PRODUCT</Col>
-                <Col xs={3} md={3}>DELIVER</Col>
-              </Row></ListGroupItem>
-            {props.orders.filter(x => x.state === b).map((s) =>
+      
+            
+        {(selectedTask !== MODAL.CLOSED) && <ModalWalletTopUp setClick={setClicked} onSave={handleSave} clients={clients} methods={methods} onClose={handleClose} ></ModalWalletTopUp>}
 
-              <ListGroupItem key={s.order_id} style={{ 'backgroundColor': "#ffe4e1" }}>
-                <Row><Col xs={3} md={3}>{s.order_id}</Col>
-                  <Col xs={3} md={3}>{s.client_id}</Col>
-                  <Col xs={3} md={3}>{s.product_name}</Col>
-
-
-                  <Col xs={3} md={3}>
-                    <Image src={ris} style={{ 'cursor': 'pointer' }} onClick={() => {
-                      API.updateDelivered(s.order_id).then(() => {
-
-
-                        props.setRecharged(true);
-
-                      })
-                      //api->update state
-                      //set recharged della tabella ordini-clienti
-                    }}></Image>
-                  </Col>
-                </Row>
-              </ListGroupItem>)
-
-            }<ListGroupItem>
-              <Button variant={"light"} style={{ 'borderStyle': 'hidden', 'backgroundColor': "#ffb6c1", 'position': 'absolute', 'right': '15px' }} onClick={() => { setShow(false); }}>Close</Button></ListGroupItem>
-          </ListGroup> : <></>}
-        </Col></Row>
+        <Col >
+          {show ?   //set recharged della tabella ordini-clienti
+                  <DeliverList setRecharged={props.setRecharged} orders={props.orders} clients={clients} setShow={setShow} b={b} time={props.time} />: <></>}
+        </Col>
       <br />
-
+    </div>
     </Container>
 
   </>

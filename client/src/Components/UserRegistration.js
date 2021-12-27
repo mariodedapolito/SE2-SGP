@@ -3,7 +3,7 @@ import { Button, Form, Row, Col } from 'react-bootstrap'
 import { useHistory } from "react-router-dom";
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
-import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
+import { Country, State} from 'country-state-city';
 import API from '../API'
 
 function UserRegistration(props) {
@@ -22,7 +22,12 @@ function UserRegistration(props) {
   const [password1, setPassword1] = useState("")
   const [passwordEqual, setPasswordEqual] = useState(0)
 
-
+  let j, v;
+  if (props.users.length === 0) v = 1;
+  else {
+    j = props.users.map(x => x.id);
+    v = Math.max(...j) + 1;
+  }
   const okayStyle = { color: "green" }
   const noStyle = { color: "red" }
 
@@ -50,9 +55,20 @@ function UserRegistration(props) {
       email: email,
       hash: password1
     });
+    const newUser = ({
+      id: v,
+      name: name,
+      email: email,
+      hash: password1,
+      role: "client"
+    });
 
     try {
-      addClient(newClient)
+      addClient(newClient).then(() => {
+        props.setRecharged(true);
+
+        API.addUser(newUser);
+      });
       setTimeout(() => history.push('/'), 500)
 
     }
@@ -65,32 +81,33 @@ function UserRegistration(props) {
 
   return (
     <>
-      <span className="d-block text-center mt-5 mb-2 display-2">
-        Registration Form
-      </span>
-      <div className="RegistrationForm mt-5">
-        <Form className="p-3" onSubmit={handleSubmit}>
+      
+      <div className="d-block mx-auto my-5 w-75">
+      
+      <div className="d-block text-center border border-secondary rounded-3 shadow w-100">
+      <h3 className="regText">Registration form</h3>
+        <Form onSubmit={handleSubmit} className="m-3">
           {/*Personal information*/}
           <Row>
-            <Col sm={4}>
-              <Form.Group className="mb-3" controlId="formName">
+          <div className="col-md-4">
+              <Form.Group controlId="formName">
                 <Form.Label>Name</Form.Label>
                 <Form.Control type="text" placeholder="type your name..."
                   value={name}
                   onChange={(ev) => setName(ev.target.value)}
                   required />
               </Form.Group>
-            </Col>
-            <Col sm={4}>
-              <Form.Group className="mb-3" controlId="formSurname">
+            </div>
+            <div className="col-md-4">
+              <Form.Group  controlId="formSurname">
                 <Form.Label>Surname</Form.Label>
                 <Form.Control type="text" placeholder="type your surname..."
                   value={surname}
                   onChange={(ev) => setSurname(ev.target.value)}
                   required />
               </Form.Group>
-            </Col>
-            <Col sm={2}>
+           </div>
+           <div className="col-md-2">
               <Form.Label>Male</Form.Label>
               <Form.Group className="mb-3" id="formGridCheckbox">
                 <Form.Check type="checkbox"
@@ -101,8 +118,8 @@ function UserRegistration(props) {
                   }}
                 />
               </Form.Group>
-            </Col>
-            <Col sm={2}>
+           </div>
+           <div className="col-md-2">
               <Form.Label>Female</Form.Label>
               <Form.Group className="mb-3" id="formGridCheckbox">
                 <Form.Check type="checkbox"
@@ -113,11 +130,11 @@ function UserRegistration(props) {
                   }}
                 />
               </Form.Group>
-            </Col>
+            </div>
           </Row>
           {/*Information about birth*/}
           <Row>
-            <Col>
+          <div className="col-md-6">
               <Form.Group className="mb-3" controlId="formName">
                 <Form.Label>Date of Birth</Form.Label>
                 <Form.Control type="date" placeholder="type your name..."
@@ -125,14 +142,14 @@ function UserRegistration(props) {
                   onChange={(ev) => { setDate(ev.target.value) }}
                   required />
               </Form.Group>
-            </Col>
-            <Col>
+            </div>
+            <div className="col-md-6">
               <Form.Group className="mb-3" controlId="formSurname">
                 <Form.Label>Country of Birth</Form.Label>
                 <Form.Control placeholder="Please write your country of birth"
                 />
               </Form.Group>
-            </Col>
+            </div>
 
           </Row>
           <Row>
@@ -142,7 +159,8 @@ function UserRegistration(props) {
           </Row>
 
           <Row className="mb-3">
-            <Form.Group as={Col} controlId="formGridEmail">
+          <div className="col-md-6">
+            <Form.Group  controlId="formGridEmail">
               <Form.Label>Email</Form.Label>
               <Form.Control type="email" placeholder="Enter email"
                 value={email}
@@ -150,8 +168,9 @@ function UserRegistration(props) {
                 required
               />
             </Form.Group>
-
-            <Form.Group as={Col} controlId="formGridEmail">
+            </div>
+            <div className="col-md-6">
+            <Form.Group  controlId="formGridEmail">
               <Form.Label>Phone</Form.Label>
               <PhoneInput
                 placeholder="Enter phone number"
@@ -159,20 +178,27 @@ function UserRegistration(props) {
                 onChange={setPhone}
               />
             </Form.Group>
+            </div>
           </Row>
-          <Row>
+          <Row className="mb-3">
 
             <h5>Residence address</h5>
-            <div className="pet">
-              <Col sm={6}><div className="countReg" ><Form.Label>Country</Form.Label> <CountryDropdown value={country} onChange={(val) => setCountry(val)} /></div> </Col>
-
-
-              <Col sm={6}>   <div className="countReg1"><Form.Label>Region</Form.Label> <RegionDropdown className="countReg" country={country} value={region} onChange={(val) => setRegion(val)} blankOptionLabel="Select Region" /></div>
-              </Col>
-            </div>
-
-
-
+            <div className="col-md-6">
+                  <Form.Select size="lg" value={country} onChange={(event) => (setCountry(event.target.value))}>
+                    <option value="-1">Country</option>
+                    {Country.getAllCountries().map((c) => (
+                      <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+                    ))}
+                  </Form.Select>
+                </div>
+                <div className="col-md-6">
+                  <Form.Select size="lg" value={region} onChange={(event) => (setRegion(event.target.value))}>
+                    <option value="-1">Region</option>
+                    {country !== -1 && State.getStatesOfCountry(country).map((r) => (
+                      <option key={r.isoCode} value={r.isoCode}>{r.name}</option>
+                    ))}
+                  </Form.Select>
+                </div>
 
           </Row>
           <Row>
@@ -238,9 +264,9 @@ function UserRegistration(props) {
 
 
           <div className="subBtn">
-            <Button className="mx-2" variant="danger" type="submit" size="lg"
+            <Button variant="danger" type="submit" size="lg"
               onClick={(event) => {
-                history.push("/")
+                history.push("/employee")
               }}
             >
               Cancel
@@ -252,7 +278,7 @@ function UserRegistration(props) {
 
         </Form>
       </div>
-
+</div>
     </>
   )
 

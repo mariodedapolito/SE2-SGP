@@ -18,17 +18,23 @@ code {
 }
 
 .nav-link{
-  color: black!important;
   border-bottom: 1px solid transparent;
 }
 
 .nav-link:hover{
-  color: white!important;
+  border-bottom: 1px solid white;
+}
+
+.nav-accessory{
+  border-bottom: 1px solid transparent;
+}
+
+.nav-accessory:hover{
+  cursor: pointer;
   border-bottom: 1px solid white;
 }
 
 .navbar-brand{
-  color:black!important;
   font-size: larger;
   font-style: normal;
   letter-spacing: 3px;
@@ -67,15 +73,15 @@ code {
 }
 
 .vertical-separator-frontpage{
-  border-left: solid 1px rosybrown;
+  border-left: solid 1px rgb(68, 68, 68);
 }
 
 .vertical-separator-products{
-  border-right: solid 1px rosybrown;
+  border-right: solid 1px rgb(68 , 68, 68);
 }
 
 .hr-color-custom{
-  color: rosybrown;
+  color: rgb(68, 68, 68);
 }
 
 .carousel-custom-background{
@@ -99,7 +105,11 @@ code {
 }
 
 .farmer-img-custom-dimensions{
-  height: 250px;
+  height: 225px;
+}
+
+.product-img-custom-dimensions{
+  height: 175px;
 }
 
 .product-image-size-custom{
@@ -111,7 +121,7 @@ code {
 }
 
 .bg-color-frontpage{
-  background-color: linen;
+  background-color: rgb(231, 231, 231);
 }
 
 .sticky-button-custom{
@@ -125,8 +135,16 @@ code {
   min-width: 100%;
 }
 
+.height-60vh{
+  max-height: 60vh;
+}
+
 .client-area-450px-width-custom{
   width: 450px!important;
   min-width: 450px!important;
   max-width: 450px!important;
+}
+
+#basic-nav-dropdown{
+  color: white;
 }

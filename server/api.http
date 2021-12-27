@@ -1,10 +1,46 @@
 ### Update number of responders
 
-PUT http://localhost:3001/api/clients/update/balance/1/10
+PUT http://localhost:3001/api/farmerConfirm/57/2021/1
+
+
+### send telegram notification about updates
+POST http://localhost:3001/api/SendTelegramNotification
+Content-Type: application/json
+
+{ }
+
+### send telegram notification about insufficient balance
+POST http://localhost:3001/api/SendTelegramNotificationForInsufficientBalance
+Content-Type: application/json
+
+{ }
 
 
 ### Adding new transaction
-POST http://localhost:3001/api/transactions
+GET http://localhost:3001/api/clientsOrdersWithTelegram
+
+
+### API for telegram
+
+GET https://api.telegram.org/bot5048293827:AAGa6eTGLM24v30dNJFVdjZljR8EYS-xNHA/getUpdates
+
+
+### get webhooks
+
+GET https://api.telegram.org/bot5048293827:AAGa6eTGLM24v30dNJFVdjZljR8EYS-xNHA/getWebhookInfo
+
+
+### Adding new transaction
+POST https://api.telegram.org/bot5048293827:AAGa6eTGLM24v30dNJFVdjZljR8EYS-xNHA/sendMessage
 Content-Type: application/json
 
-{ "type":"top-up", "client_id":1, "method_id":1, "account_num":"4217484694987474","amount":10, "date":"14-11-2021", "time":"15:44", "status":1 }
+{ "chat_id": "-787241646", "text":"Hello from the bot" }
+
+
+
+### Adding new transaction
+POST http://localhost:3001/api/topUpNotificationTelegram
+Content-Type: application/json
+
+{ "balance": "150", "telegramId":"836952271" }
+
