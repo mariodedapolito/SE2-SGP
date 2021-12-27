@@ -556,6 +556,7 @@ function App() {
             render={() =>
               logged ? (
                 <Fbookings
+                clients={clients}
                   orders={orders}
                   time={time}
                   setRecharged={updateRech}

@@ -130,9 +130,11 @@ function Frontpage(props) {
                     </div>
                     <ul className="list-group list-group-flush">
                         <li className="list-group-item d-flex justify-content-between">
-                            <p>
-                                A map image should go here
-                            </p>
+                            <img
+                                className="d-block w-100 rounded"
+                                alt="Map location"
+                                src={process.env.PUBLIC_URL + "Frontpage/map-image.png"}
+                            />
                         </li>
                     </ul>
                 </div>
