@@ -683,6 +683,26 @@ app.get('/api/provider-products', async (req, res) => {
     res.json(err);
   }
 });
+
+//Get provider bookings
+app.get('/api/provider-bookings', async (req, res) => {
+  if (!req.isAuthenticated() || req.user.role !== 'farmer') {
+    res.status(401).json({ error: 'Unauthorized user' });
+    return;
+  }
+
+  try {
+    const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
+    const providerBookings = await providersDAO.getProviderBookings(
+      provider_id
+    );
+    res.json(providerBookings);
+  } catch (err) {
+    console.log(err);
+    res.json(err);
+  }
+});
+
 app.post('/api/neworder', async (req, res) => {
   try {
     const client_id = req.body.client_id;

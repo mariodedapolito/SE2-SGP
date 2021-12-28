@@ -80,6 +80,41 @@ exports.getProviderExistingProducts = (provider_id) => {
         });
     });
 };
+
+//get-> retrieve all client orders
+exports.getProviderBookings = (provider_id) => {
+    return new Promise((resolve, reject) => {
+      const sql = 'SELECT * FROM orders, products WHERE provider_id=? AND orders.product_id=products.product_id';
+  
+      db.all(sql, [provider_id], (err, rows) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        const bookings = rows.map((e) => ({
+          order_id: e.order_id,
+          client_id: e.client_id,
+          product_name: e.product_name,
+          product_id: e.product_id,
+          product_unit: e.product_unit,
+          order_quantity: e.order_quantity,
+          state: e.state,
+          farmer_state: e.farmer_state,
+          OrderPrice: e.OrderPrice,
+          id: e.id,
+          address: e.address,
+          city: e.city,
+          zipcode: e.zipcode,
+          Nation: e.Nation,
+          date: e.date,
+          time: e.time,
+          pickup: e.pickup
+        }));
+        resolve(bookings);
+      });
+    });
+  };
+
 exports.getProviderProductsNotification = (provider_id) => {
     return new Promise((resolve, reject) => {
         const product_status = 'confirmed';

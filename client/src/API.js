@@ -323,6 +323,18 @@ async function getProviderProducts() {
     throw err; // An object with the error coming from the server
   }
 }
+
+//GET provider products by providerID + readme ok
+async function getProviderBookings() {
+  const response = await fetch('/api/provider-bookings');
+  if (response.ok) {
+    return await response.json();
+  } else {
+    let err = { status: response.status, errObj: await response.json() };
+    throw err; // An object with the error coming from the server
+  }
+}
+
 //GET provider products by providerID that are not available and notification filed is equal to zero.
 async function getProviderProductsNotification() {
   const response = await fetch('/api/provider-products-notification');
@@ -1050,6 +1062,7 @@ const API = {
   getProviderById,
   getProviderProducts,
   getProviderExpectedProducts,
+  getProviderBookings,
   getProviderConfirmationStatus,
   declareAvailability,
   uploadProductImage,
