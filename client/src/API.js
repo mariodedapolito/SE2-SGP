@@ -44,7 +44,21 @@ async function getAllOrders() {
     }
   }
 }
-
+//GET ->retrieve products
+async function getAllProducts() {
+  const response = await fetch('/api/products');
+  if (response.ok) {
+    const responseAllProducts = await response.json()
+    return responseAllProducts;
+  } else {
+    try {
+      const err = await response.json();
+      throw err.message;
+    } catch (err) {
+      throw err;
+    }
+  }
+}
 //GET ->retrieve client orders
 async function getProviderDeliveredOrders(id) {
   const response = await fetch(`/api/provider-orders/${id}`);
@@ -1037,6 +1051,7 @@ async function getOrderAndClientData() {
 }
 const API = {
   getAllClients,
+  getAllProducts,
   getAllOrders,
   updateDelivered,
   updateWHPrepared,
