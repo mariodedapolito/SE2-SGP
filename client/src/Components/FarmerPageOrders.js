@@ -19,37 +19,29 @@ function Fbookings(props) {
 
   /* Create orders array to show in table*/
   useEffect(() => {
+    let data = dayjs(props.time.date);
+  
+    let array1=props.products.filter(x => x.providerId===props.providerid).map(x=>x.id);
+    
+    let filteredOrders=props.orders.filter(x=>array1.includes(x.product_id));
+    let m = filteredOrders.filter(x => x.state === "booked" && dayjs(`${x.date}`).isSame(data)).map(s => s.order_id).filter(onlyUnique);
+    m.reverse();
 
-    const getBookings = async () => {
-      setLoading(true);
-      const bookings = await API.getProviderBookings();
+    let ords = [];
+    props.orders.forEach(o => {
+      if (m.find(x => (parseInt(x) === parseInt(o.order_id)))) {
+        let id1 = m[m.length - 1];
+        let array = props.orders.filter(x => x.order_id === id1).map(x => x.OrderPrice);
+        let sum = 0;
+        for (const a of array) { sum = sum + a; }
 
-      setAllOrders(bookings);
+        sum = sum.toFixed(2);
+        m.pop();
 
-      let data = dayjs(props.time.date);
-      let i = data.get('week');
-
-      let m = bookings.filter(x => x.state === "booked" && dayjs(`${x.date}`).get('week') === i).map(s => s.order_id).filter(onlyUnique);
-      m.reverse();
-
-      let ords = [];
-      bookings.forEach(o => {
-        if (m.find(x => (parseInt(x) === parseInt(o.order_id)))) {
-          let id1 = m[m.length - 1];
-          let array = bookings.filter(x => x.order_id === id1).map(x => x.OrderPrice);
-          let sum = 0;
-          for (const a of array) { sum = sum + a; }
-
-          sum = sum.toFixed(2);
-          m.pop();
-
-          ords.push({ ...o, sum: sum });
-        }
-      });
-      setOrders(ords);
-      setLoading(false);
-    }
-    getBookings();
+        ords.push({ ...o, sum: sum });
+      }
+    });
+    setOrders(ords);
   }, [props.time.date])
 
   const handleClose = (x) => setShow(x);
@@ -70,50 +62,42 @@ function Fbookings(props) {
           Bookings
         </span>
         <h5 className="d-block mx-auto mb-5 text-center text-muted">
-          Choose a date clicking on the clock up above to see all the orders of that week
+          Choose a date clicking on the clock up above to see only the orders of that day containing the products i can provide as a farmer 
         </h5>
 
         <div className="col-lg-2"></div>
         <div className="col-lg-8">
-          {loading &&
-            <Spinner animation="grow" />
-          }
+          <table className="mx-3 text-center table table-striped table-hover table-responsive">
+            <thead >
+              <tr>
+                <th>Order ID</th>
+                <th>Client</th>
+                <th>Total</th>
+                <th>Purchase Type</th>
+                <th>Date & Time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-          {!loading &&
-            <table className="mx-3 text-center table table-striped table-hover table-responsive">
-              <thead >
-                <tr>
-                  <th>Order ID</th>
-                  <th>Client</th>
-                  <th>Total</th>
-                  <th>Purchase Type</th>
-                  <th>Date & Time</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
+            <tbody>
+              {orders.map((s) => (
+                <tr key={s.id}>
+                  <td className="align-middle">{s.order_id}</td>
+                  <td className="align-middle">{props.clients.find((c) => (c.client_id === s.client_id)) ? props.clients.find((c) => (c.client_id === s.client_id)).name + " " + props.clients.find((c) => (c.client_id === s.client_id)).surname : "Unknown"}</td>
+                  <td className="align-middle">{s.sum}€</td>
+                  <td className="align-middle">{s.pickup === 0 ? "Delivery" : "Pick up"}</td>
+                  <td className="align-middle">{dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}</td>
+                  <td className="align-middle">
+                    <Button className="btn btn-primary" onClick={() => { setShow(true); setId(s.order_id); }}>
+                      Show ordered products
+                    </Button>
+                  </td>
+                </tr>)
+              )}
+            </tbody>
+          </table>
 
-              <tbody>
-                {orders.map((s) => (
-                  <tr key={s.id}>
-                    <td className="align-middle">{s.order_id}</td>
-                    <td className="align-middle">{props.clients.find((c) => (c.client_id === s.client_id)) ? props.clients.find((c) => (c.client_id === s.client_id)).name + " " + props.clients.find((c) => (c.client_id === s.client_id)).surname : "Unknown"}</td>
-                    <td className="align-middle">{s.sum}€</td>
-                    <td className="align-middle">{s.pickup === 0 ? "Delivery" : "Pick up"}</td>
-                    <td className="align-middle">{dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}</td>
-                    <td className="align-middle">
-                      <Button className="btn btn-primary" onClick={() => { setShow(true); setId(s.order_id); }}>
-                        Show ordered products
-                      </Button>
-                    </td>
-                  </tr>)
-                )}
-              </tbody>
-            </table>
-          }
-
-          {orders.length === 0 && !loading &&
-            <div className='d-block my-3 text-center'>You have not yet received any orders for this week.</div>
-          }
+          {orders.length === 0 && <div className='d-block my-3 text-center'>You have not yet received any orders for this day.</div>}
 
         </div>
         <div className="col-lg-2"></div>
@@ -128,7 +112,11 @@ function Fbookings(props) {
 
         <Modal.Body>
           <ul className="list-group">
-            {allOrders.filter(x => (x.state === "booked") && (x.order_id === id)).map((s) => (
+            {props.orders.filter(x => (x.state === "booked") && (x.order_id === id)).map((s) => {
+               if (!props.products.filter(x => x.providerId===props.providerid).map(x=>x.id).find(x=>x===s.product_id))
+                   {
+                    return <li key={s.product_id}style={{ display: "none" }}></li> }
+          else {return <>
               <li key={s.product_id} className="list-group-item">
                 <div className="row">
                   <div className="col-md-1 mb-2 my-auto">
@@ -153,9 +141,9 @@ function Fbookings(props) {
                     {priceIcon} {s.OrderPrice}€
                   </div>
                 </div>
-              </li>
+              </li></>}}
             )
-            )}
+            }
           </ul>
         </Modal.Body>
         <Modal.Footer>

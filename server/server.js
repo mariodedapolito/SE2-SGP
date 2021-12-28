@@ -472,6 +472,19 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+//GET all products
+app.get('/api/products', async (req, res) => {
+  try {
+    const m = await productsDAO.getAllProducts();
+    return res.status(200).json(m);
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      error: 'Database error during the retrieve of the list of orders.',
+    });
+  }
+});
+
 // PUT update state
 app.put('/api/modifyState', async (req, res) => {
   ordersDao

@@ -14,6 +14,37 @@ exports.setTestDB = (db_name) => {
   });
 };
 
+exports.getAllProducts = () => {
+  return new Promise((resolve, reject) => {
+   
+    const sql =
+      'SELECT * FROM products';
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        reject(err);
+      }
+      const products = rows.map((p) => ({
+        id: p.product_id,
+        name: p.product_name,
+        description: p.product_description,
+        category: p.category_name,
+        price: p.product_price,
+        unit: p.product_unit,
+        quantity: p.product_quantity,
+        expiryDate: p.product_expiry,
+        providerId: p.provider_id,
+        providerName: p.provider_name,
+        year: p.year,
+        week: p.week_number,
+        status: p.product_status,
+        active: p.notified,
+      }));
+      resolve(products);
+    });
+  });
+};
+
+
 exports.getAllConfirmedProducts = (year, week) => {
   return new Promise((resolve, reject) => {
     const product_status = 'confirmed';
