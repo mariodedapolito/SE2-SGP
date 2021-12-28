@@ -42,11 +42,13 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [clients, setClients] = useState([]);
   const [confirmedProducts, setConfirmedProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [expectedProducts, setExpectedProducts] = useState([]);
   const [update, setUpdate] = useState(false); //used when an order is confirmed in order to update the quantity
   const [methods, setMethods] = useState([]);
   const [message, setMessage] = useState('');
   const [userid, setUserid] = useState();
+  const [providerid,setProviderid] = useState();
   const [logged, setLogged] = useState(false);
   const [providers, setProviders] = useState();
   const [users, setUsers] = useState([]);
@@ -163,6 +165,19 @@ function App() {
     };
     getAllConfirmedProducts();
   }, [update]);
+/*USEFFECT products*/
+  useEffect(() => {
+    const getAllProducts = async () => {
+      await API.getAllProducts()
+        .then((res) => {
+          setProducts(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+    getAllProducts();
+  }, []);
 
   /*USEFFECT for expected products*/
   useEffect(() => {
@@ -256,6 +271,12 @@ function App() {
           .map((x) => x.client_id);
         id = index[0];
       } else id = user.id;
+ 
+       if(user.role==="farmer"){
+       let y=providers.filter(x=>x.name===user.name).map(x=>x.id);
+       let p=y[0];
+       setProviderid(p);
+                               } 
 
       setUserid(id);
       setUserRole(user.role);
@@ -556,6 +577,9 @@ function App() {
             render={() =>
               logged ? (
                 <Fbookings
+                
+                 providerid={providerid}
+                products={products}
                 clients={clients}
                   orders={orders}
                   time={time}
