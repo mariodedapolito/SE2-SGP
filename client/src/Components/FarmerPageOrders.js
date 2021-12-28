@@ -12,9 +12,7 @@ function onlyUnique(value, index, self) {
 function Fbookings(props) {
 
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [id, setId] = useState();
-  const [allOrders, setAllOrders] = useState([]);
   const [orders, setOrders] = useState([]);
 
   /* Create orders array to show in table*/
