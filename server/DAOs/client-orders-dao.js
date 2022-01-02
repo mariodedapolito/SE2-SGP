@@ -173,7 +173,7 @@ exports.changeState = async (id, state) => {
 
   return new Promise((resolve, reject) => {
     const sql =
-      'UPDATE orders SET  state=? WHERE order_id=? ';
+      'UPDATE orders SET state=? WHERE order_id=? ';
     db.run(
       sql,
       [
