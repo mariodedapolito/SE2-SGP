@@ -60,6 +60,8 @@ function App() {
   const [userMail, setUserMail] = useState('');
   const [userName, setUserName] = useState('');
 
+  const [authAlert, setAuthAlert] = useState(null);
+
   const updateRech = (x) => {
     setRecharged(x);
   };
@@ -107,7 +109,6 @@ function App() {
   }, [recharged1]);
 
   /* USEFFECT providers */
-
   useEffect(() => {
     const getAllProviders = async () => {
       await API.getAllProviders()
@@ -214,8 +215,6 @@ function App() {
   }
 
   /* USEFFECT Telegram Notification */
-
-
   useEffect(() => {
     let dayOfWeek = dayjs(time.date).day()
     if ((dayOfWeek === 6) && (time.hour === "09:00")) {
@@ -287,6 +286,8 @@ function App() {
       setUserMail(user.username);
       setUserName(user.name);
 
+      setAuthAlert({variant: "success", msg: "Welcome, "+user.name+"! The login was successful."});
+
       if (user.role === 'client') {
         return <Redirect to="/client" />;
       } else if (user.role === 'employee') {
@@ -303,12 +304,15 @@ function App() {
         return <Redirect to="/manager" />;
       }
     } catch (err) {
-      setMessage(`"${err}"`);
+      setMessage(err+". Please try again.");
     }
   };
 
   const doLogOut = async () => {
     await API.logOut();
+
+    
+    setAuthAlert({variant: "danger", msg: "Goodbye, "+userName+"! We hope to see you soon."});
 
     setLogged(false);
     setUserRole('');
@@ -331,22 +335,18 @@ function App() {
         userMail={userMail}
         setTime={setTime}
       />
-      {message !== '' &&
-        (<Container className="p-2 m-2">
-          <Row className="justify-content-md-center">
-            <Alert
-              variant="danger"
-              style={{
-                fontSize: 25,
-              }}
-              onClose={() => setMessage('')}
-              dismissible
-            >
-              {message}
-            </Alert>
-          </Row>
-        </Container>
-        )
+      
+      {authAlert &&
+        <Row style={{position: 'absolute', zIndex: 1000, marginTop: 20, right: 10}} className="text-end me-2">
+          <Alert
+            variant={authAlert.variant}
+            className='d-inline my-3 mx-2'
+            dismissible={true}
+            onClose={() => setAuthAlert(null)}
+          >
+            {authAlert.msg}
+          </Alert>
+        </Row>
       }
 
       <div className="container-fluid w-100">
@@ -689,6 +689,8 @@ function App() {
                 userRole={userRole}
                 clients={clients}
                 users={users}
+                message={message}
+                setMessage={setMessage}
               />
             )}
           />
@@ -717,7 +719,7 @@ function App() {
               <UserRegistration users={users} setRecharged={updateRech1} />
             )}
           />
-          <Route path="/" render={() => <Frontpage logged={logged} userRole={userRole} />} />
+          <Route path="/" render={() => <Frontpage logout={doLogOut} logged={logged} userRole={userRole} userName={userName} userMail={userMail} />} />
         </Switch>
       </div>
     </Router>

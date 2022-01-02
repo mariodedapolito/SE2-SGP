@@ -1,11 +1,30 @@
 import { useState } from "react";
-import { Button, Row, Carousel } from "react-bootstrap";
+import { Button, Row, Carousel, Alert } from "react-bootstrap";
 import { Link, useHistory } from "react-router-dom"
 
 function Frontpage(props) {
 
     const logged = props.logged;
     const userRole = props.userRole;
+    const userName = props.userName;
+    const userMail = props.userMail;
+
+    const getUserAccountType = () => {
+        if (userRole === 'client') {
+            return "Client";
+        } else if (userRole === 'employee') {
+            return "Shop employee";
+        } else if (userRole === 'farmer') {
+            return "Farmer";
+        } else if (userRole === 'warehouse-employee') {
+            return "Warehouse employee";
+        } else if (userRole === 'warehouse-manager') {
+            return "Warehouse manager";
+        } else if (userRole === 'delivery-personnel') {
+            return "Delivery employee";
+        }
+        return "Unknown"
+    }
 
     const history = useHistory()
     return (
@@ -14,15 +33,28 @@ function Frontpage(props) {
             <div className="col-lg-4">
                 <br />
                 <br />
+                {logged && <Alert variant="success">
+                    <Alert.Heading>Nice to see you {userName}!</Alert.Heading>
+                    <p>
+                        We hope you are having an awesome day.<br />
+                        Below you can find links to easily navigate the website without any hussles.
+                    </p>
+                    {(userRole === 'client' || userRole === 'farmer') && <>
+                        <hr />
+                        <p className="mb-0">
+                            If you need help with anything do not hesitate to contact us.
+                        </p>
+                    </>}
+                </Alert>}
                 {!logged && <div className="card mx-3 my-2 shadow">
                     <div className="card-header">
-                        <h5 className="my-auto">{userIcon} Clients</h5>
+                        <h5 className="lead my-auto">{userIcon} Clients</h5>
                     </div>
                     <ul className="list-group list-group-flush">
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Client area</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary"
+                                <button className="mx-2 btn btn-outline-dark"
                                     onClick={() => {
                                         history.push("/login")
                                     }}>Login</button>
@@ -31,9 +63,9 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Don't have an account? </div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-secondary" onClick={(event) => {
+                                <button className="mx-2 btn btn-outline-primary" onClick={(event) => {
                                     history.push("/registration")
-                                }}>Register</button>
+                                }}>Sign up here</button>
                             </div>
                         </li>
                     </ul>
@@ -46,7 +78,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Client area</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary"
+                                <button className="mx-2 btn btn-outline-dark"
                                     onClick={() => {
                                         history.push("/client")
                                     }}>Go</button>
@@ -55,7 +87,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Browse products</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/booking")
                                 }}>Go</button>
                             </div>
@@ -63,7 +95,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Next week products</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/products-next-week")
                                 }}>Go</button>
                             </div>
@@ -71,7 +103,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">My orders</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/products-next-week")
                                 }}>Go</button>
                             </div>
@@ -86,7 +118,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Farmer area</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary"
+                                <button className="mx-2 btn btn-outline-dark"
                                     onClick={() => {
                                         history.push("/login")
                                     }}>Login</button>
@@ -95,7 +127,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Want to work with us?</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-secondary" onClick={(event) => {
+                                <button className="mx-2 btn btn-outline-primary" onClick={(event) => {
                                     history.push("/farmer-apply")
                                 }}>Apply here</button>
                             </div>
@@ -110,7 +142,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Farmer area</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary"
+                                <button className="mx-2 btn btn-outline-dark"
                                     onClick={() => {
                                         history.push("/farmer")
                                     }}>Go</button>
@@ -119,7 +151,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Declare availability</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/declare-availability")
                                 }}>Go</button>
                             </div>
@@ -127,7 +159,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Confirm availability</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/order-confirmation-farmer")
                                 }}>Go</button>
                             </div>
@@ -135,7 +167,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Order preparation</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/order-preparation")
                                 }}>Go</button>
                             </div>
@@ -143,7 +175,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">My bookings</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
                                     history.push("/see-bookings")
                                 }}>Go</button>
                             </div>
@@ -158,7 +190,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Store personnel</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary"
+                                <button className="mx-2 btn btn-outline-dark"
                                     onClick={() => {
                                         history.push("/login")
                                     }}>Login</button>
@@ -167,7 +199,7 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Warehouse personnel</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={(event) => {
+                                <button className="mx-2 btn btn-outline-dark" onClick={(event) => {
                                     history.push("/login")
                                 }}>Login</button>
                             </div>
@@ -175,8 +207,139 @@ function Frontpage(props) {
                         <li className="list-group-item d-flex justify-content-between">
                             <div className="d-inline my-auto">Delivery personnel</div>
                             <div className="d-inline">
-                                <button className="mx-2 btn btn-outline-primary" onClick={() => (history.push("/login"))}>Login</button>
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => (history.push("/login"))}>Login</button>
                             </div>
+                        </li>
+                    </ul>
+                </div>}
+                {logged && userRole === 'employee' && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header d-flex justify-content-between">
+                        <h5 className="d-inline my-auto">{producerIcon} Shop employee dashboard</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Staff area</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark"
+                                    onClick={() => {
+                                        history.push("/employee")
+                                    }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Register client</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
+                                    history.push("/dregistration")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Place order for client</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
+                                    history.push("/staff-booking")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>}
+                {logged && userRole === 'warehouse-manager' && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header d-flex justify-content-between">
+                        <h5 className="d-inline my-auto">{producerIcon} Warehouse manager dashboard</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Warehouse manager area</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark"
+                                    onClick={() => {
+                                        history.push("/warehouse-manager")
+                                    }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">View pick-up schedule</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
+                                    history.push("/warehouse-orders")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Manage farmer shipments</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
+                                    history.push("/warehouse-shipments")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>}
+                {logged && userRole === 'warehouse-employee' && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header d-flex justify-content-between">
+                        <h5 className="d-inline my-auto">{producerIcon} Warehouse employee dashboard</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Warehouse employee area</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark"
+                                    onClick={() => {
+                                        history.push("/warehouse-manager")
+                                    }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Manage order preparation</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
+                                    history.push("/warehouse-prepare")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>}
+                {logged && userRole === 'delivery-personnel' && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header d-flex justify-content-between">
+                        <h5 className="d-inline my-auto">{producerIcon} Delivery personnel dashboard</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Delivery personnel area</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark"
+                                    onClick={() => {
+                                        history.push("/delivery")
+                                    }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Manage order preparation</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-dark" onClick={() => {
+                                    history.push("/warehouse-prepare")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>}
+                {logged && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header d-flex justify-content-between">
+                        <h5 className="d-inline my-auto">{userIcon} My account</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">{userName}</div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">{userMail}</div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">{getUserAccountType()} account</div>
+                        </li>
+                        <li className="list-group-item text-center">
+                            <button className="btn btn-outline-secondary w-100" onClick={() => { props.logout(); history.push("/") }}>Logout</button>
                         </li>
                     </ul>
                 </div>}
@@ -191,7 +354,7 @@ function Frontpage(props) {
                     </div>
                 </div>}
                 <hr></hr>
-                <div className="card mx-3 my-5 shadow">
+                {!logged && <div className="card mx-3 my-5 shadow">
                     <div className="card-header d-flex justify-content-between">
                         <h5 className="d-inline my-auto">{aboutUs} A little bit more about us</h5>
                     </div>
@@ -215,9 +378,9 @@ function Frontpage(props) {
                             </p>
                         </li>
                     </ul>
-                </div>
-                <hr />
-                <div className="card mx-3 my-5 shadow">
+                </div>}
+                {!logged && <hr />}
+                {!logged && <div className="card mx-3 my-5 shadow">
                     <div className="card-header d-flex justify-content-between">
                         <h5 className="d-inline my-auto">{ourLocation} Where to find us</h5>
                     </div>
@@ -230,7 +393,7 @@ function Frontpage(props) {
                             />
                         </li>
                     </ul>
-                </div>
+                </div>}
             </div>
             <div className="col-lg-8 vertical-separator-frontpage">
                 <div className="text-center mt-5 mb-3">

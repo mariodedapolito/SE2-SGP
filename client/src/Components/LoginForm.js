@@ -5,11 +5,10 @@ import { Redirect, Link } from 'react-router-dom';
 function LoginForm1(props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        setErrorMessage('');
+        props.setMessage('');
 
         const credentials = { username, password };
 
@@ -21,14 +20,14 @@ function LoginForm1(props) {
             props.login(credentials);
         }
         else {
-            setErrorMessage('Insert Password and/or Email ')
+            props.setMessage('Insert a valid Email and Password and try again')
         }
     };
 
     const handleClear = () => {
         setUsername('');
         setPassword('');
-        setErrorMessage('');
+        props.setMessage('');
     }
 
     if (props.logged) {
@@ -73,19 +72,24 @@ function LoginForm1(props) {
     return (
         <Container fluid="lg">
             <Row className="justify-content-md-center">
-                <Col lg={4} />
-                <Col lg={4} className="mb-5">
+                <Col lg={3} />
+                <Col lg={6} className="mb-5">
                     <span className="d-block text-center mt-5 mb-2 display-2">
                         SPG Login
                     </span>
                     <h5 className="d-block mx-auto mb-5 text-center text-muted">
                         Enter your credentials below
                     </h5>
+                    {props.message !== '' &&
+                        (<Alert variant="danger" className='text-center' onClose={() => props.setMessage('')} dismissible>
+                            {props.message}
+                        </Alert>
+                        )
+                    }
                     <div className="d-block text-center mb-3">
                         Don't have an account yet? <Link to="/registration">Client sign up</Link>
                     </div>
                     <Form className="mx-auto d-block text-start">
-                        {errorMessage ? <Alert variant='danger'>{errorMessage}</Alert> : <></>}
 
                         <Form.Group controlId='username'>
                             <Form.Label style={{ 'fontSize': 25 }}>Email</Form.Label>
@@ -107,7 +111,7 @@ function LoginForm1(props) {
                         Want to work with us? <Link to="/farmer-apply">Apply here</Link>
                     </div>
                 </Col>
-                <Col lg={4} />
+                <Col lg={3} />
             </Row>
         </Container>
     );
