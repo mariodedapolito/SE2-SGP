@@ -286,7 +286,7 @@ function App() {
       setUserMail(user.username);
       setUserName(user.name);
 
-      setAuthAlert({variant: "success", msg: "Welcome, "+user.name+"! The login was successful."});
+      setAuthAlert({ variant: "success", msg: "Welcome, " + user.name + "! The login was successful." });
 
       if (user.role === 'client') {
         return <Redirect to="/client" />;
@@ -304,15 +304,15 @@ function App() {
         return <Redirect to="/manager" />;
       }
     } catch (err) {
-      setMessage(err+". Please try again.");
+      setMessage("Oops! Could not perform login. Please try again later.");
     }
   };
 
   const doLogOut = async () => {
     await API.logOut();
 
-    
-    setAuthAlert({variant: "danger", msg: "Goodbye, "+userName+"! We hope to see you soon."});
+
+    setAuthAlert({ variant: "danger", msg: "Goodbye, " + userName + "! We hope to see you soon." });
 
     setLogged(false);
     setUserRole('');
@@ -335,9 +335,9 @@ function App() {
         userMail={userMail}
         setTime={setTime}
       />
-      
+
       {authAlert &&
-        <Row style={{position: 'absolute', zIndex: 1000, marginTop: 20, right: 10}} className="text-end me-2">
+        <Row style={{ position: 'absolute', zIndex: 1000, marginTop: 20, right: 10 }} className="text-end me-2">
           <Alert
             variant={authAlert.variant}
             className='d-inline my-3 mx-2'
