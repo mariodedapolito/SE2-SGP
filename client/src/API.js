@@ -182,7 +182,7 @@ function updateState(id, state) {
 
 //update farmer state of a product of an order
 
-function updateStateFarmer(id, product_name, state) {
+function updateStateFarmer(id, product_id, state) {
   return new Promise((resolve, reject) => {
     fetch(`/api/modifyStateFarmer`, {
       method: 'PUT',
@@ -191,7 +191,7 @@ function updateStateFarmer(id, product_name, state) {
       },
       body: JSON.stringify({
         id: id,
-        product_name: product_name,
+        product_id: product_id,
         state: state,
       }),
     })

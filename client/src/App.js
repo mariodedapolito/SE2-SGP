@@ -7,7 +7,6 @@ import Orders from './Components/Orders';
 import { clientOrders } from './classes/ClientOrder';
 import API from './API';
 import EmployeePage from './Components/EmployeePage';
-import WarehousePage from './Components/WarehousePage';
 import UserRegistration from './Components/UserRegistration';
 import { useState, useEffect } from 'react';
 import { Container, Alert, Row, Button } from 'react-bootstrap';
@@ -29,6 +28,11 @@ import ManagerArea from './Components/ManagerArea';
 import dayjs from 'dayjs';
 import DeliveryPage from './Components/DeliveryPage';
 import Fbookings from './Components/FarmerPageOrders';
+import WarehouseManagerArea from './Components/WarehouseManagerArea';
+import WarehouseEmployeeArea from './Components/WarehouseEmployeeArea';
+import WarehouseManagerOrders from './Components/WarehouseManagerOrders';
+import WarehouseManagerShipments from './Components/WarehouseManagerShipments';
+import WarehouseEmployeePrepare from './Components/WarehouseEmployeePrepare';
 
 let r = [];
 
@@ -48,7 +52,7 @@ function App() {
   const [methods, setMethods] = useState([]);
   const [message, setMessage] = useState('');
   const [userid, setUserid] = useState();
-  const [providerid,setProviderid] = useState();
+  const [providerid, setProviderid] = useState();
   const [logged, setLogged] = useState(false);
   const [providers, setProviders] = useState();
   const [users, setUsers] = useState([]);
@@ -165,7 +169,7 @@ function App() {
     };
     getAllConfirmedProducts();
   }, [update]);
-/*USEFFECT products*/
+  /*USEFFECT products*/
   useEffect(() => {
     const getAllProducts = async () => {
       await API.getAllProducts()
@@ -209,12 +213,12 @@ function App() {
       });
   }
 
-   /* USEFFECT Telegram Notification */
+  /* USEFFECT Telegram Notification */
 
 
-   useEffect(() => {
-     let dayOfWeek= dayjs(time.date).day()
-     if((dayOfWeek===6) && (time.hour==="09:00")){
+  useEffect(() => {
+    let dayOfWeek = dayjs(time.date).day()
+    if ((dayOfWeek === 6) && (time.hour === "09:00")) {
       const SendNotification = async () => {
         await API.sendTelegramNotificationOnSaturday()
           .then((res) => {
@@ -225,9 +229,9 @@ function App() {
           });
       };
       SendNotification()
-     }
+    }
 
-     if(time.hour==="10:00"){
+    if (time.hour === "10:00") {
       const SendNotificationAboutInsufficientBalance = async () => {
         await API.sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10()
           .then((res) => {
@@ -238,9 +242,9 @@ function App() {
           });
       };
       SendNotificationAboutInsufficientBalance()
-     }
-    
-    
+    }
+
+
   }, [time]);
 
   function topUpBalance(amount, client) {
@@ -271,12 +275,12 @@ function App() {
           .map((x) => x.client_id);
         id = index[0];
       } else id = user.id;
- 
-       if(user.role==="farmer"){
-       let y=providers.filter(x=>x.name===user.name).map(x=>x.id);
-       let p=y[0];
-       setProviderid(p);
-                               } 
+
+      if (user.role === "farmer") {
+        let y = providers.filter(x => x.name === user.name).map(x => x.id);
+        let p = y[0];
+        setProviderid(p);
+      }
 
       setUserid(id);
       setUserRole(user.role);
@@ -436,6 +440,7 @@ function App() {
                   orders={orders}
                   clients={clients}
                   methods={methods}
+                  products={products}
                   mail={userMail}
                   addTr={addTransaction}
                   topUp={topUpBalance}
@@ -453,8 +458,9 @@ function App() {
             exact
             render={() =>
               logged ? (
-                <WarehousePage
-                  userRole="warehouse-employee"
+                <WarehouseEmployeeArea
+                  userName={userName}
+                  userMail={userMail}
                   orders={orders}
                   providers={providers}
                   methods={methods}
@@ -471,13 +477,65 @@ function App() {
             exact
             render={() =>
               logged ? (
-                <WarehousePage
-                  userRole="warehouse-manager"
+                <WarehouseManagerArea
+                  userName={userName}
+                  userMail={userMail}
                   orders={orders}
                   providers={providers}
                   methods={methods}
                   logout={doLogOut}
                   setRecharged={updateRech}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/warehouse-orders"
+            exact
+            render={() =>
+              logged ? (
+                <WarehouseManagerOrders
+                  providers={providers}
+                  orders={orders}
+                  products={products}
+                  clients={clients}
+                  time={time}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/warehouse-prepare"
+            exact
+            render={() =>
+              logged ? (
+                <WarehouseEmployeePrepare
+                  providers={providers}
+                  orders={orders}
+                  products={products}
+                  clients={clients}
+                  time={time}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/warehouse-shipments"
+            exact
+            render={() =>
+              logged ? (
+                <WarehouseManagerShipments
+                  providers={providers}
+                  orders={orders}
+                  products={products}
+                  clients={clients}
+                  time={time}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -577,10 +635,10 @@ function App() {
             render={() =>
               logged ? (
                 <Fbookings
-                
-                 providerid={providerid}
-                products={products}
-                clients={clients}
+
+                  providerid={providerid}
+                  products={products}
+                  clients={clients}
                   orders={orders}
                   time={time}
                   setRecharged={updateRech}
@@ -659,7 +717,7 @@ function App() {
               <UserRegistration users={users} setRecharged={updateRech1} />
             )}
           />
-          <Route path="/" render={() => <Frontpage />} />
+          <Route path="/" render={() => <Frontpage logged={logged} userRole={userRole} />} />
         </Switch>
       </div>
     </Router>

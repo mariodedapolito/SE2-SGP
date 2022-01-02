@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, OverlayTrigger, Popover, Navbar, Container, Nav, NavDropdown} from 'react-bootstrap'
+import { Form, OverlayTrigger, Popover, Navbar, Container, Nav, NavDropdown } from 'react-bootstrap'
 import dayjs from 'dayjs';
 import { Link, useHistory } from 'react-router-dom';
 
@@ -27,7 +27,7 @@ const MyNavbar = function (props) {
   const history = useHistory();
 
   return (
-    <Navbar variant="dark" expand="lg" className="menu-bar p-1 w-100 shadow" >
+    <Navbar variant="dark" bg="dark" expand="lg" className="p-1 w-100 shadow" style={{backgroundColor: '#ddeeff'}} >
       <Container className="text-light w-100-custom">
         {/*toggleNavbarBrand() === "SPG_logo" &&*/
           <Navbar.Brand className="p-0 pe-4 my-auto border-end text-light fs-1" href="#home" onClick={() => (history.push("/"))}>
@@ -40,7 +40,7 @@ const MyNavbar = function (props) {
             <div className="d-inline my-auto">{backIcon}</div>
             <div className="d-inline mt-auto" onClick={() => (history.goBack())}> Back</div>
           </Navbar.Brand>*/}
-        <Navbar.Toggle aria-controls="basic-navbar-nav" style={{color: '#FFFFFF'}} />
+        <Navbar.Toggle aria-controls="basic-navbar-nav" style={{ color: '#FFFFFF' }} />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto my-auto">
             <ul className="navbar-nav me-auto" style={{ fontSize: 22 }}>
@@ -137,11 +137,29 @@ const MyNavbar = function (props) {
                 </Link>
               </li>
               }
+              {(props.userRole === 'warehouse-manager') && <li className="nav-item">
+                <Link to="/warehouse-orders" className="nav-link text-light">
+                  Pick-up schedule
+                </Link>
+              </li>
+              }
+              {(props.userRole === 'warehouse-manager') && <li className="nav-item">
+                <Link to="/warehouse-shipments" className="nav-link text-light">
+                  Farmer shipments
+                </Link>
+              </li>
+              }
 
               {/* WHEMPLOYEE NAVBAR */}
               {(props.userRole === 'warehouse-employee') && <li className="nav-item">
                 <Link to="/login" className="nav-link text-light">
                   Warehouse area
+                </Link>
+              </li>
+              }
+              {(props.userRole === 'warehouse-employee') && <li className="nav-item">
+                <Link to="/warehouse-prepare" className="nav-link text-light">
+                  Order preparation
                 </Link>
               </li>
               }

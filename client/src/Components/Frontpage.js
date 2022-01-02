@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { Button, Row, Carousel } from "react-bootstrap";
 import { Link, useHistory } from "react-router-dom"
 
 function Frontpage(props) {
+
+    const logged = props.logged;
+    const userRole = props.userRole;
+
     const history = useHistory()
     return (
 
@@ -9,7 +14,7 @@ function Frontpage(props) {
             <div className="col-lg-4">
                 <br />
                 <br />
-                <div className="card mx-3 my-2 shadow">
+                {!logged && <div className="card mx-3 my-2 shadow">
                     <div className="card-header">
                         <h5 className="my-auto">{userIcon} Clients</h5>
                     </div>
@@ -32,8 +37,48 @@ function Frontpage(props) {
                             </div>
                         </li>
                     </ul>
-                </div>
-                <div className="card mx-3 my-2 shadow">
+                </div>}
+                {logged && userRole === 'client' && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header">
+                        <h5 className="my-auto">{userIcon} Client dashboard</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Client area</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary"
+                                    onClick={() => {
+                                        history.push("/client")
+                                    }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Browse products</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/booking")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Next week products</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/products-next-week")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">My orders</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/products-next-week")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>}
+                {!logged && <div className="card mx-3 my-2 shadow">
                     <div className="card-header d-flex justify-content-between">
                         <h5 className="d-inline my-auto">{producerIcon} Farmers</h5>
                     </div>
@@ -56,8 +101,56 @@ function Frontpage(props) {
                             </div>
                         </li>
                     </ul>
-                </div>
-                <div className="card mx-3 my-2 shadow">
+                </div>}
+                {logged && userRole === 'farmer' && <div className="card mx-3 my-2 shadow">
+                    <div className="card-header d-flex justify-content-between">
+                        <h5 className="d-inline my-auto">{producerIcon} Farmer dashboard</h5>
+                    </div>
+                    <ul className="list-group list-group-flush">
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Farmer area</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary"
+                                    onClick={() => {
+                                        history.push("/farmer")
+                                    }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Declare availability</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/declare-availability")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Confirm availability</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/order-confirmation-farmer")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">Order preparation</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/order-preparation")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                        <li className="list-group-item d-flex justify-content-between">
+                            <div className="d-inline my-auto">My bookings</div>
+                            <div className="d-inline">
+                                <button className="mx-2 btn btn-outline-primary" onClick={() => {
+                                    history.push("/see-bookings")
+                                }}>Go</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>}
+                {!logged && <div className="card mx-3 my-2 shadow">
                     <div className="card-header d-flex justify-content-between">
                         <h5 className="d-inline my-auto">{staffIcon} Staff area</h5>
                     </div>
@@ -86,8 +179,8 @@ function Frontpage(props) {
                             </div>
                         </li>
                     </ul>
-                </div>
-                <div className="card mx-3 my-5 shadow">
+                </div>}
+                {!logged && <div className="card mx-3 my-5 shadow">
                     <div className="card-header d-flex justify-content-between">
                         <h5 className="d-inline my-auto">{joinUsIcon} Want to work with us?</h5>
                     </div>
@@ -96,7 +189,7 @@ function Frontpage(props) {
                         <hr />
                         <p><Link to="/">Apply</Link> as a delivery worker</p>
                     </div>
-                </div>
+                </div>}
                 <hr></hr>
                 <div className="card mx-3 my-5 shadow">
                     <div className="card-header d-flex justify-content-between">
@@ -141,7 +234,8 @@ function Frontpage(props) {
             </div>
             <div className="col-lg-8 vertical-separator-frontpage">
                 <div className="text-center mt-5 mb-3">
-                    <h1>Solidarity Purchasing Group</h1>
+                    <span className="d-block text-center mt-5 mb-1 display-2">Solidarity Purchasing Group</span>
+                    <span className="d-block mx-auto mb-2 text-center text-muted lead">Your ultimate fresh and bio food destination</span>
                     <br></br>
                 </div>
                 <div className="d-block mx-5 shadow-lg">

@@ -1,20 +1,164 @@
 import DeliverList from './DeliverList';
-import { Container, Button, Row, Col, Modal, Form, Dropdown, Card} from 'react-bootstrap';
-import { List} from 'react-bootstrap-icons'
+import { Container, Button, Row, Col, Modal, Form, Alert, Card } from 'react-bootstrap';
+import { List } from 'react-bootstrap-icons'
 import { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import API from '../API';
 
+function EmployeePage(props) {
+  const { clients, methods, addTr, topUp } = props
+  const history = useHistory()
+  const MODAL = { CLOSED: -2, ADD: -1 };
+  const [selectedTask, setSelectedTask] = useState(MODAL.CLOSED);
+  const [clicked, setClicked] = useState(false)
+  const [clickedButtonText, setClickedButtonText] = useState("")
+
+  const [actionAlert, setActionAlert] = useState(null);
+
+  const handleClose = () => {
+    setSelectedTask(MODAL.CLOSED);
+    setClicked(false)
+    setClickedButtonText("")
+  }
+
+  const handleSave = (tr, amount, client) => {
+    addTransaction(tr)
+    increaseBalance(amount, client)
+    setSelectedTask(MODAL.CLOSED);
+  }
+
+  function addTransaction(tr) {
+    addTr(tr)
+  }
+
+  function increaseBalance(amount, client) {
+    topUp(amount, client)
+
+  }
+
+  const [show, setShow] = useState(false);
+  let b = "booked";
+  return (<>
+    <br />
+
+    {// <div><Button variant="light"style={{'fontSize': 30,'borderStyle':'hidden','backgroundColor':"#ffb6c1",'position':'absolute' , 'right':'30px'}}onClick={props.logout}><Link to="/">LOGOUT</Link></Button></div>
+    }
+    <Container fluid>
+      <div >
+        {!clicked && <h3 className="d-block text-center mt-5 mb-5 display-2">Shop Personnel Area</h3>}
+        {/* When one of the cards were pressed */}
+
+        {actionAlert &&
+          <Alert
+            variant={actionAlert.variant}
+            className='d-block my-3 mx-5'
+            dismissible={true}
+            onClose={() => setActionAlert(null)}
+          >
+            {actionAlert.msg}
+          </Alert>
+        }
+
+        {!clicked &&
+          <>
+            <Row className="mb-3">
+              <div className="col-md-6">
+                <Card className="text-center">
+                  <Card.Header>Orders</Card.Header>
+                  <Card.Body>
+                    <Card.Title>Check orders status</Card.Title>
+                    <Card.Text>
+                      By clicking this button you can check the list of orders with ordered products and status
+                    </Card.Text>
+                    <Button variant="primary" onClick={() => {
+                      setShow(true)
+                      setClicked(true)
+                    }}>Show orders</Button>
+                  </Card.Body>
+                  <Card.Footer className="text-muted"></Card.Footer>
+                </Card>
+              </div>
+              <div className="col-md-6">
+                <Card className="text-center">
+                  <Card.Header>Client Registration</Card.Header>
+                  <Card.Body>
+                    <Card.Title>Make a registration of the new Client</Card.Title>
+                    <Card.Text>
+                      By clicking this button you will be redirected to the Registration page, for registering new client
+                    </Card.Text>
+                    <Button variant="primary" onClick={(event) => {
+                      history.push("/registration")
+                      setClicked(true)
+                      setClickedButtonText("Client Registration")
+                    }}>Go to registration page</Button>
+                  </Card.Body>
+                  <Card.Footer className="text-muted"></Card.Footer>
+                </Card>
+
+              </div>
+            </Row>
+            <Row className="mb-3">
+              <div className="col-md-6">
+                <Card className="text-center">
+                  <Card.Header>Balance Top-up</Card.Header>
+                  <Card.Body>
+                    <Card.Title>Top-up the balance of the client's wallet</Card.Title>
+                    <Card.Text>
+                      By clicking this button the wallet top-up form will be opened, where you can modify the balance of the client
+                    </Card.Text>
+                    <Button variant="primary" onClick={() => { setShow(false); setSelectedTask(MODAL.ADD); setClicked(true); setClickedButtonText("Balance Top-up") }}>Open top-up form</Button>
+                  </Card.Body>
+                  <Card.Footer className="text-muted"></Card.Footer>
+                </Card>
+              </div>
+
+              <div className="col-md-6">
+                <Card className="text-center">
+                  <Card.Header>Ordering on behalf of the Client</Card.Header>
+                  <Card.Body>
+                    <Card.Title>Make an order for a specific client</Card.Title>
+                    <Card.Text>
+                      By clicking this button you will be redirected to the page where you can select the client and make an order on behalf of him/her
+                    </Card.Text>
+                    <Button variant="primary" onClick={(event) => {
+                      history.push("/staff-booking")
+                      setClicked(true)
+                      setClickedButtonText("Ordering on behalf of the Client")
+                    }}>Open order page</Button>
+                  </Card.Body>
+                  <Card.Footer className="text-muted"></Card.Footer>
+                </Card>
+              </div>
+            </Row>
+          </>
+        }
+
+        {(selectedTask !== MODAL.CLOSED) && <ModalWalletTopUp setActionAlert={setActionAlert} setClick={setClicked} onSave={handleSave} clients={clients} methods={methods} onClose={handleClose} ></ModalWalletTopUp>}
+
+        <Col >
+          {show && <DeliverList setRecharged={props.setRecharged} products={props.products} orders={props.orders} clients={clients} setShow={setShow} b={b} time={props.time} />}
+        </Col>
+        <br />
+      </div>
+    </Container>
+
+  </>
+
+  );
+}
+
 function ModalWalletTopUp(props) {
   const { onClose, onSave, clients, methods, setClick } = props;
-  const [clientId, setClientId] = useState(1)
+  const [clientId, setClientId] = useState(-1)
   const [selectedUser, setSelectedUser] = useState({ client_id: -1 });
-  const [method, setMethod] = useState(methods ? methods[0].method_name : "None")
-  const [methodId, setMethodId] = useState(1)
+  const [method, setMethod] = useState("None")
+  const [methodId, setMethodId] = useState(-1)
   const [number, setNumber] = useState("")
   const [valid, setValid] = useState("")
   const [cvv, setCvv] = useState("")
-  const [amount, setAmount] = useState(0)
+  const [amount, setAmount] = useState(0);
+
+  const [topUp, setTopUp] = useState(false);
 
 
   useEffect(() => {
@@ -27,44 +171,114 @@ function ModalWalletTopUp(props) {
 
   }, [method])
 
-  
-  
-  const SendTopUpNotificationTelegram = async (clientTelegram,transaction) => {
-    const SendNotification = async () => { 
-    await API.sendTelegramTopUpNotification(clientTelegram,transaction)
-      .then((res) => {
-        console.log("telegram message was sent to the user")
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-  SendNotification()
+  useEffect(() => {
+    if (!topUp) {
+      return;
+    }
+
+    const performTopUp = async () => {
+      try {
+        let today = new Date()
+        let clientToSendTeleMessage = clients.filter(eachClient => eachClient.client_id === clientId)
+        const newTransaction = Object.assign({}, {
+          type: "wallet top-up",
+          client_id: clientId,
+          method_id: methodId,
+          account_num: number,
+          amount: amount,
+          date: today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(),
+          time: today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds(),
+          status: 1
+        });
+
+        await onSave(newTransaction, amount, clientId);
+        SendTopUpNotificationTelegram(clientToSendTeleMessage[0], newTransaction);
+        setClick(false);
+        setTopUp(false);
+        const clientNameSurname = clients.find(c => (c.client_id === clientId)).name + " " + clients.find(c => (c.client_id === clientId)).surname;
+        props.setActionAlert({ variant: "success", msg: "Top-up of " + amount + "€ for client " + clientNameSurname + " was successfully completed." })
+      }
+      catch (error) {
+        props.setActionAlert({ variant: "danger", msg: "Top-up could not be completed. Please try again later." })
+      }
+    }
+
+    performTopUp();
+  }, [topUp])
+
+  const SendTopUpNotificationTelegram = async (clientTelegram, transaction) => {
+    const SendNotification = async () => {
+      await API.sendTelegramTopUpNotification(clientTelegram, transaction)
+        .then((res) => {
+          console.log("telegram message was sent to the user")
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    SendNotification()
   };
+
+  const disableTopUpButton = () => {
+    if (method === "Credit/debit card") {
+      if (number.trim().length === 0) {
+        return true;
+      }
+      if (valid.trim().length === 0) {
+        return true;
+      }
+      if (cvv.trim().length === 0) {
+        return true;
+      }
+      if (amount <= 0) {
+        return true;
+      }
+      return false;
+    }
+    else if (method === "Satispay") {
+      if (number.trim().length === 0) {
+        return true;
+      }
+      if (amount <= 0) {
+        return true;
+      }
+      return false;
+    }
+    else if (method === "Bank Account") {
+      if (number.trim().length === 0) {
+        return true;
+      }
+      if (valid.trim().length === 0) {
+        return true;
+      }
+      if (cvv.trim().length === 0) {
+        return true;
+      }
+      if (amount <= 0) {
+        return true;
+      }
+      return false;
+    }
+    else if (method === "Cash") {
+      if (amount <= 0) {
+        return true;
+      }
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
 
   {/*Should be modified*/ }
   const handleSubmit = async (event) => {
     event.preventDefault();
     event.stopPropagation();
-    let today=new Date()
-    let clientToSendTeleMessage = clients.filter(eachClient=>eachClient.client_id===clientId)
-    const newTransaction = Object.assign({}, {
-      type: "wallet top-up",
-      client_id: clientId,
-      method_id: methodId,
-      account_num: number,
-      amount: amount,
-      date: today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(),
-      time: today.getHours()+':'+today.getMinutes() +':'+ today.getSeconds(),
-      status: 1
-    });
 
-   await onSave(newTransaction, amount, clientId)
-    SendTopUpNotificationTelegram(clientToSendTeleMessage[0], newTransaction)
-    setClick(false)
-    //window.location.reload(false);
+    if (!disableTopUpButton()) {
+      setTopUp(true);
+    }
 
-    
   };
 
   return (
@@ -73,68 +287,68 @@ function ModalWalletTopUp(props) {
         <Modal.Header closeButton>
           <Modal.Title>Wallet Top-up</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={(event)=>(handleSubmit(event))}>
+        <Form onSubmit={(event) => (handleSubmit(event))}>
           <Modal.Body>
-            <Form.Group as={Col} controlId="formUser">
-
+            <Form.Group as={Col} controlId="formUser" className="mb-3">
               <Row>
                 <Col sm={8}>
-                <Form.Label>Select Client</Form.Label>
-                <Dropdown className="d-block mb-3" value={selectedUser.client_id}>
-              <Dropdown.Toggle variant="primary" id="dropdown-basic">
-                Select the desired client
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu>
-                {clients.map((c) => (
-                  <Dropdown.Item onClick={() =>{
-                    (setSelectedUser(c))
-                    setClientId(c.client_id)
-
-                  } } key={c.client_id} value={c.client_id} eventKey={c.client_id}><b>{c.name} {c.surname}</b> ({c.email})</Dropdown.Item>
-                ))}
-
-              </Dropdown.Menu>
-            </Dropdown>
+                  <Form.Label>Select client</Form.Label>
+                  <Form.Select aria-label="Default select example" value={clientId} onChange={(event) => {
+                    setClientId(parseInt(event.target.value));
+                    setSelectedUser(clients.find(c => (c.client_id === parseInt(event.target.value))));
+                  }
+                  }>
+                    <option value={-1}>No client selected</option>
+                    {clients.map((c) => (
+                      <option key={c.client_id} value={c.client_id} eventKey={c.client_id}>• {c.name} {c.surname} - ({c.email})</option>
+                    ))}
+                  </Form.Select>
                 </Col>
                 <Col sm={4}>
                   <Form.Label>Balance</Form.Label>
                   <Form.Control
                     type="text"
                     name="balance"
-                    value={(selectedUser.client_id !== -1) ? selectedUser.budget  : "0.0"}
+                    value={(clientId !== -1) ? selectedUser.budget + "€" : "Unavailable"}
                     disabled
                   />
                 </Col>
-                {selectedUser.client_id !== -1 ? <h6 className="fw-bold">Wallet top-up for: {selectedUser.name + " " + selectedUser.surname + " " + selectedUser.email}</h6> : ''}
-                
               </Row>
-
-
             </Form.Group>
 
+            {clientId !== -1 && (
+              <>
+                <hr />
+                <div className='text-center'>
+                  <h3 className="mx-auto text-center">Wallet top-up for</h3>
+                  <h6>{selectedUser.name + " " + selectedUser.surname}</h6>
+                  <h6>{selectedUser.email}</h6>
+                </div>
+                <hr />
+                <Form.Group as={Col} controlId="formMethod">
+                  <Form.Label>Select Payment Method</Form.Label>
+                  <Form.Select
+                    value={method}
+                    onChange={(ev) => {
+                      setMethod(ev.target.value)
+                    }}
+                  >
+                    <option value="None">No payment method selected</option>
+                    {
+                      methods.map((singlemethod) => {
+                        return (
+                          <option>
+                            {singlemethod.method_name}
+                          </option>
+                        )
+                      })
+                    }
+                  </Form.Select>
+                </Form.Group>
+              </>)
+            }
 
 
-            <Form.Group as={Col} controlId="formMethod">
-              <Form.Label>Select Payment Method</Form.Label>
-              <Form.Control
-                as="select"
-                value={method}
-                onChange={(ev) => {
-                  setMethod(ev.target.value)
-                }}
-              >
-                {
-                  methods.map((singlemethod) => {
-                    return (
-                      <option>
-                        {singlemethod.method_name}
-                      </option>
-                    )
-                  })
-                }
-              </Form.Control>
-            </Form.Group>
 
             {/*For debit/credit card payment */}
             {(method === "Credit/debit card") &&
@@ -339,8 +553,8 @@ function ModalWalletTopUp(props) {
 
             }
 
-             {/*For Cash */}
-             {(method === "Cash") &&
+            {/*For Cash */}
+            {(method === "Cash") &&
               <>
                 <Form.Group>
                   <h5 className="regText" >Enter amount paid in cash</h5>
@@ -369,166 +583,14 @@ function ModalWalletTopUp(props) {
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button variant="primary" type="submit">
+            <Button variant="primary" type="submit" disabled={disableTopUpButton()}>
               Top-up clients wallet
             </Button>
           </Modal.Footer>
         </Form>
       </Modal>
-    </div>
+    </div >
   );
 }
-
-
-function EmployeePage(props) {
-  const { clients, methods, addTr, topUp } = props
-  const history = useHistory()
-  const MODAL = { CLOSED: -2, ADD: -1 };
-  const [selectedTask, setSelectedTask] = useState(MODAL.CLOSED);
-  const [clicked, setClicked] = useState(false)
-  const [clickedButtonText, setClickedButtonText] = useState("")
-
-  const handleClose = () => {
-    setSelectedTask(MODAL.CLOSED);
-    setClicked(false)
-    setClickedButtonText("")
-  }
-
-  const handleSave = (tr, amount, client) => {
-    addTransaction(tr)
-    increaseBalance(amount, client)
-    setSelectedTask(MODAL.CLOSED);
-  }
-
-  function addTransaction(tr) {
-    addTr(tr)
-  }
-
-  function increaseBalance(amount, client) {
-    topUp(amount, client)
-
-  }
-
-  const [show, setShow] = useState(false);
-  let b = "booked";
-  return (<>
-    <br/>
-
-{// <div><Button variant="light"style={{'fontSize': 30,'borderStyle':'hidden','backgroundColor':"#ffb6c1",'position':'absolute' , 'right':'30px'}}onClick={props.logout}><Link to="/">LOGOUT</Link></Button></div>
-   }
-    <Container fluid>
-    <div >
-    <h3 className="regText">Shop Personnel Area</h3>
-    {/* When one of the cards were pressed */}
-
-   {!clicked && 
-   <>
-   <Row className="mb-3">
-          <div className="col-md-6">
-            <Card className="text-center">
-  <Card.Header>Orders</Card.Header>
-  <Card.Body>
-    <Card.Title>Check orders status</Card.Title>
-    <Card.Text>
-     By clicking this button you can check the list of orders with ordered products and status
-    </Card.Text>
-    <Button variant="primary" onClick={() => {
-      setShow(true)
-      setClicked(true)
-      setClickedButtonText("Orders")
-      }}>Show orders</Button>
-  </Card.Body>
-  <Card.Footer className="text-muted"></Card.Footer>
-</Card>
-                 </div>
-                 <div className="col-md-6">
-            <Card className="text-center">
-  <Card.Header>Client Registration</Card.Header>
-  <Card.Body>
-    <Card.Title>Make a registration of the new Client</Card.Title>
-    <Card.Text>
-     By clicking this button you will be redirected to the Registration page, for registering new client
-    </Card.Text>
-    <Button variant="primary"onClick={(event) => {
-                  history.push("/registration")
-                  setClicked(true)
-                  setClickedButtonText("Client Registration")
-                }}>Go to registration page</Button>
-  </Card.Body>
-  <Card.Footer className="text-muted"></Card.Footer>
-</Card>
-           
-            </div>
-            </Row>
-            <Row className="mb-3">
-            <div className="col-md-6">
-            <Card className="text-center">
-  <Card.Header>Balance Top-up</Card.Header>
-  <Card.Body>
-    <Card.Title>Top-up the balance of the client's wallet</Card.Title>
-    <Card.Text>
-     By clicking this button the wallet top-up form will be opened, where you can modify the balance of the client
-    </Card.Text>
-    <Button variant="primary"onClick={() => { setShow(false); setSelectedTask(MODAL.ADD);  setClicked(true); setClickedButtonText("Balance Top-up") }}>Open top-up form</Button>
-  </Card.Body>
-  <Card.Footer className="text-muted"></Card.Footer>
-</Card>
-            </div>
-
-            <div className="col-md-6">
-            <Card className="text-center">
-  <Card.Header>Ordering on behalf of the Client</Card.Header>
-  <Card.Body>
-    <Card.Title>Make an order for a specific client</Card.Title>
-    <Card.Text>
-     By clicking this button you will be redirected to the page where you can select the client and make an order on behalf of him/her
-    </Card.Text>
-    <Button variant="primary"onClick={(event) => {
-                  history.push("/staff-booking")
-                  setClicked(true)
-                  setClickedButtonText("Ordering on behalf of the Client")
-                }}>Open order page</Button>
-  </Card.Body>
-  <Card.Footer className="text-muted"></Card.Footer>
-</Card>
-            </div>  
-            </Row>
-   </>
-   } 
-   
-   {clicked && 
-   <>
-   <Row>
-     <Col sm={4}>  <List size={52} onClick={()=>{
-    setClicked(false)
-    setShow(false)
-  }}></List> </Col>
-  <Col sm={8} > <h3>{clickedButtonText} </h3></Col>
-   </Row>
- 
-  </>
-   }
-
-      
-            
-        {(selectedTask !== MODAL.CLOSED) && <ModalWalletTopUp setClick={setClicked} onSave={handleSave} clients={clients} methods={methods} onClose={handleClose} ></ModalWalletTopUp>}
-
-        <Col >
-          {show ?   //set recharged della tabella ordini-clienti
-                  <DeliverList setRecharged={props.setRecharged} orders={props.orders} clients={clients} setShow={setShow} b={b} time={props.time} />: <></>}
-        </Col>
-      <br />
-    </div>
-    </Container>
-
-  </>
-
-  );
-}
-
-
-
-
-
 
 export default EmployeePage;

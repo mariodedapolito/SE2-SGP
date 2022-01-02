@@ -502,7 +502,7 @@ app.put('/api/modifyState', async (req, res) => {
 // PUT update state
 app.put('/api/modifyStateFarmer', async (req, res) => {
   warehouseDao
-    .changeStateFarmer(req.body.id, req.body.product_name, req.body.state)
+    .changeStateFarmer(req.body.id, req.body.product_id, req.body.state)
     .then(() => {
       res.status(200).json();
       return res;

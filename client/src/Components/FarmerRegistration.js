@@ -206,9 +206,8 @@ function FarmerRegistration(props) {
         }
         {!loading && !applicationSent && <>
           <div className="d-block text-center border border-secondary rounded-3 shadow w-100">
-            <h2 className="regText">Farmer application form</h2>
+            <span className="d-block text-center mt-3 mb-5 display-2">Farmer application form</span>
             <Form onSubmit={handleSubmit} className="m-3">
-              <hr />
               {/*Personal information*/}
               <h4 className="text-start mb-3">Your data</h4>
               <Row>
@@ -323,8 +322,8 @@ function FarmerRegistration(props) {
               <hr />
 
               <div className="subBtn">
-                <Button variant="danger" type="button" size="lg" className="mb-3" onClick={() => (handleClear())}>
-                  Clear form
+                <Button variant="secondary" type="button" size="lg" className="mb-3" onClick={() => (handleClear())}>
+                  Clear form data
                 </Button>
                 <Button variant="primary" type="button" size="lg" className="mx-2 mb-3" onClick={() => (handleSubmit())}>
                   Submit application
