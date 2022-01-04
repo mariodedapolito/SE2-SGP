@@ -10,6 +10,7 @@ const ordersDao = require('./DAOs/client-orders-dao');
 const productsDAO = require('./DAOs/products-dao');
 const providersDAO = require('./DAOs/providers-dao');
 const walletsDAO = require('./DAOs/wallet-dao');
+const missedDao = require('./DAOs/missed-dao');
 const axios = require('axios')
 const warehouseDao = require('./DAOs/warehouse-dao');
 const deliverersDao = require('./DAOs/deliverers-dao.js');
@@ -432,7 +433,35 @@ app.delete('/api/sessions/current', (req, res) => {
   req.logout();
   res.end('Logout completed!');
 });
-
+//GET all missed pickups
+app.get('/api/missed-pickups', async (req, res) => {
+  try {
+    const m = await missedDao.getAllMissedPickups();
+    return res.status(200).json(m);
+  } catch (err) {
+    res.status(500).json({
+      code: 500,
+      error: 'Database error during the retrieve of the list of missed pickups.',
+    });
+  }
+});
+//POST ->missed-pickups
+app.post('/api/missed-pickup', async (req, res) => {
+  try {
+    const t = {
+      order_id: req.body.order_id,
+      client_id: req.body.client_id,
+    };
+    await missedDao.addMissedPickup(t);
+    res.status(201).end('Created missed pickup!');
+  } catch (err) {
+    console.log(err);
+    res.status(503).json({
+      code: 503,
+      error: 'Unavailable service during the create of the missed pickup.',
+    });
+  }
+});
 //GET all clients and budget
 app.get('/api/clients', async (req, res) => {
   try {
