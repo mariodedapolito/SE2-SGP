@@ -6,6 +6,8 @@ import Booking from './Components/Booking';
 import Orders from './Components/Orders';
 import { clientOrders } from './classes/ClientOrder';
 import API from './API';
+import { MPickups } from './classes/MissedPickups';
+import PickupOrders from './Components/PickupOrders';
 import EmployeePage from './Components/EmployeePage';
 import UserRegistration from './Components/UserRegistration';
 import { useState, useEffect } from 'react';
@@ -43,8 +45,10 @@ function App() {
   });
   const [recharged, setRecharged] = useState(true);
   const [recharged1, setRecharged1] = useState(true);
+  const [recharged2, setRecharged2] = useState(true);
   const [orders, setOrders] = useState([]);
   const [clients, setClients] = useState([]);
+  const [missed, setMissed] = useState([]);
   const [confirmedProducts, setConfirmedProducts] = useState([]);
   const [products, setProducts] = useState([]);
   const [expectedProducts, setExpectedProducts] = useState([]);
@@ -68,7 +72,9 @@ function App() {
   const updateRech1 = (x) => {
     setRecharged1(x);
   };
-
+   const updateRech2 = (x) => {
+    setRecharged2(x);
+  };
   /*USEFFECT LOGIN*/
   useEffect(() => {
     const checkAuth = async () => {
@@ -93,6 +99,20 @@ function App() {
     };
     getAllUsers();
   }, []);
+ /* USEFFECT missed */
+  useEffect(() => {
+    const getAllMPickups = async () => {
+      await API.getAllMissedPickups()
+        .then((res) => {
+          setMissed(res);
+          setRecharged2(false);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+    getAllMPickups();
+  }, [recharged2]);
   /* USEFFECT clients */
   useEffect(() => {
     const getAllClients = async () => {
@@ -700,12 +720,32 @@ function App() {
             render={() =>
               logged ? (
                 <ClientArea
+                  missed={missed}
                   logout={doLogOut}
                   userName={userName}
                   userMail={userMail}
                   clients={clients}
                   clientid={userid}
                   orders={orders}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+            <Route
+            path="/see-pickups"
+            exact
+            render={() =>
+              logged ? ( 
+              <PickupOrders  
+                  
+                  clients={clients}
+                  orders={orders}
+                  missed={missed}
+                  orders={orders}
+                  setRecharged={updateRech}
+                  setRecharged2={updateRech2}
                 />
               ) : (
                 <Redirect to="/login" />
