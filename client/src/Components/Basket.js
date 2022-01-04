@@ -180,14 +180,19 @@ Solidarity Purchase Group
             <>
               <Container fluid>
                 <Row>
-                  <h5 className="d-block text-center">Pickup in shop</h5>
+                   <h5 className="d-block text-center">Pickup in shop</h5>
+                  {props.flag?<span>
+                    <b>Date</b>:{' '}
+                    {dayjs(props.date)
+                      .format('dddd, MMMM D, YYYY')}
+                  </span>:
                   <span>
                     <b>Date</b>:{' '}
                     {dayjs(props.time.date)
                       .add(1, 'week')
                       .weekday(props.pickupDay)
                       .format('dddd, MMMM D, YYYY')}
-                  </span>
+                  </span>}
                   <span>
                     <b>Time</b>: {props.pickupTime}
                   </span>
