@@ -10,6 +10,60 @@ async function getAllClients() {
     throw err; // An object with the error coming from the server
   }
 }
+//GET ->retrieve missed
+async function getAllMissedPickups() {
+  const response = await fetch('/api/missed-pickups');
+  if (response.ok) {
+    const responseBody = await response.json();
+    return responseBody;
+  } else {
+    try {
+      const err = await response.json();
+      throw err.message;
+    } catch (err) {
+      throw err;
+    }
+  }
+}
+//Add missed
+function addMissedPickup(S) {
+  return new Promise((resolve, reject) => {
+    fetch('/api/missed-pickup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        order_id: S.order_id,
+        client_id: S.client_id,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          resolve(null);
+        } else {
+          // cause of error
+          response
+            .json()
+            .then((obj) => {
+              reject(obj);
+            })
+            .catch((err) => {
+              reject({
+                errors: [{ param: 'Application', msg: 'Cannot insert a missed pickup' }],
+              });
+            });
+        }
+      })
+      .catch((err) => {
+        reject({
+          errors: [
+            { param: 'Server', msg: 'Communication with server failed' },
+          ],
+        });
+      });
+  });
+}
 
 //GET ->retrieve users
 async function getAllUsers() {
@@ -906,7 +960,8 @@ const API = {
   getOrderAndClientData,
   sendTelegramNotificationOnSaturday,
   sendTelegramTopUpNotification,
-  sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10
+  sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
+  getAllMissedPickups,addMissedPickup
 };
 
 export default API;
