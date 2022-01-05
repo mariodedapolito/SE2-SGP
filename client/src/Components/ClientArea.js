@@ -1,13 +1,25 @@
 import { Link, useHistory } from 'react-router-dom';
 import ClientAlert from './ClientAlert';
-
+import { Alert,Container,Row } from "react-bootstrap";
 function ClientArea(props) {
 
   const history = useHistory();
-
+  let missedpickups=props.missed.filter(x=>x.client_id===props.clientid);
   return (
     <div className='container-fluid'>
       <div className="row w-100">
+{missedpickups.length===3||missedpickups.length===4?
+ <Container className="p-2 m-2">
+          <Row className="justify-content-md-center">
+            <Alert
+              variant="danger"
+              style={{
+                fontSize: 25,
+              }}    
+            >You have missed #{missedpickups.length} pickups. Be aware that after missing the 5th pickup you will be suspended!
+            </Alert>
+          </Row>
+        </Container>:<></>}
         <span className="d-block text-center mt-5 mb-2 display-2">
           Client Area
         </span>

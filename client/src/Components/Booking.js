@@ -15,8 +15,9 @@ import { useEffect, useState } from 'react';
 import API from './../API';
 import Basket from './Basket';
 import ProductPage from './ProductPage';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { clientOrders } from '../classes/ClientOrder';
+import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useMediaQuery } from 'react-responsive';
 
@@ -33,23 +34,29 @@ function Booking(props) {
   const [showProductDetailsModal, setShowProductDetailsModal] = useState(false);
   const [currentProductDetails, setCurrentProductDetails] = useState();
   const [showCompletePurchase, setShowCompletePurchase] = useState(false);
-  const [address, setAddress] = useState('');
-  const [nation, setNation] = useState('');
-  const [city, setCity] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [address, setAddress] = useState(location.state ? location.state.item.address : '');
+  const [nation, setNation] = useState(location.state ? location.state.item.Nation : '');
+  const [city, setCity] = useState(location.state ? location.state.item.city : '');
+  const [date, setDate] = useState(location.state ? location.state.item.date : '');
+  const [time, setTime] = useState(location.state ? location.state.item.time : '');
+  const [zipCode, setZipCode] = useState(location.state ? location.state.item.zipcode : '');
   const [completeAddressing, setCompleteAddressing] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [deliveryFlag, setDeliveryFlag] = useState('delivery');
+  const [deliveryFlag, setDeliveryFlag] = useState(location.state.item.pickup ? 'pickup' : 'delivery');
   const [pickupDay, setPickupDay] = useState(2);
-  const [pickupTime, setPickupTime] = useState('10:00');
+  const [pickupTime, setPickupTime] = useState(location.state.item.pickup ? location.state.item.time : '10:00');
+  const [flag, setFlag] = useState(location.state.item.pickup ? 1 : 0);
 
+  const isDesktopOrLaptop = useMediaQuery({
+    query: '(min-width: 1224px)',
+  });
   const isBigScreen = useMediaQuery({ query: '(min-width: 1225px)' });
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
+  const isPortrait = useMediaQuery({ query: '(orientation: portrait)' });
+  const isRetina = useMediaQuery({ query: '(min-resolution: 2dppx)' });
 
   console.log(time + ' ' + date);
   console.log(pickupDay + ' ' + pickupTime);
@@ -239,8 +246,8 @@ function Booking(props) {
       stato,
       ins = false;
     if (!location.state) {
-      for (const pr of productsBasket) {
-        tot = pr.price + tot;
+      for (const p of productsBasket) {
+        tot = p.price + tot;
       }
       total = tot + somma;
       console.log(total);
@@ -289,7 +296,7 @@ function Booking(props) {
         console.log(order);
         API.addOrder(order).then(() => {
           props.setRecharged(true);
-          setTimeout(() => { console.log("Order added successfully") }, 3000);
+          setTimeout(() => { }, 3000);
         });
         indice = indice + 1;
       }
@@ -310,10 +317,7 @@ function Booking(props) {
             _time = time;
             _pickup = 0;
           } else {
-            _date = dayjs(props.time.date)
-              .add(1, 'week')
-              .weekday(pickupDay)
-              .format('YYYY-MM-DD');
+            _date = date;
             _time = pickupTime;
             _pickup = 1;
           }
@@ -339,7 +343,7 @@ function Booking(props) {
           console.log(order);
           API.addOrder(order).then(() => {
             props.setRecharged(true);
-            setTimeout(() => { console.log("Order added successfullly") }, 3000);
+            setTimeout(() => { }, 3000);
           });
           indice = indice + 1;
         }
@@ -362,10 +366,7 @@ function Booking(props) {
           _time = time;
           _pickup = 0;
         } else {
-          _date = dayjs(props.time.date)
-            .add(1, 'week')
-            .weekday(pickupDay)
-            .format('YYYY-MM-DD');
+          _date = date;
           _time = pickupTime;
           _pickup = 1;
         }
@@ -393,7 +394,7 @@ function Booking(props) {
         if (total <= amount) {
           API.updateItem(order).then(() => {
             props.setRecharged(true);
-            setTimeout(() => { console.log("Order added with success") }, 3000);
+            setTimeout(() => { }, 3000);
           });
         } else {
           ins = true;
@@ -405,9 +406,8 @@ function Booking(props) {
       setShowsuccess(true);
 
       props.updateProps();
-    } else if (location.state.status === 'update' && productsBasket.length > 1) {
+    } else if (location.state.status === 'update' && productsBasket.length > 1)
       setShowUpdateError(true);
-    }
     else if (
       location.state.status === 'update' &&
       productsBasket.length === 1 &&
@@ -694,6 +694,7 @@ function Booking(props) {
                 <>
                   <Col className="my-5 px-5">
                     <Basket
+                      flag={flag}
                       completeAddressing={false}
                       clientid={props.clientid}
                       clients={props.clients}
@@ -738,6 +739,7 @@ function Booking(props) {
             {isBigScreen && !props.browsing && (
               <Col lg={3} className="my-5 px-5">
                 <Basket
+                  flag={flag}
                   completeAddressing={false}
                   clientid={props.clientid}
                   clients={props.clients}

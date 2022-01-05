@@ -10,6 +10,60 @@ async function getAllClients() {
     throw err; // An object with the error coming from the server
   }
 }
+//GET ->retrieve missed
+async function getAllMissedPickups() {
+  const response = await fetch('/api/missed-pickups');
+  if (response.ok) {
+    const responseBody = await response.json();
+    return responseBody;
+  } else {
+    try {
+      const err = await response.json();
+      throw err.message;
+    } catch (err) {
+      throw err;
+    }
+  }
+}
+//Add missed
+function addMissedPickup(S) {
+  return new Promise((resolve, reject) => {
+    fetch('/api/missed-pickup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        order_id: S.order_id,
+        client_id: S.client_id,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          resolve(null);
+        } else {
+          // cause of error
+          response
+            .json()
+            .then((obj) => {
+              reject(obj);
+            })
+            .catch((err) => {
+              reject({
+                errors: [{ param: 'Application', msg: 'Cannot insert a missed pickup' }],
+              });
+            });
+        }
+      })
+      .catch((err) => {
+        reject({
+          errors: [
+            { param: 'Server', msg: 'Communication with server failed' },
+          ],
+        });
+      });
+  });
+}
 
 //GET ->retrieve users
 async function getAllUsers() {
@@ -577,7 +631,58 @@ async function logOut() {
     method: 'DELETE',
   });
 }
-
+//POST di un nuovo incontro
+function addOrder(S) {
+  return new Promise((resolve, reject) => {
+    fetch('/api/orderinsert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_id: S.order_id,
+        client_id: S.client_id,
+        product_name: S.product_name,
+        product_id: S.product_id,
+        order_quantity: S.order_quantity,
+        state: S.state,
+        OrderPrice: S.OrderPrice,
+        id: S.id,
+        address: S.address,
+        city: S.city,
+        zipcode: S.zipcode,
+        Nation: S.nation,
+        date: S.date,
+        time: S.time,
+        pickup: S.pickup,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          resolve(null);
+        } else {
+          // cause of error
+          response
+            .json()
+            .then((obj) => {
+              reject(obj);
+            })
+            .catch((err) => {
+              reject({
+                errors: [
+                  { param: 'Application', msg: 'Cannot insert a order' },
+                ],
+              });
+            });
+        }
+      })
+      .catch((err) => {
+        reject({
+          errors: [
+            { param: 'Server', msg: 'Communication with server failed' },
+          ],
+        });
+      });
+  });
+}
 async function getUserInfo() {
   const response = await fetch('/api/sessions/current');
   if (response.ok) {
@@ -648,17 +753,38 @@ async function addOrder(S) {
 }
 
 //DELETE ->order item
-async function deleteOrderItem(id) {
-  const response = await fetch(`/api/orders/${id}`, {
-    method: 'DELETE',
-  })
-  if (response.ok) {
-    return await response.json();
-  }
-  else {
-    let err = { status: response.status, errObj: await response.json() };
-    throw err; // An object with the error coming from the server
-  }
+function deleteOrderItem(id) {
+  return new Promise((resolve, reject) => {
+    fetch(`/api/orders/${id}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (response.ok) {
+          resolve(null);
+        } else {
+          // cause of error
+          response
+            .json()
+            .then((obj) => {
+              reject(obj);
+            })
+            .catch((err) => {
+              reject({
+                errors: [
+                  { param: 'Application', msg: 'Cannot delete a rorder item' },
+                ],
+              });
+            });
+        }
+      })
+      .catch((err) => {
+        reject({
+          errors: [
+            { param: 'Server', msg: 'Communication with server failed' },
+          ],
+        });
+      });
+  });
 }
 
 const submitEmail = async (e) => {
@@ -907,7 +1033,8 @@ const API = {
   getOrderAndClientData,
   sendTelegramNotificationOnSaturday,
   sendTelegramTopUpNotification,
-  sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10
+  sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
+  getAllMissedPickups,addMissedPickup
 };
 
 export default API;
