@@ -637,6 +637,7 @@ async function addOrder(S) {
       pickup: S.pickup,
     }),
   })
+  console.log(response);
   if (response.ok) {
     return await response.json();
   }

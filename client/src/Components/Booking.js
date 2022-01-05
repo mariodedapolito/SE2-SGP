@@ -97,7 +97,7 @@ function Booking(props) {
     }
   }
 
-  console.log(somma);
+
   function getRightWeek(timepassed) {
     // the week number should be changed after the 23 o'clock of sunday. It becomes a new week since the customer can not order anymore in this week
     //Sunday from 23.00 until 23.59 consider this week orders
@@ -153,6 +153,7 @@ function Booking(props) {
     getAllProducts();
   }, [props.time]);
 
+  /* Categories UseEffect */
   useEffect(() => {
     const getCategories = async () => {
       const c = [{ name: 'All', active: 1 }, ...(await API.getAllCategories())];
@@ -161,6 +162,7 @@ function Booking(props) {
     getCategories();
   }, []);
 
+  /* Product filtering by category */
   const filterProducts = (activeCategory) => {
     if (activeCategory === undefined || activeCategory === null) {
       activeCategory = categories.find((c) => c.active === 1).name;
@@ -190,6 +192,38 @@ function Booking(props) {
       .slice(idx * 3, idx * 3 + 3);
   });
 
+  const addToCart = (product, qty) => {
+    if (product.quantity === 0) {
+      return;
+    }
+    let prod = { ...product, buyQty: 0 };
+    let cart = props.cartItems;
+    if (!cart.has(props.clientid)) {
+      cart.set(props.clientid, { items: [] });
+    }
+    let clientCart = cart.get(props.clientid).items;
+    let cartItemIndex = clientCart.findIndex((item) => (item.id === product.id));
+    if (cartItemIndex !== -1) {
+      if (clientCart[cartItemIndex].buyQty + qty > product.quantity) {
+        cart.get(props.clientid).items[cartItemIndex].buyQty = product.quantity;
+      }
+      else {
+        cart.get(props.clientid).items[cartItemIndex].buyQty += qty;
+      }
+    }
+    else {
+      if (qty > product.quantity) {
+        qty = product.quantity;
+      }
+      prod.buyQty = qty;
+      cart.get(props.clientid).items.push(prod);
+    }
+    console.log(cart);
+    props.setCartItems(cart);
+    props.setCartUpdated(true);
+  }
+
+  /* onConfirm complete purchase */
   const onConfirm = async () => {
     let tot = 0,
       total;
@@ -199,17 +233,6 @@ function Booking(props) {
       return;
     }
 
-    console.log(
-      deliveryFlag +
-      ' ' +
-      time +
-      ' ' +
-      date +
-      ' ' +
-      pickupDay +
-      ' ' +
-      pickupTime
-    );
 
     let p,
       s,
@@ -266,7 +289,7 @@ function Booking(props) {
         console.log(order);
         API.addOrder(order).then(() => {
           props.setRecharged(true);
-          setTimeout(() => {console.log("Order added successfully") }, 3000);
+          setTimeout(() => { console.log("Order added successfully") }, 3000);
         });
         indice = indice + 1;
       }
@@ -316,7 +339,7 @@ function Booking(props) {
           console.log(order);
           API.addOrder(order).then(() => {
             props.setRecharged(true);
-            setTimeout(() => { console.log("Order added successfullly")}, 3000);
+            setTimeout(() => { console.log("Order added successfullly") }, 3000);
           });
           indice = indice + 1;
         }
@@ -370,7 +393,7 @@ function Booking(props) {
         if (total <= amount) {
           API.updateItem(order).then(() => {
             props.setRecharged(true);
-            setTimeout(() => { console.log("Order added with success")}, 3000);
+            setTimeout(() => { console.log("Order added with success") }, 3000);
           });
         } else {
           ins = true;
@@ -382,10 +405,9 @@ function Booking(props) {
       setShowsuccess(true);
 
       props.updateProps();
-    } else if (location.state.status === 'update' && productsBasket.length > 1)
-     {
+    } else if (location.state.status === 'update' && productsBasket.length > 1) {
       setShowUpdateError(true);
-     } 
+    }
     else if (
       location.state.status === 'update' &&
       productsBasket.length === 1 &&
@@ -396,28 +418,31 @@ function Booking(props) {
       props.updateProps();
     } else if (ins) setShowInsufficient(true);
   };
+
   function handleClick() {
     history.push('/registration');
   }
+
   function handleLogin() {
     history.push('/login');
   }
 
   const onAdd = (product, buyQty) => {
-    const exist = productsBasket.find((x) => x.id === product.id);
-    if (exist) {
-      if (product.quantity >= exist.qty + buyQty) {
-        setProductsBasket(
-          productsBasket.map((x) =>
-            x.id === product.id ? { ...exist, qty: exist.qty + buyQty } : x
-          )
-        );
-      }
-    } else {
-      if (product.quantity >= buyQty) {
-        setProductsBasket([...productsBasket, { ...product, qty: buyQty }]);
-      }
-    }
+    addToCart(product, buyQty);
+    // const exist = productsBasket.find((x) => x.id === product.id);
+    // if (exist) {
+    //   if (product.quantity >= exist.qty + buyQty) {
+    //     setProductsBasket(
+    //       productsBasket.map((x) =>
+    //         x.id === product.id ? { ...exist, qty: exist.qty + buyQty } : x
+    //       )
+    //     );
+    //   }
+    // } else {
+    //   if (product.quantity >= buyQty) {
+    //     setProductsBasket([...productsBasket, { ...product, qty: buyQty }]);
+    //   }
+    // }
   };
 
   const onRemove = (product, removeQty) => {

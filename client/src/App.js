@@ -33,6 +33,7 @@ import WarehouseEmployeeArea from './Components/WarehouseEmployeeArea';
 import WarehouseManagerOrders from './Components/WarehouseManagerOrders';
 import WarehouseManagerShipments from './Components/WarehouseManagerShipments';
 import WarehouseEmployeePrepare from './Components/WarehouseEmployeePrepare';
+import Cart from './Components/Cart';
 
 let r = [];
 
@@ -59,6 +60,9 @@ function App() {
   const [userRole, setUserRole] = useState('');
   const [userMail, setUserMail] = useState('');
   const [userName, setUserName] = useState('');
+
+  const [cartItems, setCartItems] = useState(new Map());
+  const [cartUpdated, setCartUpdated] = useState(false);
 
   const [authAlert, setAuthAlert] = useState(null);
 
@@ -285,6 +289,8 @@ function App() {
       setUserRole(user.role);
       setUserMail(user.username);
       setUserName(user.name);
+      setCartItems(new Map());
+      setCartUpdated(true);
 
       setAuthAlert({ variant: "success", msg: "Welcome, " + user.name + "! The login was successful." });
 
@@ -334,6 +340,10 @@ function App() {
         userName={userName}
         userMail={userMail}
         setTime={setTime}
+        cartItems={cartItems}
+        cartUpdated={cartUpdated}
+        setCartUpdated={setCartUpdated}
+        clientid={userid}
       />
 
       {authAlert &&
@@ -352,11 +362,37 @@ function App() {
       <div className="container-fluid w-100">
         <Switch>
           <Route
+            path="/cart"
+            exact
+            render={() =>
+              logged ? (
+                <Cart
+                  cartItems={cartItems}
+                  setCartItems={setCartItems}
+                  setCartUpdated={setCartUpdated}
+                  time={time}
+                  logged={logged}
+                  userRole={userRole}
+                  products={confirmedProducts}
+                  orders={orders}
+                  clients={clients}
+                  clientid={userid}
+                  setRecharged={updateRech}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          <Route
             path="/booking"
             exact
             render={() =>
               logged ? (
                 <Booking
+                  cartItems={cartItems}
+                  setCartUpdated={setCartUpdated}
+                  setCartItems={setCartItems}
                   browsing={false}
                   logged={logged}
                   orders={orders}
@@ -402,6 +438,7 @@ function App() {
                 <Orders
                   orders={orders}
                   clientid={userid}
+                  products={products}
                   setRecharged={updateRech}
                 />
               ) : (
@@ -701,6 +738,7 @@ function App() {
               logged ? (
                 <ClientArea
                   logout={doLogOut}
+                  userRole={userRole}
                   userName={userName}
                   userMail={userMail}
                   clients={clients}

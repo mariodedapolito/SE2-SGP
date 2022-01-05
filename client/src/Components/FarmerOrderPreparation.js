@@ -40,18 +40,12 @@ function FarmerOrderPreparation(props) {
         setShipmentWindowValidity(true);
       }
 
-      console.log(timeWindowValid);
-
       const checkItemsAlreadyShipped = await API.getProviderShipmentStatus(
         previousWeek.year,
         previousWeek.week_number
       );
-      console.log(checkItemsAlreadyShipped);
       if (checkItemsAlreadyShipped) {
         setItemsAlreadyShipped(true);
-        setRefreshData(false);
-        setShowLoading(false);
-        return;
       }
       const prods = (
         await API.getOrderedProductsForProvider(
@@ -72,7 +66,7 @@ function FarmerOrderPreparation(props) {
       return;
     }
     const shipItems = async () => {
-      const shippedIDs = bookedProducts.map((p) => p.id);
+      const shippedIDs = bookedProducts.filter((p) => (p.prepared === 1)).map((p) => p.id);
       await API.setProductsAsFarmerShipped(shippedIDs);
       setRefreshData(true);
     };
@@ -92,7 +86,7 @@ function FarmerOrderPreparation(props) {
         };
       }
     }
-    //every other time get previos week
+    //every other time get previous week
     let previousWeekDate = dayjs(props.time.date).subtract(1, 'week');
     if (dayjs(props.time.date).week() === 2) {
       return {
@@ -120,13 +114,16 @@ function FarmerOrderPreparation(props) {
   };
 
   const checkShipmentCorrectness = () => {
+    let noOrderPreparedFlag = true;
     for (const prod of bookedProducts) {
-      if (prod.prepared === 0) {
-        setShipError(
-          'Please confirm all the products and then confirm the shipment.'
-        );
-        return;
+      if (prod.prepared === 1) {
+        noOrderPreparedFlag = false;
+        break;
       }
+    }
+    if (noOrderPreparedFlag) {
+      setShipError('Please confirm the preparation at least 1 product and then confirm the shipment.');
+      return;
     }
     setShipError('');
     setConfirmShipment(true);
@@ -157,13 +154,11 @@ function FarmerOrderPreparation(props) {
             <div className="col-lg-8">
               {!showLoading && !shipmentWindowValidity && !itemsAlreadyShipped && (
                 <Alert show={true} variant="danger">
-                  <Alert.Heading>Item shipment missed</Alert.Heading>
+                  <Alert.Heading>Item shipment windows terminated</Alert.Heading>
                   <p>
-                    It seems that you have missed the orders shipment time window!
+                    This shipment window terminated and you cannot ship orders.
                     <br />
-                    Contact the shop as soon as possible to get more information.
-                    <br />
-                    Next shipping window is from Sunday 23.00 until Tuesday 23.59.
+                    Next shipping window is from Sunday 23.00 until next Tuesday 23.59.
                   </p>
                   <hr />
                   <div className="d-flex justify-content-end">
@@ -173,13 +168,13 @@ function FarmerOrderPreparation(props) {
                   </div>
                 </Alert>
               )}
-              {!showLoading && itemsAlreadyShipped && (
+              {!showLoading && shipmentWindowValidity && bookedProducts.length === 0 && itemsAlreadyShipped && (
                 <Alert show={itemsAlreadyShipped} variant="success">
                   <Alert.Heading>Item shipment status</Alert.Heading>
                   <p>
-                    You have successfully shipped your items!
+                    You have shipped all your orders!
                     <br />
-                    Next shipping window is from Sunday 23.00 until Tuesday 23.59.
+                    You have successfully shipped all the booked products. If any other order is placed during this shipment window it will appear in this page.
                   </p>
                   <hr />
                   <div className="d-flex justify-content-end">
@@ -194,14 +189,11 @@ function FarmerOrderPreparation(props) {
                   <Spinner className="m-5" animation="grow" />
                 </div>
               )}
-              {!itemsAlreadyShipped && shipmentWindowValidity && !showLoading && (
+              {shipmentWindowValidity && !showLoading && (
                 <div className="d-block text-center">
-                  {
-                    /*DISPLAYING NOTIFICATION IF NO PRODUCTS INSERTED YET*/
-                    bookedProducts.length === 0 ? (
-                      <div className="d-block text-center">No orders received.</div>
-                    ) : (
-                      ''
+                  {/*DISPLAYING NOTIFICATION IF NO PRODUCTS ORDERED YET*/
+                    bookedProducts.length === 0 && !itemsAlreadyShipped && (
+                      <div className="d-block text-center">No orders received yet.</div>
                     )
                   }
                   {/*DISPLAYING CURRENTLY INSERTED PRODUCTS*/}
@@ -270,12 +262,13 @@ function FarmerOrderPreparation(props) {
           <small className="text-danger">{shipError}</small>
         </div>
         <div className="d-block mb-5 text-center">
-          <button
-            className="mx-2 p-3 btn btn-primary"
+          <Button variant="primary"
+            className="mx-2 p-3"
+            disabled={bookedProducts.length === 0}
             onClick={() => checkShipmentCorrectness()}
           >
             Confirm items shipment
-          </button>
+          </Button>
         </div>
       </div>
     </>

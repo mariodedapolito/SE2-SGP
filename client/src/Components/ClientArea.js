@@ -12,7 +12,7 @@ function ClientArea(props) {
           Client Area
         </span>
         <div className="d-block">
-          <ClientAlert clients={props.clients} orders={props.orders} clientid={props.clientid} />
+          <ClientAlert clients={props.clients} orders={props.orders} clientid={props.clientid} userRole={props.userRole} />
         </div>
         <div className="col-lg-3">
           <div className="card mx-3 my-2 shadow-sm">

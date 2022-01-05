@@ -104,7 +104,7 @@ function Frontpage(props) {
                             <div className="d-inline my-auto">My orders</div>
                             <div className="d-inline">
                                 <button className="mx-2 btn btn-outline-dark" onClick={() => {
-                                    history.push("/products-next-week")
+                                    history.push("/orders")
                                 }}>Go</button>
                             </div>
                         </li>

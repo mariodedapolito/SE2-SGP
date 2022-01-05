@@ -40,7 +40,7 @@ app.use(fileUpload());
 
 const telegram_token = process.env.TELEGRAM_TOKEN;
 const telegram_group = process.env.TELEGRAM_GROUP_ID;
-const bot = new TelegramBot(telegram_token, {polling: true});
+const bot = new TelegramBot(telegram_token, { polling: true });
 
 app.setTestingMode = (test_db_name) => {
   clientsDao.setTestDB(test_db_name);
@@ -64,7 +64,7 @@ let transporter = nodemailer.createTransport({
 
 bot.onText(/\/message (.+)/, (msg, match) => {
   const chatId = msg.chat.id;
-  const resp = match[1]; 
+  const resp = match[1];
   bot.sendMessage(chatId, `Your message was ${resp}`);
 });
 
@@ -81,7 +81,7 @@ bot.on('/start', (msg) => {
   /balance - to check your balance
   /orders - to check the list of your new and past orders
   `);
- // bot.sendVideo(chatId, necef, {caption: "Sent by: " + "Elnur" } )
+  // bot.sendVideo(chatId, necef, {caption: "Sent by: " + "Elnur" } )
 });
 
 // while writing /start
@@ -116,33 +116,33 @@ bot.onText(/\/photo/, function onPhotoText(msg) {
 bot.onText(/\/subscribe (.+)/, async (msg, match) => {
   // From file path
   const userId = msg.chat.id;
-  const userName= msg.chat.username
-  const emailUser= match[1]
+  const userName = msg.chat.username
+  const emailUser = match[1]
   const clients = await clientsDao.getAllClients();
-  let emailIsCorrect=0
+  let emailIsCorrect = 0
 
   clients.forEach(client => {
-    if(client.email===emailUser)emailIsCorrect=1
+    if (client.email === emailUser) emailIsCorrect = 1
   });
 
-  if(emailIsCorrect===1){
+  if (emailIsCorrect === 1) {
     bot.sendMessage(userId, `Dear ${userName}, you've succesfully made a subscription to our service!
     Entered email was: ${emailUser}
       `);
-        try {
-          await clientsDao.putTelegramUserId(userId, emailUser);
-        } catch (err) {
-          console.log("error while updating the telegram id")
-        }
+    try {
+      await clientsDao.putTelegramUserId(userId, emailUser);
+    } catch (err) {
+      console.log("error while updating the telegram id")
+    }
 
   }
-  else{
+  else {
     bot.sendMessage(userId, `Dear ${userName}, we could not find email entered by you in our server, please try again.
     Entered email was: ${emailUser}
       `);
   }
 
-  
+
 });
 
 // for /schedule
@@ -155,22 +155,22 @@ bot.onText(/\/schedule/, function onSchedule(msg) {
 // for /balance
 bot.onText(/\/balance/, function onSchedule(msg) {
   const chatId = msg.chat.id;
-  
+
   const asyncExample = async () => {
     const result = await walletsDAO.retrieveBudgetByTelegramID(chatId);
 
-    if(result.length>0){
-      bot.sendMessage(chatId, `Dear Client, Here is your balance: `+ result[0].budget);
+    if (result.length > 0) {
+      bot.sendMessage(chatId, `Dear Client, Here is your balance: ` + result[0].budget);
     }
-    else{
+    else {
       bot.sendMessage(chatId, `Dear Client, you haven't connected your  SPG account to Telegram
 Please, use /subscribe [your email address] to connect your telegram to our system      
       `);
     }
     return result;
-   }
-   
-   res = asyncExample();
+  }
+
+  res = asyncExample();
 });
 
 app.get('/api/telegramId', async (req, res) => {
@@ -240,21 +240,21 @@ app.post('/api/sendReminderForPickup', function (req, res) {
 
 
 app.post('/api/topUpNotificationTelegram', function (req, res) {
-  const balance =req.body.balance
-  const telegramUserId=req.body.telegramId
+  const balance = req.body.balance
+  const telegramUserId = req.body.telegramId
   const name = req.body.name
   const surname = req.body.surname
   const date = req.body.date
-  const time =req.body.time
+  const time = req.body.time
   const amount = req.body.amount
-  const newBalance= parseInt(balance)+parseInt(amount)
+  const newBalance = parseInt(balance) + parseInt(amount)
 
 
   axios
-  .post(`https://api.telegram.org/bot${telegram_token}/sendMessage`, {
-    chat_id: telegramUserId,
-    parse_mode: 'HTML',
-    text: `Dear ${name} ${surname}, your balance was ${balance}. Now your balance was topped up.
+    .post(`https://api.telegram.org/bot${telegram_token}/sendMessage`, {
+      chat_id: telegramUserId,
+      parse_mode: 'HTML',
+      text: `Dear ${name} ${surname}, your balance was ${balance}. Now your balance was topped up.
 
     Details about your last Top-up:
     added amount: ${amount} euros
@@ -265,67 +265,67 @@ app.post('/api/topUpNotificationTelegram', function (req, res) {
 
 
     `
-  })
+    })
 
-  
+
 });
 
-let sendUpdatedListNotificationTelegram = ()=>{
-let underlinedLink = "<u>http://localhost:3000/products-next-week</u>";
+let sendUpdatedListNotificationTelegram = () => {
+  let underlinedLink = "<u>http://localhost:3000/products-next-week</u>";
   axios
-  .post(`https://api.telegram.org/bot${telegram_token}/sendMessage`, {
-    chat_id: telegram_group,
-    parse_mode: 'HTML',
-    text: `Dear Clients, we would like to inform you that the list of the available products for the next week is now online.
+    .post(`https://api.telegram.org/bot${telegram_token}/sendMessage`, {
+      chat_id: telegram_group,
+      parse_mode: 'HTML',
+      text: `Dear Clients, we would like to inform you that the list of the available products for the next week is now online.
     
 Please enter this link to open the page of available products.
     ${underlinedLink}`
-  })
-  .then(res => {
-    console.log(`Message was sent to Telegram`)
-  })
-  .catch(error => {
-    console.error(error)
-  })
+    })
+    .then(res => {
+      console.log(`Message was sent to Telegram`)
+    })
+    .catch(error => {
+      console.error(error)
+    })
 }
 
-let sendReminderAboutInsufficientBalanceOnTelegram = async ()=>{
+let sendReminderAboutInsufficientBalanceOnTelegram = async () => {
 
   try {
     const clientsWithInsufficientBalance = await clientsDao.getClientsWithInsufficientBalanceAndTelegramId();
     clientsWithInsufficientBalance.forEach(clientInsufficient => {
       axios
-      .post(`https://api.telegram.org/bot${telegram_token}/sendMessage`, {
-        chat_id: clientInsufficient.telegramId,
-        parse_mode: 'HTML',
-        text: `Dear ${clientInsufficient.name} ${clientInsufficient.surname}, 
+        .post(`https://api.telegram.org/bot${telegram_token}/sendMessage`, {
+          chat_id: clientInsufficient.telegramId,
+          parse_mode: 'HTML',
+          text: `Dear ${clientInsufficient.name} ${clientInsufficient.surname}, 
 Your order which was implemented at ${clientInsufficient.orderDate} ${clientInsufficient.orderTime} still pending because of the insufficient balance,
 Please top-up your balance, or contact us.      
         `
-      })
-      .then(res => {
-        console.log(`Message was sent to Telegram`)
-      })
-      .catch(error => {
-        console.error(error)
-      })
-  });
+        })
+        .then(res => {
+          console.log(`Message was sent to Telegram`)
+        })
+        .catch(error => {
+          console.error(error)
+        })
+    });
   } catch (err) {
     console.log('error while getting clients')
   }
 
-  
 
-   
-  }
+
+
+}
 // post request for sending notification about insufficient balance
-  app.post('/api/SendTelegramNotificationForInsufficientBalance', function (req, res) {
-    sendReminderAboutInsufficientBalanceOnTelegram()
-  });  
+app.post('/api/SendTelegramNotificationForInsufficientBalance', function (req, res) {
+  sendReminderAboutInsufficientBalanceOnTelegram()
+});
 
-  // string for cron which will implement function each Saturday Morning at 09:00
+// string for cron which will implement function each Saturday Morning at 09:00
 let eachMorningAtTen = '0 0 10 * * *'
-cron.schedule(eachMorningAtTen, ()=>{  
+cron.schedule(eachMorningAtTen, () => {
   sendReminderAboutInsufficientBalanceOnTelegram()  // sending reminder each saturday at 09:00
 })
 
@@ -336,7 +336,7 @@ app.post('/api/SendTelegramNotification', function (req, res) {
 
 // string for cron which will implement function each Saturday Morning at 09:00
 let eachsaturday = '0 0 9 * * 6'
-cron.schedule(eachsaturday, ()=>{  
+cron.schedule(eachsaturday, () => {
   sendUpdatedListNotificationTelegram()   // sending reminder each saturday at 09:00
 })
 
@@ -1180,7 +1180,7 @@ app.post(
     };
     try {
       await dbt.addclient(t);
-      res.status(201).end('Added client as a user!');
+      res.status(201).json('Added client as a user!');
     } catch (err) {
       res.status(503).json({ code: 503, error: 'Unavailable service.' });
     }
@@ -1207,8 +1207,9 @@ app.post('/api/orderinsert', async (req, res) => {
       time: req.body.time,
       pickup: req.body.pickup,
     };
-    await ordersDao.addOrder(t);
-    res.status(201).end('Created order!');
+    console.log(t);
+    console.log(await ordersDao.addOrder(t));
+    res.status(201).json('Created order!');
   } catch (err) {
     console.log(err);
     res.status(503).json({
