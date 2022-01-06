@@ -79,7 +79,11 @@ function DeliverList(props) {
       let orderStatusLocal = null;
       let num_steps = 0;
 
-      if (item.state === 'pending') {
+      if (item.state === 'missed') {
+        orderStatusLocal = 'Missed by client';
+        num_steps = 0;
+      }
+      else if (item.state === 'pending') {
         orderStatusLocal = 'Payment pending';
         num_steps = 0;
       }
@@ -537,7 +541,10 @@ function OrderStatus(props) {
       const type = item.pickup === 0 ? 'delivery' : 'pick-up';
       let orderStatusLocal = null;
 
-      if (item.state === 'pending') {
+      if (item.state === 'missed') {
+        orderStatusLocal = getOrderStatus('missed', type);
+      }
+      else if (item.state === 'pending') {
         orderStatusLocal = getOrderStatus('pending', type);
       }
       else if (item.state === 'booked' && item.farmer_state === null) {
@@ -566,21 +573,25 @@ function OrderStatus(props) {
     });
 
     setStatus(orderStatus);
-  });
+  }, [props.id]);
 
   const getOrderStatus = (status, type) => {
     const orderStatus = {
       order_completed: false,
       order_steps: 0,
       delivery_type: '',
-      client: { payed: false }, farmer: { shipped: false },
+      client: { payed: false, missed: false }, farmer: { shipped: false },
       warehouse: { received: false, prepared: false },
       delivery: { picked_up: false, shipped: false, delivered: false }
     };
 
     orderStatus.delivery_type = type;
 
-    if (status === 'pending') {
+    if (status === 'missed') {
+      orderStatus.client.missed = true;
+      orderStatus.num_steps = -1;
+    }
+    else if (status === 'pending') {
       orderStatus.client.payed = false;
       orderStatus.num_steps = 0;
     }
@@ -664,53 +675,62 @@ function OrderStatus(props) {
             </div>
           </div>
 
-          <div className='row'>
-            <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Client</span>
-            <div className="d-block text-success fw-bold">{completedIcon} Order placed</div>
-            {status.client.payed && <span className='d-block text-success'>{verticalIcon}</span>}
-            {!status.client.payed && <span className='d-block text-secondary'>{verticalIcon}</span>}
-            {status.client.payed && <div className="d-block text-success fw-bold">{completedIcon} Payment completed</div>}
-            {!status.client.payed && <div className="d-block text-danger fw-bold">{errorIcon} Payment pending</div>}
-          </div>
-          <div className='row'>
-            {status.client.payed && status.farmer.shipped && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Farmer</span>}
-            {(!status.client.payed || !status.farmer.shipped) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Farmer</span>}
-            {status.farmer.shipped && <div className="d-block text-success fw-bold">{completedIcon} All farmers have shipped the products</div>}
-            {!status.farmer.shipped && <div className="d-block text-secondary">{incompletedIcon} All farmers have shipped the products</div>}
-          </div>
-          <div className='row'>
-            {status.farmer.shipped && status.warehouse.received && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Warehouse</span>}
-            {(!status.farmer.shipped || !status.warehouse.received) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Warehouse</span>}
+          {!status.client.missed && <>
+            <div className='row'>
+              <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Client</span>
+              <div className="d-block text-success fw-bold">{completedIcon} Order placed</div>
+              {status.client.payed && <span className='d-block text-success'>{verticalIcon}</span>}
+              {!status.client.payed && <span className='d-block text-secondary'>{verticalIcon}</span>}
+              {status.client.payed && <div className="d-block text-success fw-bold">{completedIcon} Payment completed</div>}
+              {!status.client.payed && <div className="d-block text-danger fw-bold">{errorIcon} Payment pending</div>}
+            </div>
+            <div className='row'>
+              {status.client.payed && status.farmer.shipped && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Farmer</span>}
+              {(!status.client.payed || !status.farmer.shipped) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Farmer</span>}
+              {status.farmer.shipped && <div className="d-block text-success fw-bold">{completedIcon} All farmers have shipped the products</div>}
+              {!status.farmer.shipped && <div className="d-block text-secondary">{incompletedIcon} All farmers have shipped the products</div>}
+            </div>
+            <div className='row'>
+              {status.farmer.shipped && status.warehouse.received && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Warehouse</span>}
+              {(!status.farmer.shipped || !status.warehouse.received) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Warehouse</span>}
 
-            {status.warehouse.received && <div className="d-block text-success fw-bold">{completedIcon} Farmer shipment has been received by the warehouse</div>}
-            {!status.warehouse.received && <div className="d-block text-secondary">{incompletedIcon} Farmer shipment has been received by the warehouse</div>}
+              {status.warehouse.received && <div className="d-block text-success fw-bold">{completedIcon} Farmer shipment has been received by the warehouse</div>}
+              {!status.warehouse.received && <div className="d-block text-secondary">{incompletedIcon} Farmer shipment has been received by the warehouse</div>}
 
-            {status.warehouse.received && status.warehouse.prepared && <span className='d-block text-success'>{verticalIcon}</span>}
-            {(!status.warehouse.received || !status.warehouse.prepared) && <span className='d-block text-secondary'>{verticalIcon}</span>}
+              {status.warehouse.received && status.warehouse.prepared && <span className='d-block text-success'>{verticalIcon}</span>}
+              {(!status.warehouse.received || !status.warehouse.prepared) && <span className='d-block text-secondary'>{verticalIcon}</span>}
 
-            {status.warehouse.prepared && <div className="d-block text-success fw-bold">{completedIcon} Order has been prepared by the warehouse</div>}
-            {!status.warehouse.prepared && <div className="d-block text-secondary">{incompletedIcon} Order has been prepared by the warehouse</div>}
-          </div>
-          <div className='row'>
-            {status.warehouse.prepared && status.delivery_type === 'pick-up' && status.delivery.delivered && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Delivery</span>}
-            {status.delivery_type === 'pick-up' && (!status.warehouse.prepared || !status.delivery.delivered) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Delivery</span>}
+              {status.warehouse.prepared && <div className="d-block text-success fw-bold">{completedIcon} Order has been prepared by the warehouse</div>}
+              {!status.warehouse.prepared && <div className="d-block text-secondary">{incompletedIcon} Order has been prepared by the warehouse</div>}
+            </div>
+            <div className='row'>
+              {status.warehouse.prepared && status.delivery_type === 'pick-up' && status.delivery.delivered && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Delivery</span>}
+              {status.delivery_type === 'pick-up' && (!status.warehouse.prepared || !status.delivery.delivered) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Delivery</span>}
 
-            {status.delivery_type === 'pick-up' && status.delivery.delivered && <div className="d-block text-success fw-bold">{completedIcon} Client has picked up the order</div>}
-            {status.delivery_type === 'pick-up' && !status.delivery.delivered && <div className="d-block text-secondary">{incompletedIcon} Client has picked up the order</div>}
+              {status.delivery_type === 'pick-up' && status.delivery.delivered && <div className="d-block text-success fw-bold">{completedIcon} Client has picked up the order</div>}
+              {status.delivery_type === 'pick-up' && !status.delivery.delivered && <div className="d-block text-secondary">{incompletedIcon} Client has picked up the order</div>}
 
 
-            {status.warehouse.prepared && status.delivery_type === 'delivery' && status.delivery.shipped && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Delivery</span>}
-            {(status.delivery_type === 'delivery' && (!status.warehouse.prepared || !status.delivery.shipped)) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Delivery</span>}
+              {status.warehouse.prepared && status.delivery_type === 'delivery' && status.delivery.shipped && <span className='d-block lead mt-2'><span className='text-success'>{verticalIcon}</span> Delivery</span>}
+              {(status.delivery_type === 'delivery' && (!status.warehouse.prepared || !status.delivery.shipped)) && <span className='d-block lead mt-2'><span className='text-secondary'>{verticalIcon}</span> Delivery</span>}
 
-            {status.delivery_type === 'delivery' && status.delivery.shipped && <div className="d-block text-success fw-bold">{completedIcon} Order has been shipped</div>}
-            {status.delivery_type === 'delivery' && !status.delivery.shipped && <div className="d-block text-secondary">{incompletedIcon} Order has been shipped</div>}
+              {status.delivery_type === 'delivery' && status.delivery.shipped && <div className="d-block text-success fw-bold">{completedIcon} Order has been shipped</div>}
+              {status.delivery_type === 'delivery' && !status.delivery.shipped && <div className="d-block text-secondary">{incompletedIcon} Order has been shipped</div>}
 
-            {status.delivery_type === 'delivery' && status.delivery.shipped && status.delivery.delivered && <span className='d-block text-success'>{verticalIcon}</span>}
-            {status.delivery_type === 'delivery' && (!status.delivery.shipped || !status.delivery.delivered) && <span className='d-block text-secondary'>{verticalIcon}</span>}
+              {status.delivery_type === 'delivery' && status.delivery.shipped && status.delivery.delivered && <span className='d-block text-success'>{verticalIcon}</span>}
+              {status.delivery_type === 'delivery' && (!status.delivery.shipped || !status.delivery.delivered) && <span className='d-block text-secondary'>{verticalIcon}</span>}
 
-            {status.delivery_type === 'delivery' && status.delivery.delivered && <div className="d-block text-success fw-bold">{completedIcon} Order successfully delivered</div>}
-            {status.delivery_type === 'delivery' && !status.delivery.delivered && <div className="d-block text-secondary">{incompletedIcon} Order successfully delivered</div>}
-          </div>
+              {status.delivery_type === 'delivery' && status.delivery.delivered && <div className="d-block text-success fw-bold">{completedIcon} Order successfully delivered</div>}
+              {status.delivery_type === 'delivery' && !status.delivery.delivered && <div className="d-block text-secondary">{incompletedIcon} Order successfully delivered</div>}
+            </div>
+          </>}
+          {status.client.missed && (
+            <div className='row'>
+              <div className='d-block lead fw-bold text-center text-danger my-5'>
+                {dangerIcon} Client has missed the order!
+              </div>
+            </div>
+          )}
         </Modal.Body>
       }
       <Modal.Footer>
@@ -757,6 +777,11 @@ const errorIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
 
 const verticalIcon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots-vertical" viewBox="0 0 16 16">
   <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+</svg>
+
+const dangerIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+  <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+  <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" />
 </svg>
 
 export default DeliverList;

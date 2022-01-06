@@ -26,7 +26,8 @@ function Frontpage(props) {
         return "Unknown"
     }
 
-    const history = useHistory()
+    const history = useHistory();
+
     return (
 
         <Row className="bg-color-frontpage">

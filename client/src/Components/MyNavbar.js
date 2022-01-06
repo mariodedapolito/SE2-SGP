@@ -37,6 +37,9 @@ const MyNavbar = function (props) {
     if (props.userRole === 'client') {
       setCartNumber(props.cartItems.has(props.clientid) ? props.cartItems.get(props.clientid).items.length : 0);
     }
+    if (props.userRole === 'employee') {
+      setCartNumber(props.cartItems.size);
+    }
 
     props.setCartUpdated(false);
 
@@ -257,6 +260,40 @@ const MyNavbar = function (props) {
                         <div className="d-block text-center">
                           {cartNumber > 0 &&
                             <Button variant="success" onClick={() => (history.push("/cart"))}>Proceed to purchase</Button>}
+                        </div>
+                      </Popover.Body>
+                    </Popover>
+                  }
+                >
+                  <span className="position-relative">
+                    {cartIcon}
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {cartNumber}
+                      <span className="visually-hidden">Cart items</span>
+                    </span>
+                  </span>
+                </OverlayTrigger>
+              </div>
+            </>}
+
+            {props.userRole === 'employee' && <>
+              <div className="px-2 border-end" /> {/*spacer divs*/}
+              <div className="px-2" />            {/*spacer divs*/}
+              <div className="my-auto py-2 nav-accessory">
+                <OverlayTrigger
+                  trigger="click"
+                  placement="bottom"
+                  rootClose={true}
+                  overlay={
+                    <Popover className="shadow-lg">
+                      <Popover.Header><h3>Shopping cart</h3></Popover.Header>
+                      <Popover.Body>
+                        <div className="d-block text-center">
+                          {cartNumber === 0 && "No items added to cart for any client"}
+                          {cartNumber > 0 && cartNumber + " active client carts"}
+                        </div>
+                        <div className="d-block text-center">
+                          <Button variant="success" onClick={() => (history.push("/cart"))}>Go to cart</Button>
                         </div>
                       </Popover.Body>
                     </Popover>

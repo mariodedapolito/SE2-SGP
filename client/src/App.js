@@ -18,6 +18,7 @@ import {
   Switch,
   Route,
 } from 'react-router-dom';
+import { useHistory } from "react-router-dom"
 import { LoginForm1 } from './Components/LoginForm';
 import ClientArea from './Components/ClientArea';
 import FarmerRegistration from './Components/FarmerRegistration';
@@ -40,6 +41,7 @@ import Cart from './Components/Cart';
 let r = [];
 
 function App() {
+
   const [time, setTime] = useState({
     date: dayjs().format('MM-DD-YYYY'),
     hour: dayjs().format('HH:mm'),
@@ -68,6 +70,9 @@ function App() {
   const [cartItems, setCartItems] = useState(new Map());
   const [cartUpdated, setCartUpdated] = useState(false);
 
+  const [orderChangeItemID, setOrderChangeItemID] = useState(-1);
+  const [orderAddItemID, setOrderAddItemID] = useState(-1);
+
   const [authAlert, setAuthAlert] = useState(null);
 
   const updateRech = (x) => {
@@ -76,7 +81,7 @@ function App() {
   const updateRech1 = (x) => {
     setRecharged1(x);
   };
-   const updateRech2 = (x) => {
+  const updateRech2 = (x) => {
     setRecharged2(x);
   };
   /*USEFFECT LOGIN*/
@@ -103,7 +108,7 @@ function App() {
     };
     getAllUsers();
   }, []);
- /* USEFFECT missed */
+  /* USEFFECT missed */
   useEffect(() => {
     const getAllMPickups = async () => {
       await API.getAllMissedPickups()
@@ -413,11 +418,13 @@ function App() {
                   cartItems={cartItems}
                   setCartUpdated={setCartUpdated}
                   setCartItems={setCartItems}
+                  purchasing={true}
                   browsing={false}
+                  orderChangeItem={false}
+                  orderAddItem={false}
                   logged={logged}
                   orders={orders}
-                  isEmployee={false}
-                  products={confirmedProducts}
+                  userRole={userRole}
                   clients={clients}
                   updateProps={updateProps}
                   time={time}
@@ -435,10 +442,15 @@ function App() {
             render={() =>
               logged ? (
                 <Booking
+                  cartItems={cartItems}
+                  setCartUpdated={setCartUpdated}
+                  setCartItems={setCartItems}
                   browsing={true}
+                  purchasing={false}
+                  orderChangeItem={false}
+                  orderAddItem={false}
                   logged={logged}
-                  isEmployee={false}
-                  products={expectedProducts}
+                  userRole={userRole}
                   updateProps={updateProps}
                   time={time}
                   clientid={userid}
@@ -460,6 +472,8 @@ function App() {
                   clientid={userid}
                   products={products}
                   setRecharged={updateRech}
+                  setOrderChangeItemID={setOrderChangeItemID}
+                  setOrderAddItemID={setOrderAddItemID}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -472,13 +486,74 @@ function App() {
             render={() =>
               logged ? (
                 <Booking
+                  cartItems={cartItems}
+                  setCartUpdated={setCartUpdated}
+                  setCartItems={setCartItems}
                   browsing={false}
+                  purchasing={true}
+                  orderChangeItem={false}
+                  orderAddItem={false}
                   logged={logged}
                   clients={clients}
                   orders={orders}
-                  isEmployee={true}
+                  userRole={userRole}
                   clientid={userid}
-                  products={confirmedProducts}
+                  setRecharged={updateRech}
+                  updateProps={updateProps}
+                  time={time}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/change-item"
+            exact
+            render={() =>
+              logged ? (
+                <Booking
+                  cartItems={cartItems}
+                  setCartUpdated={setCartUpdated}
+                  setCartItems={setCartItems}
+                  browsing={false}
+                  purchasing={false}
+                  orderChangeItem={true}
+                  orderChangeItemID={orderChangeItemID}
+                  orderAddItem={false}
+                  logged={logged}
+                  clients={clients}
+                  orders={orders}
+                  userRole={userRole}
+                  clientid={userid}
+                  setRecharged={updateRech}
+                  updateProps={updateProps}
+                  time={time}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/add-item"
+            exact
+            render={() =>
+              logged ? (
+                <Booking
+                  cartItems={cartItems}
+                  setCartUpdated={setCartUpdated}
+                  setCartItems={setCartItems}
+                  browsing={false}
+                  purchasing={false}
+                  orderChangeItem={false}
+                  orderAddItem={true}
+                  orderAddItemID={orderAddItemID}
+                  logged={logged}
+                  clients={clients}
+                  orders={orders}
+                  userRole={userRole}
+                  clientid={userid}
                   setRecharged={updateRech}
                   updateProps={updateProps}
                   time={time}
@@ -771,13 +846,13 @@ function App() {
               )
             }
           />
-            <Route
+          <Route
             path="/see-pickups"
             exact
             render={() =>
-              logged ? ( 
-              <PickupOrders  
-                  
+              logged ? (
+                <PickupOrders
+
                   clients={clients}
                   orders={orders}
                   missed={missed}

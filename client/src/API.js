@@ -749,13 +749,13 @@ const submitEmail = async (e) => {
   });
   if (response.ok) {
     const resData = await response.json();
-    console.log(resData);
-    if (resData.status === 'success') {
-      alert('Message Sent');
-    }
-    else if (resData.status === 'fail') {
-      alert('Message failed to send');
-    }
+    //console.log(resData);
+    // if (resData.status === 'success') {
+    //   alert('Message Sent');
+    // }
+    // else if (resData.status === 'fail') {
+    //   alert('Message failed to send');
+    // }
     return resData;
   }
   else {
@@ -983,7 +983,7 @@ const API = {
   sendTelegramNotificationOnSaturday,
   sendTelegramTopUpNotification,
   sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
-  getAllMissedPickups,addMissedPickup
+  getAllMissedPickups, addMissedPickup
 };
 
 export default API;

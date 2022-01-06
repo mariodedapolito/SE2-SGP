@@ -21,6 +21,7 @@ function Cart(props) {
   const [orderArray, setOrderArray] = useState([]);
   const [placeOrder, setPlaceOrder] = useState(false);
   const [orderAlert, setOrderAlert] = useState(null);
+  const [emailAlert, setEmailAlert] = useState(null);
 
   const [address, setAddress] = useState('');
   const [nation, setNation] = useState('');
@@ -36,6 +37,7 @@ function Cart(props) {
   const [shippingError, setShippingError] = useState('');
 
   const [sendEmail, setSendEmail] = useState(true);
+  const [resendEmail, setResendEmail] = useState(false);
 
   // let location = useLocation();
 
@@ -47,10 +49,33 @@ function Cart(props) {
     const submitOrder = async () => {
       try {
 
-        console.log(orderArray);
-
         for (const ord of orderArray) {
           await API.addOrder(ord);
+        }
+
+        if (sendEmail) {
+          let mailObj = {
+            email: client.email,
+            message: ''
+          };
+          if (orderTotal > client.budget) {
+            mailObj.message = "Dear " + client.name + " " + client.surname + ",\nYour order from Solidarity Purchase group was placed but is pending and awaiting payment due to insufficient wallet balance.\nPlease contact the shop to top-up your wallet.\n\nKind regards\nSPG";
+          }
+          else {
+            if (deliveryFlag === 'delivery') {
+              mailObj.message = "Dear " + client.name + " " + client.surname + ",\nYour order from Solidarity Purchase group was placed and the payment was successfully processed.\nYou will be notified again when your order is ready to be delivered.\n\nKind regards\nSPG";
+            }
+            else {
+              mailObj.message = "Dear " + client.name + " " + client.surname + ",\nYour order from Solidarity Purchase group was placed and the payment was successfully processed.\nYou will be notified again 24h before the chosen pickup date.\n\nKind regards\nSPG";
+            }
+          }
+          const res = await API.submitEmail(mailObj);
+          if (res.status === 'success') {
+            setEmailAlert({ variant: 'success', msg: 'Confirmation email successfully sent to ' + client.email });
+          }
+          else {
+            setEmailAlert({ variant: 'danger', msg: 'Oops! Could not send the confirmation email. Click the button below to try again.' });
+          }
         }
 
         setPlaceOrder(false);
@@ -72,17 +97,60 @@ function Cart(props) {
     }
 
     submitOrder();
-  }, [placeOrder])
+  }, [placeOrder]);
 
   useEffect(() => {
-    if (clientID === -1 || !updateItems) {
+    if (!resendEmail) {
       return;
     }
 
-    setUpdateItems(false);
+    const submitOrder = async () => {
 
-    if (props.clients.find((client) => (client.client_id === clientID))) {
-      setClient(props.clients.find((client) => (client.client_id === clientID)));
+      let mailObj = {
+        email: client.email,
+        message: ''
+      };
+      if (orderTotal > client.budget) {
+        mailObj.message = "Dear " + client.name + " " + client.surname + ",\nYour order from Solidarity Purchase group was placed but is pending and awaiting payment due to insufficient wallet balance.\nPlease contact the shop to top-up your wallet.\n\nKind regards\nSPG";
+      }
+      else {
+        if (deliveryFlag === 'delivery') {
+          mailObj.message = "Dear " + client.name + " " + client.surname + ",\nYour order from Solidarity Purchase group was placed and the payment was successfully processed.\nYou will be notified again when your order is ready to be delivered.\n\nKind regards\nSPG";
+        }
+        else {
+          mailObj.message = "Dear " + client.name + " " + client.surname + ",\nYour order from Solidarity Purchase group was placed and the payment was successfully processed.\nYou will be notified again 24h before the chosen pickup date.\n\nKind regards\nSPG";
+        }
+      }
+      const res = await API.submitEmail(mailObj);
+      if (res.status === 'success') {
+        setEmailAlert({ variant: 'success', msg: 'Confirmation email successfully sent to ' + client.email });
+      }
+      else {
+        setEmailAlert({ variant: 'danger', msg: 'Oops! Could not send the confirmation email. Click the button below to try again.' });
+      }
+      setResendEmail(false);
+    }
+
+    submitOrder();
+  }, [resendEmail])
+
+  /*needs to be merged with below useEffect*/
+  useEffect(() => {
+    if (parseInt(clientID) === -1) {
+      setClient(null);
+      setOrderTotal(0);
+      setItems([]);
+      return;
+    }
+
+    if (props.clients.find((client) => (client.client_id === parseInt(clientID)))) {
+      setClient(props.clients.find((client) => (client.client_id === parseInt(clientID))));
+    }
+    else {
+      setClient(null);
+      setOrderTotal(0);
+      setItems([]);
+      return;
     }
 
     if (props.cartItems.has(clientID)) {
@@ -100,8 +168,32 @@ function Cart(props) {
     setOrderTotal(0);
     setItems([]);
 
+  }, [clientID]);
 
-  }, [clientID, updateItems]);
+  /*needs to be merged with above useEffect*/
+  useEffect(() => {
+    if (!updateItems) {
+      return;
+    }
+
+    setUpdateItems(false);
+
+    if (props.cartItems.has(clientID)) {
+      const items = props.cartItems.get(clientID).items;
+      setItems(items);
+
+      let sum = 0;
+      items.forEach((item) => {
+        sum += item.buyQty * item.price;
+      });
+      setOrderTotal(sum.toFixed(2));
+      return;
+    }
+
+    setOrderTotal(0);
+    setItems([]);
+
+  }, [updateItems]);
 
   const checkPlaceOrder = () => {
     let orderItems = [];
@@ -257,14 +349,12 @@ function Cart(props) {
             < div className='d-block text-center'>
               <div className="row">
                 <div className='col-lg-4'></div>
-                <div className='col-lg-4'>
-                  <Form.Select className="mx-2 d-inline-block w-50" aria-label="Default select example">
-                    <option value={-1}>Select a client</option>
-                    {props.cartItems.forEach((value, key) => {
-                      return (
-                        <option key={key} value={key}>{props.clients.find(c => c.client_id === key).name} {props.clients.find(c => c.client_id === key).surname}</option>
-                      );
-                    })}
+                <div className='col-lg-4 mb-3'>
+                  <Form.Select className="mx-2 d-inline-block w-50" value={clientID} onChange={(event) => (setClientID(event.target.value))} aria-label="Default select example">
+                    <option value="-1">Select a client</option>
+                    {Array.from(props.cartItems.keys()).map(key => (
+                      <option key={key} value={key}>{props.clients.find(c => c.client_id === parseInt(key)).name} {props.clients.find(c => c.client_id === parseInt(key)).surname}</option>
+                    ))}
                   </Form.Select>
                   <OverlayTrigger
                     placement="top"
@@ -290,7 +380,21 @@ function Cart(props) {
                 {orderAlert.msg}
                 {orderAlert.variant === 'success' && (
                   <div className='d-block text-end'>
-                    <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>
+                    {props.userRole==='client' && <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}                   
+                  </div>
+                )}
+              </Alert>
+            )}
+            {emailAlert && (
+              <Alert
+                variant={emailAlert.variant}
+                dismissible={true}
+                onClose={() => setEmailAlert(null)}
+              >
+                {emailAlert.msg}
+                {emailAlert.variant === 'danger' && (
+                  <div className='d-block text-end'>
+                    <Button variant='outline-danger' onClick={() => (setResendEmail(true))}>Resend email</Button>
                   </div>
                 )}
               </Alert>
@@ -310,7 +414,7 @@ function Cart(props) {
                   )}
                 </li>
               )}
-              {clientID !== -1 && items.map((item) => (
+              {parseInt(clientID) !== -1 && items.map((item) => (
                 <li key={item.id} className="list-group-item shadow">
                   <div className="row">
                     <div className="col-md-2 mb-2 my-auto align-middle">
@@ -361,7 +465,7 @@ function Cart(props) {
                   </div>
                 </li>
               ))}
-              {clientID !== -1 && items.length > 0 && (
+              {parseInt(clientID) !== -1 && items.length > 0 && (
                 <li className="list-group-item shadow bg-light">
                   <div className='d-block text-end'>
                     <h4 className='d-inline-block text-muted me-3'>Order total</h4>
@@ -370,18 +474,18 @@ function Cart(props) {
                 </li>
               )}
             </ul>
-            {clientID === -1 && (
-              <div className='d-block text-center'>
+            {parseInt(clientID) === -1 && (
+              <div className='d-block mb-3 p-5 text-center rounded border shadow'>
                 Please select a client from the dropdown above.
               </div>
             )}
-            {clientID !== -1 && items.length === 0 && (
+            {parseInt(clientID) !== -1 && items.length === 0 && (
               <div className='d-block mb-3 p-5 text-center rounded border shadow'>
                 {props.userRole === 'client' && "Your cart is empty"}
                 {props.userRole === 'employee' && "The selected client's cart is empty"}
               </div>
             )}
-            {clientID !== -1 && items.length > 0 && (
+            {parseInt(clientID) !== -1 && items.length > 0 && (
               <div className="d-block mb-3 p-3 rounded border shadow">
                 <div className="d-block text-center">
                   <span className="d-block text-center my-1 display-6">Choose shipping mode</span>
@@ -534,7 +638,7 @@ function Cart(props) {
                   <div className='row'>
                     <div className='col-lg-6'>
                       <h5 className='d-inline-block text-muted me-3'>Available budget</h5>
-                      <h3 className='d-inline-block'>{client && client.budget}€</h3>
+                      <h3 className='d-inline-block'>{client ? client.budget : 0}€</h3>
                     </div>
                     <div className='col-lg-6'>
                       <h5 className='d-inline-block text-muted me-3'>Order total</h5>
@@ -558,8 +662,8 @@ function Cart(props) {
                   </div>
                 </div>
                 <div className='col-lg-3 text-center my-auto'>
-                  <Button variant="secondary" className="py-3 mb-2 w-100" onClick={() => (history.push("/booking"))}>Continue shopping</Button>
-                  <Button variant="success" className="py-3 w-100" disabled={placeOrder} onClick={() => (!placeOrder && checkPlaceOrder())}>{placeOrder ? "Placing order..." : "Place order"}</Button>
+                  <Button variant="secondary" className="py-3 mb-2 w-100" onClick={() => (props.userRole === 'client' ? history.push("/booking") : history.push("/staff-booking"))}>Continue shopping</Button>
+                  <Button variant="success" className="py-3 w-100" disabled={placeOrder || parseInt(clientID) === -1} onClick={() => (!placeOrder && checkPlaceOrder())}>{placeOrder ? "Placing order..." : "Place order"}</Button>
                 </div>
               </div>
             </div>
@@ -582,7 +686,7 @@ function clientSelectorInfo() {
   );
 }
 
-const infoIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+const infoIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-info-circle" viewBox="0 0 16 16">
   <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
   <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
 </svg>
