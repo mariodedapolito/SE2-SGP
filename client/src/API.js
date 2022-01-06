@@ -845,6 +845,24 @@ const sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10 = async () =>
   // });
 };
 
+const sendTelegramOrderStateNotification = async (clientId,state) => {
+  const response = await fetch('/api/orderStateConfirmation', {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      clientId: clientId,
+      state: state
+    }),
+  })
+    .then((res) => res.json())
+    .then(async (res) => {
+      const resData = await res;
+      console.log(resData);
+    });
+};
+
 async function updateItem(order) {
   const response = await fetch(`/api/orders/` + order.id, {
     method: 'PUT',
@@ -983,7 +1001,9 @@ const API = {
   sendTelegramNotificationOnSaturday,
   sendTelegramTopUpNotification,
   sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
-  getAllMissedPickups, addMissedPickup
+  getAllMissedPickups, 
+  addMissedPickup,
+  sendTelegramOrderStateNotification
 };
 
 export default API;
