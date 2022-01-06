@@ -174,6 +174,32 @@ Please, use /subscribe [your email address] to connect your telegram to our syst
   res = asyncExample();
 });
 
+// if the user has a telegram account sends him the update about the order status
+app.post('/api/orderStateConfirmation', function (req, res) {
+
+  const userId = req.body.clientId;
+  const status = req.body.state;
+  
+  
+
+  const asyncTelegramId = async (userId,status) => {
+    const TID =  await clientsDao.getClientsTelegramId(userId);
+    // if the user has a telegram id I send the message
+    if(TID.length>0){
+      
+      if(status=='placed')
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status now is: placed `);
+      
+      else
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status now is: pending `); 
+       
+    }
+    return TID;
+  }
+  res = asyncTelegramId(userId,status);
+  
+});  
+
 app.get('/api/telegramId', async (req, res) => {
   try {
     const m = await walletsDAO.retrieveBudgetByTelegramID(246950204);
