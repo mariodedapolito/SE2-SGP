@@ -22,6 +22,7 @@ function Cart(props) {
   const [placeOrder, setPlaceOrder] = useState(false);
   const [orderAlert, setOrderAlert] = useState(null);
   const [emailAlert, setEmailAlert] = useState(null);
+  const [telegramAlert, setTelegramAlert] = useState(null);
 
   const [address, setAddress] = useState('');
   const [nation, setNation] = useState('');
@@ -37,6 +38,7 @@ function Cart(props) {
   const [shippingError, setShippingError] = useState('');
 
   const [sendEmail, setSendEmail] = useState(true);
+  const [sendTelegram, setSendTelegram] = useState(true);
   const [resendEmail, setResendEmail] = useState(false);
 
   // let location = useLocation();
@@ -52,6 +54,8 @@ function Cart(props) {
         for (const ord of orderArray) {
           await API.addOrder(ord);
         }
+
+        setOrderAlert({ variant: 'success', msg: 'Order has been successfully placed.' });
 
         if (sendEmail) {
           let mailObj = {
@@ -78,6 +82,16 @@ function Cart(props) {
           }
         }
 
+        if (sendTelegram) {
+          if (orderTotal > client.budget) {
+            await API.sendTelegramOrderStateNotification(clientID, 'placed');
+          }
+          else {
+            await API.sendTelegramOrderStateNotification(clientID, 'pending');
+          }
+          setTelegramAlert({ variant: 'success', msg: 'Telegram notification successfully sent to ' + client.email })
+        }
+
         setPlaceOrder(false);
 
         let cart = props.cartItems;
@@ -86,7 +100,6 @@ function Cart(props) {
         props.setCartUpdated(true);
         props.setRecharged(true);
         setUpdateItems(true);
-        setOrderAlert({ variant: 'success', msg: 'Order has been successfully placed.' });
       }
       catch (error) {
         console.log(error);
@@ -380,7 +393,7 @@ function Cart(props) {
                 {orderAlert.msg}
                 {orderAlert.variant === 'success' && (
                   <div className='d-block text-end'>
-                    {props.userRole==='client' && <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}                   
+                    {props.userRole === 'client' && <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}
                   </div>
                 )}
               </Alert>
@@ -397,6 +410,15 @@ function Cart(props) {
                     <Button variant='outline-danger' onClick={() => (setResendEmail(true))}>Resend email</Button>
                   </div>
                 )}
+              </Alert>
+            )}
+            {telegramAlert && (
+              <Alert
+                variant={telegramAlert.variant}
+                dismissible={true}
+                onClose={() => setTelegramAlert(null)}
+              >
+                {telegramAlert.msg}
               </Alert>
             )}
             <ul className="list-group mb-3">
@@ -658,6 +680,15 @@ function Cart(props) {
                       onChange={() => (setSendEmail((send) => (!send)))}
                       id="custom-switch"
                       label={props.userRole === 'client' ? "Receive a confirmation email for the purchase" : "Send confirmation email for the purchase to the client"}
+                    />
+                  </div>
+                  <div className='d-block'>
+                    <Form.Check
+                      type="switch"
+                      checked={sendTelegram}
+                      onChange={() => (setSendTelegram((send) => (!send)))}
+                      id="custom-switch"
+                      label={props.userRole === 'client' ? "Receive a telegram notification for the purchase" : "Send telegram notification for the confirmation of the purchase to the client"}
                     />
                   </div>
                 </div>

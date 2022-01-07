@@ -1,31 +1,29 @@
 import { Link, useHistory } from 'react-router-dom';
 import ClientAlert from './ClientAlert';
-import { Alert,Container,Row } from "react-bootstrap";
+import { Alert, Container, Row } from "react-bootstrap";
 function ClientArea(props) {
 
   const history = useHistory();
-  let missedpickups=props.missed.filter(x=>x.client_id===props.clientid);
+  let missedpickups = props.missed.filter(x => x.client_id === props.clientid);
   return (
     <div className='container-fluid'>
       <div className="row w-100">
-{missedpickups.length===3||missedpickups.length===4?
- <Container className="p-2 m-2">
-          <Row className="justify-content-md-center">
-            <Alert
-              variant="danger"
-              style={{
-                fontSize: 25,
-              }}    
-            >You have missed #{missedpickups.length} pickups. Be aware that after missing the 5th pickup you will be suspended!
-            </Alert>
-          </Row>
-        </Container>:<></>}
         <span className="d-block text-center mt-5 mb-2 display-2">
           Client Area
         </span>
         <div className="d-block">
           <ClientAlert clients={props.clients} orders={props.orders} clientid={props.clientid} userRole={props.userRole} />
         </div>
+        {(missedpickups.length === 3 || missedpickups.length === 4) && (
+          <div className="d-block">
+            <div className="d-block my-3 mx-5 text-center">
+              <Alert variant="danger">
+                <Alert.Heading><h3>ATTENTION: Account status information</h3></Alert.Heading>
+                <p>You have <b>missed #{missedpickups.length} pickups</b>. Be aware that after missing the 5th pickup you will be <b>suspended</b>!</p>
+              </Alert>
+            </div>
+          </div>
+        )}
         <div className="col-lg-3">
           <div className="card mx-3 my-2 shadow-sm">
             <div className="card-header d-flex justify-content-between">

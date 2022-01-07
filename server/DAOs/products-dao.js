@@ -16,7 +16,7 @@ exports.setTestDB = (db_name) => {
 
 exports.getAllProducts = () => {
   return new Promise((resolve, reject) => {
-   
+
     const sql =
       'SELECT * FROM products';
     db.all(sql, [], (err, rows) => {
@@ -59,6 +59,7 @@ exports.getAllConfirmedProducts = (year, week) => {
         name: p.product_name,
         description: p.product_description,
         category: p.category_name,
+        categoryId: p.category_id,
         price: p.product_price,
         unit: p.product_unit,
         quantity: p.product_quantity,
@@ -89,6 +90,7 @@ exports.getAllExpectedProducts = (year, week) => {
         name: p.product_name,
         description: p.product_description,
         category: p.category_name,
+        categoryId: p.category_id,
         price: p.product_price,
         unit: p.product_unit,
         quantity: p.product_quantity,
@@ -118,6 +120,7 @@ exports.getProductById = (product_id) => {
         name: row.product_name,
         description: row.product_description,
         category: row.category_name,
+        categoryId: p.category_id,
         price: row.product_price,
         unit: row.product_unit,
         quantity: row.product_quantity,
@@ -140,8 +143,7 @@ exports.getAllCategories = () => {
       }
       const categories = rows.map((c) => ({
         id: c.category_id,
-        name: c.category_name,
-        active: 0,
+        name: c.category_name
       }));
       resolve(categories);
     });

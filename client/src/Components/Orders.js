@@ -1,8 +1,5 @@
-import { Button, Row, Col, Table, Image, Modal, Badge, Placeholder } from 'react-bootstrap';
+import { Button, Alert, Table, Modal, Badge, Placeholder } from 'react-bootstrap';
 import { useState, useEffect } from "react";
-import p from './circle-fill.svg';
-import d from './iconDelete.svg';
-import im from './pencil-fill.svg';
 import API from '../API'
 import { Link, useHistory } from 'react-router-dom'
 import dayjs from 'dayjs';
@@ -15,7 +12,29 @@ function Orders(props) {
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
   const [id, setId] = useState();
-  const [allowModification, setAllowModification] = useState(false);
+  const [orderModifiedAlert, setOrderModifiedAlert] = useState(null);
+
+  useEffect(() => {
+    if (!props.orderModified) {
+      return;
+    }
+
+    if (props.orderChangeItemID !== -1) {
+      const oldOrderEntry = props.orders.find((o) => (o.id === props.orderChangeItemID));
+      setOrderModifiedAlert({ variant: 'success', msg: 'The desired item was successfully swapped', order_id: oldOrderEntry.order_id });
+      setId(oldOrderEntry.order_id);
+      setShow(true);
+      props.setOrderChangeItemID(-1);
+    }
+    if (props.orderAddItemID !== -1) {
+      setOrderModifiedAlert({ variant: 'success', msg: 'The new item was successfully added to your order', order_id: props.orderAddItemID });
+      setId(props.orderAddItemID);
+      setShow(true);
+      props.setOrderAddItemID(-1);
+    }
+
+
+  }, [props.orderModified])
 
   let m = props.orders.filter(x => x.client_id === props.clientid).map(s => s.order_id).filter(onlyUnique);
   m.reverse();
@@ -104,7 +123,7 @@ function Orders(props) {
                         <button
                           className="btn btn-secondary d-block my-1 mx-2 w-100"
                           disabled={!modifyFlag}
-                          onClick={() => { setAllowModification(modifyFlag); handleModifyOrder(modifyFlag, s.order_id); }}
+                          onClick={() => { handleModifyOrder(modifyFlag, s.order_id); }}
                         >
                           Modify order
                         </button>
@@ -124,72 +143,8 @@ function Orders(props) {
         </div >
       </div>
 
-      <ProductList show={show} setShow={setShow} setRecharged={props.setRecharged} allowModify={allowModification} orders={props.orders} products={props.products} id={id} setOrderChangeItemID={props.setOrderChangeItemID} setOrderAddItemID={props.setOrderAddItemID} />
+      <ProductList show={show} setShow={setShow} orderModifiedAlert={orderModifiedAlert} setOrderModifiedAlert={setOrderModifiedAlert} setRecharged={props.setRecharged} orders={props.orders} products={props.products} id={id} setOrderChangeItemID={props.setOrderChangeItemID} setOrderAddItemID={props.setOrderAddItemID} />
       <OrderStatus show={show2} setShow={setShow2} orders={props.orders} products={props.products} id={id} />
-
-      {/* <Modal show={show} onHide={handleClose} animation={false}>
-        <Modal.Header closeButton>
-          <Modal.Title >
-            <Row>
-              <Col xs={4} md={4} style={{ 'fontSize': 24 }}>Product</Col>
-              <Col xs={2} md={2} style={{ 'fontSize': 24 }}>Kilos</Col>
-              <Col xs={2} md={2} style={{ 'fontSize': 24 }}>Price</Col>
-              <Col xs={2} md={2} style={{ 'fontSize': 24 }}>Edit</Col>
-              <Col xs={2} md={2} style={{ 'fontSize': 24 }}>Delete</Col>
-            </Row>
-          </Modal.Title>
-        </Modal.Header>
-
-        {props.orders.filter(x => (x.state === "booked") && (x.order_id === id) && (x.client_id === parseInt(props.clientid))).map((s) =>
-          <Modal.Body key={s.id}>
-            <Row>
-              <Col xs={4} md={4}><Image src={p} style={{ width: '5px', height: '5px' }}></Image>{' '}{s.product_name.toUpperCase()}
-              </Col>
-              <Col xs={1} md={1} style={{ 'fontSize': 20 }}> {s.order_quantity}</Col>
-              <Col xs={2} md={2} style={{ 'fontSize': 20 }}>{' '} {s.OrderPrice}€</Col>
-              <Col xs={2} md={2}> <Link to={{ pathname: "/booking", state: { item: s, status: 'update' } }}><Image src={im} style={{ 'cursor': 'pointer', width: '20px', height: '20px' }}></Image></Link></Col>
-              <Col xs={2} md={2}> <Image src={d} style={{ 'cursor': 'pointer', width: '20px', height: '20px' }} onClick={() => {
-
-                API.deleteOrderItem(s.id).then(() => { props.setRecharged(true); });
-
-              }}></Image></Col></Row>
-          </Modal.Body>)}
-        <Modal.Footer>
-          <Link to={{ pathname: "/booking", state: { item: order, status: 'add' } }}>
-            <Button variant={"primary"}>Add new products</Button></Link>
-
-          <Button variant={"secondary"} onClick={() => { setShow(false); }}>Close</Button>
-
-
-        </Modal.Footer>
-      </Modal> */}
-
-      {/*modal number 2*/}
-      {/* <Modal show={show2} onHide={handleClose2} animation={false}>
-        <Modal.Header closeButton>
-          <Modal.Title >
-            <Row>
-              <Col xs={3} md={3}>Product</Col>
-              <Col xs={3} md={3}>{' '}</Col>
-              <Col xs={2} md={2}>Kilos</Col>
-              <Col xs={1} md={1}>{' '}</Col>
-              <Col xs={2} md={2}>Price</Col>
-
-            </Row>
-          </Modal.Title>
-        </Modal.Header>
-
-        {props.orders.filter(x => (x.order_id === id) && (x.client_id === parseInt(props.clientid))).map((s) =>
-          <Modal.Body key={s.id}>
-            <Row>
-              <Col xs={4} md={4}><Image src={p} style={{ width: '5px', height: '5px' }}></Image>{' '}{s.product_name.toUpperCase()}
-              </Col>
-              <Col xs={2} md={2} style={{ 'fontSize': 20 }}> {s.order_quantity}</Col>
-              <Col xs={4} md={4} style={{ 'fontSize': 20 }}>{' '} {s.OrderPrice}€</Col>
-            </Row>
-          </Modal.Body>)}
-
-      </Modal> */}
     </>
   );
 }
@@ -199,6 +154,20 @@ function ProductList(props) {
   const history = useHistory();
 
   const [deleteOrderID, setDeleteOrderID] = useState(-1);
+  const [allowModify, setAllowModify] = useState(true);
+  useEffect(() => {
+    if (props.id === -1) {
+      return;
+    }
+
+    props.orders.filter((o) => (o.order_id === props.id)).forEach(o => {
+      if (o.state === "pending" || o.state === 'missed' || o.state === 'delivered' || o.farmer_state !== null) {
+        setAllowModify(false);
+        return;
+      }
+    });
+
+  }, [props.id])
 
   useEffect(() => {
     if (deleteOrderID === -1) {
@@ -212,7 +181,7 @@ function ProductList(props) {
     }
 
     deleteItem();
-  }, [deleteOrderID])
+  }, [deleteOrderID]);
 
   const capitalizeEachFirstLetter = (str) => {
     return str
@@ -223,7 +192,7 @@ function ProductList(props) {
   };
 
   return (
-    <Modal show={props.show} onHide={() => (props.setShow(false))} size="lg">
+    <Modal show={props.show} onHide={() => { props.setShow(false); props.setOrderModifiedAlert(null) }} size="lg">
       <Modal.Header closeButton>
         <Modal.Title >
           Products in order #{props.id}
@@ -231,6 +200,16 @@ function ProductList(props) {
       </Modal.Header>
 
       <Modal.Body>
+        {props.orderModifiedAlert && props.orderModifiedAlert.order_id === props.id &&
+          <Alert
+            variant={props.orderModifiedAlert.variant}
+            className='my-3 mx-2'
+            dismissible={true}
+            onClose={() => props.setOrderModifiedAlert(null)}
+          >
+            {props.orderModifiedAlert.msg}
+          </Alert>
+        }
         <ul className="list-group">
           {props.orders.filter((o) => (o.order_id === props.id)).map((s) => (
             <li key={s.product_id} className="list-group-item">
@@ -259,10 +238,10 @@ function ProductList(props) {
                   </div>
                 </div>
                 <div className="col-md-4 mb-2 my-auto">
-                  <Button variant="primary" className="d-block my-1 mx-2 w-100" onClick={() => {props.setOrderChangeItemID(s.id); history.push("/change-item"); }} disabled={!props.allowModify}>
+                  <Button variant="primary" className="d-block my-1 mx-2 w-100" onClick={() => { props.setOrderChangeItemID(s.id); history.push("/change-item"); }} disabled={!allowModify}>
                     Change product
                   </Button>
-                  <Button variant="secondary" className="d-block my-1 mx-2 w-100" onClick={() => (setDeleteOrderID(s.id))} disabled={!props.allowModify || deleteOrderID !== -1}>
+                  <Button variant="secondary" className="d-block my-1 mx-2 w-100" onClick={() => (setDeleteOrderID(s.id))} disabled={!allowModify || deleteOrderID !== -1}>
                     {deleteOrderID !== -1 ? 'Removing product...' : 'Remove product'}
                   </Button>
                 </div>
@@ -293,7 +272,7 @@ function ProductList(props) {
                 </div>
               </div>
               <div className="col-md-4 my-auto">
-                <Button variant="success" className="d-block my-1 mx-2 w-100" onClick={() => {props.setOrderAddItemID(props.id); history.push("/add-item");}} disabled={!props.allowModify}>
+                <Button variant="success" className="d-block my-1 mx-2 w-100" onClick={() => { props.setOrderAddItemID(props.id); history.push("/add-item"); }} disabled={!allowModify}>
                   Add new product
                 </Button>
               </div>
@@ -302,7 +281,7 @@ function ProductList(props) {
         </ul>
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={() => (props.setShow(false))}>Close product list</Button>
+        <Button onClick={() => { props.setShow(false); props.setOrderModifiedAlert(null) }}>Close product list</Button>
       </Modal.Footer>
     </Modal>);
 }

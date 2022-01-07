@@ -188,10 +188,10 @@ app.post('/api/orderStateConfirmation', function (req, res) {
     if(TID.length>0){
       
       if(status=='placed')
-        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status now is: placed `);
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: placed `);
       
       else
-        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status now is: pending `); 
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: pending payment `); 
        
     }
     return TID;

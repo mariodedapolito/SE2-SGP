@@ -73,6 +73,8 @@ function App() {
   const [orderChangeItemID, setOrderChangeItemID] = useState(-1);
   const [orderAddItemID, setOrderAddItemID] = useState(-1);
 
+  const [orderModified, setOrderModified] = useState(null);
+
   const [authAlert, setAuthAlert] = useState(null);
 
   const updateRech = (x) => {
@@ -474,6 +476,10 @@ function App() {
                   setRecharged={updateRech}
                   setOrderChangeItemID={setOrderChangeItemID}
                   setOrderAddItemID={setOrderAddItemID}
+                  orderChangeItemID={orderChangeItemID}
+                  orderAddItemID={orderAddItemID}
+                  orderModified={orderModified}
+                  setOrderModified={setOrderModified}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -520,6 +526,7 @@ function App() {
                   purchasing={false}
                   orderChangeItem={true}
                   orderChangeItemID={orderChangeItemID}
+                  setOrderModified={setOrderModified}
                   orderAddItem={false}
                   logged={logged}
                   clients={clients}
@@ -549,6 +556,7 @@ function App() {
                   orderChangeItem={false}
                   orderAddItem={true}
                   orderAddItemID={orderAddItemID}
+                  setOrderModified={setOrderModified}
                   logged={logged}
                   clients={clients}
                   orders={orders}
