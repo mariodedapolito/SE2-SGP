@@ -443,31 +443,27 @@ function App() {
           <Route
             path="/products-next-week"
             exact
-            render={() =>
-              logged ? (
-                <Booking
-                  cartItems={cartItems}
-                  setCartUpdated={setCartUpdated}
-                  setCartItems={setCartItems}
-                  browsing={true}
-                  purchasing={false}
-                  orderChangeItem={false}
-                  orderAddItem={false}
-                  logged={logged}
-                  userRole={userRole}
-                  updateProps={updateProps}
-                  time={time}
-                  clientid={userid}
-                  setRecharged={updateRech}
-                  setRecharged1={updateRech1}
-                  clients={clients}
-                />
-              ) : (
-                <Redirect to="/login" />
-              )
-            }
+            render={() => (
+              <Booking
+                cartItems={cartItems}
+                setCartUpdated={setCartUpdated}
+                setCartItems={setCartItems}
+                browsing={true}
+                purchasing={false}
+                orderChangeItem={false}
+                orderAddItem={false}
+                logged={logged}
+                userRole={userRole}
+                updateProps={updateProps}
+                time={time}
+                clientid={userid}
+                setRecharged={updateRech}
+                setRecharged1={updateRech1}
+                clients={clients}
+              />
+            )}
           />
-          <Route
+          < Route
             path="/orders"
             exact
             render={() =>

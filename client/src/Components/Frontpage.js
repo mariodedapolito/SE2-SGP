@@ -451,7 +451,7 @@ function Frontpage(props) {
                             <br />
                             <div className="d-block w-100">
                                 <Button variant="light" onClick={() => {
-                                    history.push("/booking")
+                                    history.push("/products-next-week")
                                 }}>Explore our products</Button>
                             </div>
                         </div>
