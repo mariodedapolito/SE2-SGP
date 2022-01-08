@@ -1,4 +1,4 @@
-import { Button, Modal, OverlayTrigger, Popover } from 'react-bootstrap';
+import { Button, Modal, OverlayTrigger, Popover, Tooltip } from 'react-bootstrap';
 import { BoxSeam } from 'react-bootstrap-icons';
 import API from '../API'
 import { useState, useEffect } from "react";
@@ -99,7 +99,7 @@ function PickupListEmployee(props) {
   }
 
   const CannotPreparePopover = () => (
-    <Popover id="popover-basic">
+    <Popover id="popover-basic" rootClose={true} placement="auto">
       <Popover.Header as="h3">Product missing</Popover.Header>
       <Popover.Body className="text-wrap">
         Order cannot be prepared for pick-up since some products have not yet been received by the warehouse.
@@ -134,9 +134,9 @@ function PickupListEmployee(props) {
                 </td>
                 <td className="align-middle">{s.sum.toFixed(2)}€</td>
                 <td className="align-middle">
-                  <span className={dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date+" "+s.time, 'year') && "text-danger"}>
-                    {dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")} 
-                    {dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date+" "+s.time, 'year') && " (Late)"}
+                  <span className={dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date + " " + s.time, 'year') && "text-danger"}>
+                    {dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}
+                    {dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date + " " + s.time, 'year') && " (Late)"}
                   </span>
                 </td>
                 <td className="align-middle">
@@ -147,7 +147,10 @@ function PickupListEmployee(props) {
                 <td>
                   {!s.order_complete &&
                     <>
-                      <OverlayTrigger trigger="hover" overlay={CannotPreparePopover}>
+                      <OverlayTrigger placement="auto" overlay={
+                        <Tooltip>
+                          Order cannot be prepared for pick-up since <b>some products have not yet been received by the warehouse</b>.
+                        </Tooltip>}>
                         <span>{infoIcon}</span>
                       </OverlayTrigger>
 
@@ -191,7 +194,7 @@ function PickupListEmployee(props) {
                     {stockIcon} {s.order_quantity} {props.products.find((p) => (p.id === s.product_id)).unit}
                   </div>
                   <div className="col-md-3 mb-2 text-start my-auto">
-                    {priceIcon} {s.OrderPrice}€
+                    {priceIcon} {s.OrderPrice.toFixed(2)}€
                   </div>
                 </div>
                 {s.farmer_state === "farmer-shipped" &&
@@ -237,7 +240,7 @@ const priceIcon = (<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32
   <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1zm0 5.586 7 7L13.586 9l-7-7H2v4.586z" />
 </svg>)
 
-const infoIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+const infoIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-info-circle" viewBox="0 0 16 16">
   <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
   <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
 </svg>

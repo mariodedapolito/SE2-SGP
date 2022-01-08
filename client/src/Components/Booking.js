@@ -788,7 +788,7 @@ function ItemChangeModal(props) {
           <div className="list-group-item shadow bg-light">
             <div className='d-block text-center'>
               <h4 className='d-inline-block text-muted me-3'>Available wallet balance</h4>
-              <h1 className='d-inline-block'>{props.clients.find((c) => (c.client_id === props.clientid)).budget + oldItem.buyQty * oldItem.price}€</h1>
+              <h1 className='d-inline-block'>{(props.clients.find((c) => (c.client_id === props.clientid)).budget + oldItem.buyQty * oldItem.price).toFixed(2)}€</h1>
             </div>
           </div>
         )}

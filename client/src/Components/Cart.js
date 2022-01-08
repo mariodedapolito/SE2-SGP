@@ -374,10 +374,14 @@ function Cart(props) {
                     ))}
                   </Form.Select>
                   <OverlayTrigger
-                    placement="top"
+                    placement="auto"
                     className="d-inline-block w-25"
                     delay={{ show: 250, hide: 400 }}
-                    overlay={clientSelectorInfo}
+                    overlay={
+                      <Tooltip>
+                        Only clients for which items<br />
+                        were booked are shown.
+                      </Tooltip>}
                   >
                     {infoIcon}
                   </OverlayTrigger></div>
@@ -710,15 +714,6 @@ function Cart(props) {
       </div>
     </>
   )
-}
-
-function clientSelectorInfo() {
-  return (
-    <Tooltip id="button-tooltip">
-      Only clients for which items<br />
-      were booked are shown.
-    </Tooltip>
-  );
 }
 
 const infoIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-info-circle" viewBox="0 0 16 16">

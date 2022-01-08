@@ -56,7 +56,7 @@ function PickupOrders(props) {
             return <tr key={s.id}>
               <td className="align-middle">{s.order_id}</td>
               <td className="align-middle">{props.clients.find((c) => (c.client_id === s.client_id)) ? props.clients.find((c) => (c.client_id === s.client_id)).name + " " + props.clients.find((c) => (c.client_id === s.client_id)).surname : "Unknown"}</td>
-              <td className="align-middle">{sum}€</td>
+              <td className="align-middle">{sum.toFixed(2)}€</td>
               <td className="align-middle">{dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}</td>
               <td className="align-middle">
                 {!props.missed.find(x => x.order_id === s.order_id) ? <Button className="btn btn-primary" onClick={() => {
@@ -72,8 +72,8 @@ function PickupOrders(props) {
                 }}>
                   Mark as missed
                 </Button>
-                  : <><span class="text-danger">Pickup marked as missed</span></>}
-              </td>
+                  : <><span className="text-danger">Pickup marked as missed</span></>}
+            </td>
             </tr>
           }
         }
@@ -81,8 +81,8 @@ function PickupOrders(props) {
 
 
 
-      </tbody>
-    </table>
+    </tbody>
+  </table>
 
 
 
