@@ -54,7 +54,7 @@ function Cart(props) {
         for (const ord of orderArray) {
           await API.addOrder(ord);
         }
-        if (orderTotal > client.budget) {
+        if (orderTotal <= client.budget) {
           await API.increaseBalance(orderTotal * (-1), clientID);
         }
 
