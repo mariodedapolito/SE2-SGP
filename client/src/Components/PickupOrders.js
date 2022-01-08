@@ -21,9 +21,12 @@ m.reverse();
 
     return(<>
 
-      <span className="d-block text-center mt-2 mb-1 display-1">
-               List of Missed Pickups</span>
-          
+      <span className="d-block text-center mt-5 mb-2 display-1">
+          Pickups
+        </span>
+        <h5 className="d-block mx-auto mb-5 text-center text-muted">
+          Below you can find all the past pickups. Please mark as missed the ones that were not picked up.
+        </h5>
            
       <table className="mx-3 text-center table table-striped table-hover table-responsive">
   <thead >
@@ -46,7 +49,7 @@ let sum=0;
 for (const a of array)
 {sum=sum+a;}
 
-sum=sum;
+sum=sum.toFixed(2);
 m.pop();
 
 
@@ -62,12 +65,13 @@ m.pop();
         client_id: s.client_id
       
     });
-console.log(newMissed);
+
 API.addMissedPickup(newMissed).then(()=>{
 API.updateState(s.order_id,"missed");props.setRecharged2(true);props.setRecharged(true);})  }}>
-                    mark the pickup as missed 
-                    </Button>:<><span class="text-danger">missed pickup</span></>}
-                  </td>
+                    missed 
+                    </Button> 
+:<><span class="text-danger">missed pickup</span></>}
+                </td>
                 </tr>
     }}
     )}
