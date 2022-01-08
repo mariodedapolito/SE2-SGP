@@ -866,7 +866,6 @@ function App() {
             render={() =>
               logged ? (
                 <PickupOrders
-
                   clients={clients}
                   orders={orders}
                   missed={missed}
