@@ -54,6 +54,9 @@ function Cart(props) {
         for (const ord of orderArray) {
           await API.addOrder(ord);
         }
+        if (orderTotal > client.budget) {
+          await API.increaseBalance(orderTotal * (-1), clientID);
+        }
 
         setOrderAlert({ variant: 'success', msg: 'Order has been successfully placed.' });
 
@@ -99,6 +102,7 @@ function Cart(props) {
         props.setCartItems(cart);
         props.setCartUpdated(true);
         props.setRecharged(true);
+        props.setRecharged1(true);
         setUpdateItems(true);
       }
       catch (error) {

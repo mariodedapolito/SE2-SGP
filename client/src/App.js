@@ -405,6 +405,7 @@ function App() {
                   clients={clients}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -432,6 +433,7 @@ function App() {
                   time={time}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -457,6 +459,7 @@ function App() {
                   time={time}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   clients={clients}
                 />
               ) : (
@@ -505,6 +508,7 @@ function App() {
                   userRole={userRole}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
                 />
@@ -534,6 +538,7 @@ function App() {
                   userRole={userRole}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
                 />
@@ -563,6 +568,7 @@ function App() {
                   userRole={userRole}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
                 />

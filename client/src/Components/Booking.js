@@ -637,11 +637,11 @@ function Booking(props) {
       </Modal>
 
       {props.orderChangeItem &&
-        <ItemChangeModal show={showChangeItemModal} setShow={setShowChangeItemModal} oldID={props.orderChangeItemID} newID={newItemID} products={products} orders={props.orders} clients={props.clients} clientid={props.clientid} setRecharged={props.setRecharged} setOrderModified={props.setOrderModified} />
+        <ItemChangeModal show={showChangeItemModal} setShow={setShowChangeItemModal} oldID={props.orderChangeItemID} newID={newItemID} products={products} orders={props.orders} clients={props.clients} clientid={props.clientid} setRecharged={props.setRecharged} setRecharged1={props.setRecharged1} setOrderModified={props.setOrderModified} />
       }
 
       {props.orderAddItem &&
-        <ItemAddModal show={showAddItemModal} setShow={setShowAddItemModal} oldID={props.orderAddItemID} newID={newItemID} products={products} orders={props.orders} clients={props.clients} clientid={props.clientid} setRecharged={props.setRecharged} setOrderModified={props.setOrderModified} />
+        <ItemAddModal show={showAddItemModal} setShow={setShowAddItemModal} oldID={props.orderAddItemID} newID={newItemID} products={products} orders={props.orders} clients={props.clients} clientid={props.clientid} setRecharged={props.setRecharged} setRecharged1={props.setRecharged1} setOrderModified={props.setOrderModified} />
       }
 
     </>
@@ -699,9 +699,11 @@ function ItemChangeModal(props) {
           time: oldOrderEntry.time,
           pickup: oldOrderEntry.pickup,
         };
-        console.log(new_item);
         await API.updateItem(new_item);
+        await API.increaseBalance(oldItem.buyQty * oldItem.price, oldOrderEntry.client_id);     /* increase balance by old item price */
+        await API.increaseBalance(buyQuantity * newItem.price * (-1), oldOrderEntry.client_id); /* decrease balance by new item price */
         props.setRecharged(true);
+        props.setRecharged1(true);
         props.setOrderModified(true);
         history.push("/orders");
       }
@@ -951,9 +953,10 @@ function ItemAddModal(props) {
           time: oldOrderEntry.time,
           pickup: oldOrderEntry.pickup,
         };
-        console.log(new_item);
         await API.addOrder(new_item);
+        await API.increaseBalance(buyQuantity * newItem.price * (-1), oldOrderEntry.client_id);
         props.setRecharged(true);
+        props.setRecharged1(true);
         props.setOrderModified(true);
         history.push("/orders");
       }
