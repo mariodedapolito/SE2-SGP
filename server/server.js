@@ -479,7 +479,7 @@ app.post('/api/missed-pickup', async (req, res) => {
       client_id: req.body.client_id,
     };
     await missedDao.addMissedPickup(t);
-    res.status(201).end('Created missed pickup!');
+    res.status(201).json('Created missed pickup!');
   } catch (err) {
     console.log(err);
     res.status(503).json({
@@ -1111,7 +1111,7 @@ app.put('/api/modifyquantity', async (req, res) => {
   productsDAO
     .putProductQuantity(req.body.id, req.body.quantity)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -1136,7 +1136,7 @@ app.put('/api/farmerConfirm/:product_id/:year/:week', async (req, res) => {
       req.params.week
     )
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -1171,7 +1171,7 @@ app.post('/api/clients', async (req, res) => {
     } else {
       await clientsDao
         .createClient(client)
-        .then((id) => res.status(201).end('New Client was added !'))
+        .then((id) => res.status(201).json('New Client was added !'))
         .catch((err) => res.status(500).json(error));
     }
   } catch (e) {
@@ -1278,7 +1278,7 @@ app.post('/api/orderinsert', async (req, res) => {
 app.delete('/api/orders/:id', async (req, res) => {
   try {
     await ordersDao.deleteItem(req.params.id);
-    res.status(204).end('order item deleted!');
+    res.status(204).json('order item deleted!');
   } catch (err) {
     res.status(503).json({
       code: 503,
@@ -1342,7 +1342,7 @@ app.put('/api/modifyStato', async (req, res) => {
   deliverersDao
     .changeState(req.body.id, req.body.product, req.body.state)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
