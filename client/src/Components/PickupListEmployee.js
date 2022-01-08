@@ -132,7 +132,7 @@ function PickupListEmployee(props) {
                     Show order products
                   </Button>
                 </td>
-                <td className="align-middle">{s.sum}€</td>
+                <td className="align-middle">{s.sum.toFixed(2)}€</td>
                 <td className="align-middle">
                   <span className={dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date+" "+s.time, 'year') && "text-danger"}>
                     {dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")} 

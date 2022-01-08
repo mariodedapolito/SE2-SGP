@@ -682,6 +682,7 @@ function App() {
                   products={products}
                   clients={clients}
                   time={time}
+                  setRecharged={setRecharged}
                 />
               ) : (
                 <Redirect to="/login" />

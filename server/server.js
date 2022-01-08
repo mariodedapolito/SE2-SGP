@@ -179,26 +179,26 @@ app.post('/api/orderStateConfirmation', function (req, res) {
 
   const userId = req.body.clientId;
   const status = req.body.state;
-  
-  
 
-  const asyncTelegramId = async (userId,status) => {
-    const TID =  await clientsDao.getClientsTelegramId(userId);
+
+
+  const asyncTelegramId = async (userId, status) => {
+    const TID = await clientsDao.getClientsTelegramId(userId);
     // if the user has a telegram id I send the message
-    if(TID.length>0){
-      
-      if(status=='placed')
+    if (TID.length > 0) {
+
+      if (status == 'placed')
         bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: placed `);
-      
+
       else
-        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: pending payment `); 
-       
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: pending payment `);
+
     }
     return TID;
   }
-  res = asyncTelegramId(userId,status);
-  
-});  
+  res = asyncTelegramId(userId, status);
+
+});
 
 app.get('/api/telegramId', async (req, res) => {
   try {
@@ -545,7 +545,7 @@ app.put('/api/modifyState', async (req, res) => {
   ordersDao
     .changeState(req.body.id, req.body.state)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -559,7 +559,7 @@ app.put('/api/modifyStateFarmer', async (req, res) => {
   warehouseDao
     .changeStateFarmer(req.body.id, req.body.product_id, req.body.state)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -575,7 +575,7 @@ app.put(
   async (req, res) => {
     try {
       await ordersDao.delivered(req.params.order_id, req.params.product_name);
-      res.status(200).end('Update Completed!');
+      res.status(200).json('Update Completed!');
     } catch (err) {
       res.status(503).json({
         code: 503,
@@ -592,7 +592,7 @@ app.put(
   async (req, res) => {
     try {
       await ordersDao.prepared(req.params.order_id, req.params.product_name);
-      res.status(200).end('Update Completed!');
+      res.status(200).json('Update Completed!');
     } catch (err) {
       res.status(503).json({
         code: 503,

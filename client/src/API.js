@@ -181,7 +181,8 @@ async function updateStateFarmer(id, product_id, state) {
       product_id: product_id,
       state: state,
     }),
-  })
+  });
+  console.log(response);
   if (response.ok) {
     return await response.json();
   }
@@ -845,7 +846,7 @@ const sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10 = async () =>
   // });
 };
 
-const sendTelegramOrderStateNotification = async (clientId,state) => {
+const sendTelegramOrderStateNotification = async (clientId, state) => {
   const response = await fetch('/api/orderStateConfirmation', {
     method: 'POST',
     headers: {
@@ -1001,7 +1002,7 @@ const API = {
   sendTelegramNotificationOnSaturday,
   sendTelegramTopUpNotification,
   sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
-  getAllMissedPickups, 
+  getAllMissedPickups,
   addMissedPickup,
   sendTelegramOrderStateNotification
 };
