@@ -866,7 +866,7 @@ app.get(
 
 //GET provider's expected production
 app.get(
-  '/api/products/provider/expected/:year/:week_number',
+  '/api/products/provider/available/:year/:week_number',
   async (req, res) => {
     if (!req.isAuthenticated() || req.user.role !== 'farmer') {
       res.status(401).json({ error: 'Unauthorized user' });
@@ -878,7 +878,7 @@ app.get(
       const week_number = req.params.week_number;
       const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
 
-      const expectedProducts = await productsDAO.getProviderExpectedProducts(
+      const expectedProducts = await productsDAO.getProviderAvailableProducts(
         provider_id,
         year,
         week_number
@@ -1120,8 +1120,8 @@ app.put('/api/modifyquantity', async (req, res) => {
     });
 });
 
-//update quantity
-app.put('/api/farmerConfirm/:product_id/:year/:week', async (req, res) => {
+//farmer mark product available
+app.put('/api/farmerConfirm/:product_id', async (req, res) => {
   if (!req.isAuthenticated() || req.user.role !== 'farmer') {
     res.status(401).json({ error: 'Unauthorized user' });
     return;
@@ -1130,10 +1130,7 @@ app.put('/api/farmerConfirm/:product_id/:year/:week', async (req, res) => {
   const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
   productsDAO
     .confirmExpectedProduct(
-      provider_id,
-      req.params.product_id,
-      req.params.year,
-      req.params.week
+      req.params.product_id
     )
     .then(() => {
       res.status(200).json('ok');
@@ -1143,6 +1140,24 @@ app.put('/api/farmerConfirm/:product_id/:year/:week', async (req, res) => {
       console.log(error);
       res.status(500).json(error);
     });
+});
+
+//farmer mark product unavailable
+app.put('/api/farmerUnavailable/:product_id', async (req, res) => {
+  if (!req.isAuthenticated() || req.user.role !== 'farmer') {
+    res.status(401).json({ error: 'Unauthorized user' });
+    return;
+  }
+
+  try {
+    await productsDAO.unavailableProduct(req.params.product_id);
+    await productsDAO.deleteProduct(req.params.product_id);
+    return res.status(200).json('ok');
+  }
+  catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
 });
 
 // adding a client

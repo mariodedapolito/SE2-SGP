@@ -479,6 +479,7 @@ function App() {
                   orderAddItemID={orderAddItemID}
                   orderModified={orderModified}
                   setOrderModified={setOrderModified}
+                  time={time}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -815,7 +816,7 @@ function App() {
             exact
             render={() =>
               logged ? (
-                <FarmerOrderConfirmation time={time} />
+                <FarmerOrderConfirmation clients={clients} products={products} orders={orders} time={time} />
               ) : (
                 <Redirect to="/login" />
               )
@@ -851,6 +852,7 @@ function App() {
                   clients={clients}
                   clientid={userid}
                   orders={orders}
+                  time={time}
                 />
               ) : (
                 <Redirect to="/login" />

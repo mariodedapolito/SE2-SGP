@@ -4,6 +4,8 @@ import API from '../API'
 import { Link, useHistory } from 'react-router-dom'
 import dayjs from 'dayjs';
 
+dayjs.Ls.en.weekStart = 1; //set week start as monday
+
 function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
@@ -36,8 +38,46 @@ function Orders(props) {
 
   }, [props.orderModified])
 
-  let m = props.orders.filter(x => x.client_id === props.clientid).map(s => s.order_id).filter(onlyUnique);
+  const currWeekNumber = dayjs(props.time.date).week();
+  let m = props.orders.filter(x => x.client_id === props.clientid && (props.products.find(p => p.id === x.product_id).week === currWeekNumber || props.products.find(p => p.id === x.product_id).week === currWeekNumber - 1)).map(s => s.order_id).filter(onlyUnique);
   m.reverse();
+
+  const modifyOrderAvailable = (productID) => {
+    const currWeekNumber = dayjs(props.time.date).week();
+
+    if (props.products.find(p => p.id === productID).week !== currWeekNumber) {
+      return false;
+    }
+
+    //Saturday
+    if (dayjs(props.time.date).day() === 5) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
+        //Before SAT 9AM -> not available
+        return false;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return true;
+      }
+    }
+    //Sunday
+    else if (dayjs(props.time.date).day() === 6) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 23) {
+        //Before SUN 11PM -> available
+        return true;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return false;
+      }
+    }
+    //from Monday up to Saturday 9am -> declaring for this week
+    else {
+      return false;
+    }
+  }
 
   const handleModifyOrder = (allowModifications, order_id) => {
     if (!allowModifications) {
@@ -55,7 +95,8 @@ function Orders(props) {
           My Orders
         </span>
         <h5 className="d-block mx-auto mb-5 text-center text-muted">
-          Below you can find all the orders you have placed. You can also modify an order if it has not yet been shipped by the farmer.
+          Below you can find and manage all the orders you have placed. The orders are ranked from the most recent one.<br /><br />
+          An order can only be modified during the purchasing window and if its payment has been completed.
         </h5>
 
         <div className="row mx-3">
@@ -72,7 +113,7 @@ function Orders(props) {
               </tr>
             </thead>
             <tbody>
-              {props.orders.filter(x => x.client_id === props.clientid).map((s) => {
+              {props.orders.sort((a, b) => (b.order_id - a.order_id)).map((s) => {
                 if (m.find(x => (parseInt(x) === parseInt(s.order_id)))) {
 
                   const order_id = s.order_id;
@@ -90,7 +131,7 @@ function Orders(props) {
                     if (o.state === 'delivered') {
                       deliveredFlag = true;
                     }
-                    if (o.farmer_state !== null || o.state === 'missed') {
+                    if (!modifyOrderAvailable(o.product_id) || o.state !== 'booked' || o.farmer_state !== null) {
                       modifyFlag = false;
                     }
                   });
@@ -135,7 +176,7 @@ function Orders(props) {
               }
             </tbody>
           </Table>
-          {props.orders.filter(x => x.client_id === props.clientid).length === 0 &&
+          {props.orders.filter(x => x.client_id === props.clientid && (props.products.find(p => p.id === x.product_id).week === currWeekNumber || props.products.find(p => p.id === x.product_id).week === currWeekNumber - 1)).length === 0 &&
             <div className='d-block text-center my-3'>
               You have not placed any orders yet. Start by placing <Link to="/booking">an order</Link>.
             </div>
@@ -143,7 +184,7 @@ function Orders(props) {
         </div >
       </div>
 
-      <ProductList show={show} setShow={setShow} orderModifiedAlert={orderModifiedAlert} setOrderModifiedAlert={setOrderModifiedAlert} setRecharged={props.setRecharged} orders={props.orders} products={props.products} id={id} setOrderChangeItemID={props.setOrderChangeItemID} setOrderAddItemID={props.setOrderAddItemID} />
+      <ProductList show={show} setShow={setShow} time={props.time} orderModifiedAlert={orderModifiedAlert} setOrderModifiedAlert={setOrderModifiedAlert} setRecharged={props.setRecharged} orders={props.orders} products={props.products} id={id} setOrderChangeItemID={props.setOrderChangeItemID} setOrderAddItemID={props.setOrderAddItemID} />
       <OrderStatus show={show2} setShow={setShow2} orders={props.orders} products={props.products} id={id} />
     </>
   );
@@ -155,17 +196,25 @@ function ProductList(props) {
 
   const [deleteOrderID, setDeleteOrderID] = useState(-1);
   const [allowModify, setAllowModify] = useState(true);
+
   useEffect(() => {
     if (props.id === -1) {
       return;
     }
 
-    props.orders.filter((o) => (o.order_id === props.id)).forEach(o => {
-      if (o.state === "pending" || o.state === 'missed' || o.state === 'delivered' || o.farmer_state !== null) {
-        setAllowModify(false);
-        return;
-      }
-    });
+    if (modifyOrderAvailable) {
+      const currentWeekNumber = dayjs(props.time.date).week();
+      props.orders.filter((o) => (o.order_id === props.id && props.products.find(p => p.id === o.product_id).week === currentWeekNumber)).forEach(o => {
+        if (o.state !== 'booked' || o.farmer_state !== null) {
+          setAllowModify(false);
+          return;
+        }
+      });
+      setAllowModify(true);
+    }
+    else {
+      setAllowModify(false);
+    }
 
   }, [props.id])
 
@@ -182,6 +231,37 @@ function ProductList(props) {
 
     deleteItem();
   }, [deleteOrderID]);
+
+  const modifyOrderAvailable = () => {
+    //Saturday
+    if (dayjs(props.time.date).day() === 5) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
+        //Before SAT 9AM -> not available
+        return false;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return true;
+      }
+    }
+    //Sunday
+    else if (dayjs(props.time.date).day() === 6) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 23) {
+        //Before SUN 11PM -> available
+        return true;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return false;
+      }
+    }
+    //from Monday up to Saturday 9am -> declaring for this week
+    else {
+      return false;
+    }
+  }
 
   const capitalizeEachFirstLetter = (str) => {
     return str
@@ -293,8 +373,6 @@ function OrderStatus(props) {
   useEffect(() => {
     let min = 1000;
     let orderStatus = null;
-
-    console.log(props.orders.filter((o) => (o.order_id === props.id)));
 
     props.orders.filter((o) => (o.order_id === props.id)).forEach((item) => {
 
@@ -409,7 +487,7 @@ function OrderStatus(props) {
       }
     }
     else {
-      console.error("INVALID ORDER STATUS " + status + " " + type);
+      console.log("INVALID ORDER STATUS " + status + " " + type);
     }
 
     return orderStatus;

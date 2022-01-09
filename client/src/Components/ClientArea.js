@@ -2,12 +2,47 @@ import { Link, useHistory } from 'react-router-dom';
 import ClientAlert from './ClientAlert';
 import { Alert, Button, Container, Modal, Row } from "react-bootstrap";
 import { useState } from 'react';
+import dayjs from 'dayjs';
+
 function ClientArea(props) {
 
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   const history = useHistory();
+
+  const bookingAvailable = () => {
+    //Saturday
+    if (dayjs(props.time.date).day() === 6) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
+        //Before SAT 9AM -> not available
+        return false;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return true;
+      }
+    }
+    //Sunday
+    else if (dayjs(props.time.date).day() === 0) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 23) {
+        //Before SUN 11PM -> available
+        return true;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return false;
+      }
+    }
+    //from Monday up to Saturday 9am -> declaring for this week
+    else {
+      return false;
+    }
+  }
+
   let missedpickups = props.missed.filter(x => x.client_id === props.clientid);
+
   return (
     <>
       <div className='container-fluid'>
@@ -67,18 +102,16 @@ function ClientArea(props) {
                     <h5 className="card-title">Browse products</h5>
                     <p className="card-text">
                       • View &#38; search products<br />
-                      • Book products<br />
-                      • Explore next week products
+                      • Book products from Saturday 09.00 until Sunday 23.00<br />
+                      • Explore expected products
                     </p>
                     <div className="d-block text-end">
-                      <Link to="/booking">
-                        <button className="btn me-2 mt-3" style={{ backgroundColor: "#8C7161", color: "white" }}>Browse products</button>
-                      </Link>
-                      <Link to="/products-next-week">
-                        <button className="btn mt-3" style={{ backgroundColor: "#8C7161", color: "white" }}>
-                          Products available next week
-                        </button>
-                      </Link>
+                      <button className="btn me-2 mt-3" disabled={!bookingAvailable()} onClick={() => (history.push("/booking"))} style={{ backgroundColor: "#8C7161", color: "white" }}>
+                        Browse products
+                      </button>
+                      <button className="btn mt-3" onClick={() => (history.push("/products-next-week"))} style={{ backgroundColor: "#8C7161", color: "white" }}>
+                        Explore expected products
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -96,11 +129,9 @@ function ClientArea(props) {
                       • View balance
                     </p>
                     <div className="d-block text-end">
-                      {/*<Link to="/wallet">*/}
                       <button className="btn mt-3" onClick={() => (setShowWalletModal(true))} style={{ backgroundColor: "#A65729", color: "white" }}>
                         Wallet
                       </button>
-                      {/* </Link> */}
                     </div>
                   </div>
                 </div>
@@ -118,13 +149,13 @@ function ClientArea(props) {
                       • View scheduled deliveries
                       <br />
                       • View scheduled pick-ups
+                      <br />
+                      • Modify an order (available from Saturday 09.00 until Sunday 23.00)
                     </p>
                     <div className="d-block text-end">
-                      <Link to="/orders">
-                        <button className="btn mt-3" disabled={false} style={{ backgroundColor: "#402A22", color: "white" }}>
-                          View orders
-                        </button>
-                      </Link>
+                      <button className="btn mt-3" disabled={false} style={{ backgroundColor: "#402A22", color: "white" }} onClick={() => (history.push("/orders"))}>
+                        View orders
+                      </button>
                     </div>
                   </div>
                 </div>

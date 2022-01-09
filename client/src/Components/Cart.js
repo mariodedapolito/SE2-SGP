@@ -258,7 +258,7 @@ function Cart(props) {
           zipcode: zipCode,
           date: date,
           time: time,
-          pickup: 1
+          pickup: 0
         });
         indexInc++;
       });
@@ -289,7 +289,7 @@ function Cart(props) {
           nation: '',
           zipcode: '',
           date: dayjs(props.time.date).add(1, 'week').weekday(pickupDay).format('YYYY-MM-DD'),
-          time: time,
+          time: pickupTime,
           pickup: 1
         });
         indexInc++;

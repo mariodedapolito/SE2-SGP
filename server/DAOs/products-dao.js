@@ -164,14 +164,14 @@ exports.putProductQuantity = (product_id, quantity) => {
   });
 };
 
-exports.getProviderExpectedProducts = (provider_id, year, week_number) => {
+exports.getProviderAvailableProducts = (provider_id, year, week_number) => {
   return new Promise((resolve, reject) => {
-    const product_status = 'expected';
+    console.log(provider_id, year, week_number);
     const sql =
-      'SELECT * FROM products WHERE products.provider_id=? AND products.year=? AND products.week_number=? AND products.product_status=?';
+      'SELECT * FROM products WHERE products.provider_id=? AND products.year=? AND products.week_number=?';
     db.all(
       sql,
-      [provider_id, year, week_number, product_status],
+      [provider_id, year, week_number],
       (err, rows) => {
         if (err) {
           reject(err);
@@ -244,15 +244,46 @@ exports.insertNewExpectedProduct = (prod, provider_id) => {
 };
 
 exports.confirmExpectedProduct = (
-  provider_id,
-  product_id,
-  year,
-  week_number
+  product_id
 ) => {
   return new Promise((resolve, reject) => {
     const sql =
-      'UPDATE products SET product_status="confirmed" WHERE provider_id = ? AND product_id=? AND year=? AND week_number=?';
-    db.run(sql, [provider_id, product_id, year, week_number], function (err) {
+      'UPDATE orders SET farmer_state="confirmed" WHERE product_id=?';
+    db.run(sql, [product_id], function (err) {
+      if (err) {
+        console.log(err);
+        reject(err);
+        return;
+      }
+      resolve(this.lastID); // changed from resolve(exports.getTask(this.lastID) because of error "not found" (wrong lastID)
+    });
+  });
+};
+
+exports.unavailableProduct = (
+  product_id
+) => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      'DELETE FROM orders WHERE product_id=?';
+    db.run(sql, [product_id], function (err) {
+      if (err) {
+        console.log(err);
+        reject(err);
+        return;
+      }
+      resolve(this.lastID); // changed from resolve(exports.getTask(this.lastID) because of error "not found" (wrong lastID)
+    });
+  });
+};
+
+exports.deleteProduct = (
+  product_id
+) => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      'DELETE FROM products WHERE product_id=?';
+    db.run(sql, [product_id], function (err) {
       if (err) {
         console.log(err);
         reject(err);
