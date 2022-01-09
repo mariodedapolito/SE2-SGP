@@ -76,8 +76,15 @@ function FarmerOrderConfirmation(props) {
             email: client.email,
             message: ''
           };
-          mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order and the balance was refunded to your wallet.\nKind regards\nSPG";
-          await API.increaseBalance(o.OrderPrice, o.client_id);
+          /* order payed */
+          if (o.state === 'booked') {
+            await API.increaseBalance(o.OrderPrice, o.client_id);
+            mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order and the balance was refunded to your wallet.\nKind regards\nSPG";
+          }
+          /* order pending */
+          else {
+            mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order.\nKind regards\nSPG";
+          }
           await API.submitEmail(mailObj);
         };
         await API.setUnavailableProducts(unavailableProduct);
@@ -178,7 +185,7 @@ function FarmerOrderConfirmation(props) {
                         setUnavailableProduct(product.id);
                       }}
                     >
-                      Mark as unavailable
+                      Mark as unavailable & notify clients
                     </button>
                   </div>
                 </div>
