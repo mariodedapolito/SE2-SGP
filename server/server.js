@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const morgan = require('morgan'); // logging middleware
 const clientsDao = require('./DAOs/clients-dao');
 const ordersDao = require('./DAOs/client-orders-dao');
+const usersDao = require('./DAOs/users-dao');
 const productsDAO = require('./DAOs/products-dao');
 const providersDAO = require('./DAOs/providers-dao');
 const walletsDAO = require('./DAOs/wallet-dao');
@@ -567,6 +568,23 @@ app.put('/api/modifyStateFarmer', async (req, res) => {
       res.status(500).json(error);
     });
 });
+
+//PUT to update a user as suspended
+app.put(
+  '/api/users/:id',
+
+  async (req, res) => {
+    try {
+      await usersDao.suspension(req.params.id);
+      res.status(200).json('Update Completed!');
+    } catch (err) {
+      res.status(503).json({
+        code: 503,
+        error: `Unavailable service during the update of order`,
+      });
+    }
+  }
+);
 
 //PUT to update a product as delivered
 app.put(
