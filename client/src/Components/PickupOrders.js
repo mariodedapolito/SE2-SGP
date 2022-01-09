@@ -25,11 +25,15 @@ function PickupOrders(props) {
 
   m.reverse();
 
+  m.reverse();
+
   return (
     <>
-      <span className="d-block text-center mt-2 mb-1 display-1">
-        List of Missed Pickups
-      </span>
+      <span className="d-block text-center mt-5 mb-2 display-1">Pickups</span>
+      <h5 className="d-block mx-auto mb-5 text-center text-muted">
+        Below you can find all the past pickups. Please mark as missed the ones
+        that were not picked up.
+      </h5>
 
       <table className="mx-3 text-center table table-striped table-hover table-responsive">
         <thead>
@@ -62,7 +66,7 @@ function PickupOrders(props) {
                   sum = sum + a;
                 }
 
-                sum = sum;
+                sum = sum.toFixed(2);
                 m.pop();
 
                 return (
@@ -77,7 +81,7 @@ function PickupOrders(props) {
                             .surname
                         : 'Unknown'}
                     </td>
-                    <td className="align-middle">{sum}€</td>
+                    <td className="align-middle">{sum.toFixed(2)}€</td>
                     <td className="align-middle">
                       {dayjs(s.date + ' ' + s.time).format(
                         'ddd, MMM D, YYYY HH:mm'
@@ -95,7 +99,7 @@ function PickupOrders(props) {
                                 client_id: s.client_id,
                               }
                             );
-                            console.log(newMissed);
+
                             API.addMissedPickup(newMissed).then(() => {
                               API.updateState(s.order_id, 'missed');
                               props.setRecharged2(true);
@@ -103,13 +107,13 @@ function PickupOrders(props) {
                             });
                           }}
                         >
-                          mark the pickup as missed
+                          Mark as missed
                         </Button>
                       ) : (
                         <>
-                          <Button variant="danger" disabled>
-                            missed pickup
-                          </Button>
+                          <span className="text-danger">
+                            Pickup marked as missed
+                          </span>
                         </>
                       )}
                     </td>

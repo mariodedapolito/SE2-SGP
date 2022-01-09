@@ -24,8 +24,8 @@ function ClientPage(props) {
   return (
     <div className="d-block my-3 mx-5 text-center">
       <Alert show={show} variant="danger" onClose={() => setShow(false)} dismissible >
-        <Alert.Heading><h3>ATTENTION: Order status information</h3></Alert.Heading>
-        <p>
+        <Alert.Heading data-testid="alertH" ><h3>ATTENTION: Order status information</h3></Alert.Heading>
+        <p data-testid="alert" >
           Some of your orders are still <b>pending & awaiting payment</b>. Please contact the shop to top-up your wallet!
         </p>
       </Alert>

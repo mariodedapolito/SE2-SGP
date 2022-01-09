@@ -22,6 +22,7 @@ function Cart(props) {
   const [placeOrder, setPlaceOrder] = useState(false);
   const [orderAlert, setOrderAlert] = useState(null);
   const [emailAlert, setEmailAlert] = useState(null);
+  const [telegramAlert, setTelegramAlert] = useState(null);
 
   const [address, setAddress] = useState('');
   const [nation, setNation] = useState('');
@@ -37,6 +38,7 @@ function Cart(props) {
   const [shippingError, setShippingError] = useState('');
 
   const [sendEmail, setSendEmail] = useState(true);
+  const [sendTelegram, setSendTelegram] = useState(true);
   const [resendEmail, setResendEmail] = useState(false);
 
   // let location = useLocation();
@@ -52,6 +54,11 @@ function Cart(props) {
         for (const ord of orderArray) {
           await API.addOrder(ord);
         }
+        if (orderTotal <= client.budget) {
+          await API.increaseBalance(orderTotal * (-1), clientID);
+        }
+
+        setOrderAlert({ variant: 'success', msg: 'Order has been successfully placed.' });
 
         if (sendEmail) {
           let mailObj = {
@@ -78,6 +85,16 @@ function Cart(props) {
           }
         }
 
+        if (sendTelegram) {
+          if (orderTotal > client.budget) {
+            await API.sendTelegramOrderStateNotification(clientID, 'placed');
+          }
+          else {
+            await API.sendTelegramOrderStateNotification(clientID, 'pending');
+          }
+          setTelegramAlert({ variant: 'success', msg: 'Telegram notification successfully sent to ' + client.email })
+        }
+
         setPlaceOrder(false);
 
         let cart = props.cartItems;
@@ -85,8 +102,8 @@ function Cart(props) {
         props.setCartItems(cart);
         props.setCartUpdated(true);
         props.setRecharged(true);
+        props.setRecharged1(true);
         setUpdateItems(true);
-        setOrderAlert({ variant: 'success', msg: 'Order has been successfully placed.' });
       }
       catch (error) {
         console.log(error);
@@ -241,7 +258,7 @@ function Cart(props) {
           zipcode: zipCode,
           date: date,
           time: time,
-          pickup: 1
+          pickup: 0
         });
         indexInc++;
       });
@@ -272,7 +289,7 @@ function Cart(props) {
           nation: '',
           zipcode: '',
           date: dayjs(props.time.date).add(1, 'week').weekday(pickupDay).format('YYYY-MM-DD'),
-          time: time,
+          time: pickupTime,
           pickup: 1
         });
         indexInc++;
@@ -357,10 +374,14 @@ function Cart(props) {
                     ))}
                   </Form.Select>
                   <OverlayTrigger
-                    placement="top"
+                    placement="auto"
                     className="d-inline-block w-25"
                     delay={{ show: 250, hide: 400 }}
-                    overlay={clientSelectorInfo}
+                    overlay={
+                      <Tooltip>
+                        Only clients for which items<br />
+                        were booked are shown.
+                      </Tooltip>}
                   >
                     {infoIcon}
                   </OverlayTrigger></div>
@@ -380,7 +401,7 @@ function Cart(props) {
                 {orderAlert.msg}
                 {orderAlert.variant === 'success' && (
                   <div className='d-block text-end'>
-                    {props.userRole==='client' && <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}                   
+                    {props.userRole === 'client' && <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}
                   </div>
                 )}
               </Alert>
@@ -397,6 +418,15 @@ function Cart(props) {
                     <Button variant='outline-danger' onClick={() => (setResendEmail(true))}>Resend email</Button>
                   </div>
                 )}
+              </Alert>
+            )}
+            {telegramAlert && (
+              <Alert
+                variant={telegramAlert.variant}
+                dismissible={true}
+                onClose={() => setTelegramAlert(null)}
+              >
+                {telegramAlert.msg}
               </Alert>
             )}
             <ul className="list-group mb-3">
@@ -660,6 +690,15 @@ function Cart(props) {
                       label={props.userRole === 'client' ? "Receive a confirmation email for the purchase" : "Send confirmation email for the purchase to the client"}
                     />
                   </div>
+                  <div className='d-block'>
+                    <Form.Check
+                      type="switch"
+                      checked={sendTelegram}
+                      onChange={() => (setSendTelegram((send) => (!send)))}
+                      id="custom-switch"
+                      label={props.userRole === 'client' ? "Receive a telegram notification for the purchase" : "Send telegram notification for the confirmation of the purchase to the client"}
+                    />
+                  </div>
                 </div>
                 <div className='col-lg-3 text-center my-auto'>
                   <Button variant="secondary" className="py-3 mb-2 w-100" onClick={() => (props.userRole === 'client' ? history.push("/booking") : history.push("/staff-booking"))}>Continue shopping</Button>
@@ -675,15 +714,6 @@ function Cart(props) {
       </div>
     </>
   )
-}
-
-function clientSelectorInfo() {
-  return (
-    <Tooltip id="button-tooltip">
-      Only clients for which items<br />
-      were booked are shown.
-    </Tooltip>
-  );
 }
 
 const infoIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-info-circle" viewBox="0 0 16 16">

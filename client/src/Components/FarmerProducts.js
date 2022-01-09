@@ -45,7 +45,7 @@ function FarmerProducts(props) {
       return;
     }
     const getExpectedProducts = async () => {
-      const nextWeek = getNextWeek();
+      const nextWeek = getCorrectWeekNumber();
 
       setShowLoading(true);
       setRefreshExpected(false);
@@ -98,7 +98,7 @@ function FarmerProducts(props) {
     const saveProductAvailability = async () => {
       setShowLoading(true);
 
-      const nextWeek = getNextWeek();
+      const nextWeek = getCorrectWeekNumber();
 
       const productData = [];
       expectedProducts.forEach((prod) =>
@@ -110,8 +110,8 @@ function FarmerProducts(props) {
           price: prod.price,
           unit: prod.unit,
           quantity: prod.quantity,
-          year: getNextWeek().year,
-          week_number: getNextWeek().week_number,
+          year: getCorrectWeekNumber().year,
+          week_number: getCorrectWeekNumber().week_number,
         })
       );
 
@@ -158,17 +158,19 @@ function FarmerProducts(props) {
     return new File([buf], fileName, { type: mimeType });
   }
 
-  const getNextWeek = () => {
+  const getCorrectWeekNumber = () => {
     //Saturday
     if (dayjs(props.time.date).day() === 6) {
       if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
-        //next week = week + 1
-        const nextWeekDate = dayjs(props.time.date).add(0, 'week');
+        //Before SAT 9AM -> declaring for this week
+        const nextWeekDate = dayjs(props.time.date);
         return {
-          year: dayjs(nextWeekDate).year(),
-          week_number: dayjs(nextWeekDate).week(),
+          year: dayjs(props.time.date).year(),
+          week_number: dayjs(props.time.date).week(),
         };
-      } else {
+      }
+      //After SAT 9AM -> declaring for next week
+      else {
         //next week = week + 2
         const nextWeekDate = dayjs(props.time.date).add(1, 'week');
         return {
@@ -177,7 +179,7 @@ function FarmerProducts(props) {
         };
       }
     }
-    //Sunday
+    //Sunday -> declaring for next week
     else if (dayjs(props.time.date).day() === 0) {
       const nextWeekDate = dayjs(props.time.date).add(1, 'week');
       return {
@@ -185,9 +187,9 @@ function FarmerProducts(props) {
         week_number: dayjs(nextWeekDate).week(),
       };
     }
-    //from Monday up to Saturday 9am
+    //from Monday up to Saturday 9am -> declaring for this week
     else {
-      const nextWeekDate = dayjs(props.time.date).add(0, 'week');
+      const nextWeekDate = dayjs(props.time.date);
       return {
         year: dayjs(nextWeekDate).year(),
         week_number: dayjs(nextWeekDate).week(),

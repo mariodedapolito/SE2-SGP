@@ -11,10 +11,10 @@ function WarehouseManagerOrders(props) {
   return (
     <div className="row">
       <span className="d-block text-center mt-5 mb-2 display-1">
-        Orders to be prepared
+        Pick-up schedule
       </span>
       <h5 className="d-block mx-auto mb-5 text-center text-muted">
-        View orders and confirm their preparation for pick-up
+        View scheduled orders for pick-up
       </h5>
 
       <div className="col-lg-2"></div>

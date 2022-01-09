@@ -179,26 +179,26 @@ app.post('/api/orderStateConfirmation', function (req, res) {
 
   const userId = req.body.clientId;
   const status = req.body.state;
-  
-  
 
-  const asyncTelegramId = async (userId,status) => {
-    const TID =  await clientsDao.getClientsTelegramId(userId);
+
+
+  const asyncTelegramId = async (userId, status) => {
+    const TID = await clientsDao.getClientsTelegramId(userId);
     // if the user has a telegram id I send the message
-    if(TID.length>0){
-      
-      if(status=='placed')
-        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status now is: placed `);
-      
+    if (TID.length > 0) {
+
+      if (status == 'placed')
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: placed `);
+
       else
-        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status now is: pending `); 
-       
+        bot.sendMessage(TID[0].telegramId, `Dear Client, your order status is: pending payment `);
+
     }
     return TID;
   }
-  res = asyncTelegramId(userId,status);
-  
-});  
+  res = asyncTelegramId(userId, status);
+
+});
 
 app.get('/api/telegramId', async (req, res) => {
   try {
@@ -479,7 +479,7 @@ app.post('/api/missed-pickup', async (req, res) => {
       client_id: req.body.client_id,
     };
     await missedDao.addMissedPickup(t);
-    res.status(201).end('Created missed pickup!');
+    res.status(201).json('Created missed pickup!');
   } catch (err) {
     console.log(err);
     res.status(503).json({
@@ -545,7 +545,7 @@ app.put('/api/modifyState', async (req, res) => {
   ordersDao
     .changeState(req.body.id, req.body.state)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -559,7 +559,7 @@ app.put('/api/modifyStateFarmer', async (req, res) => {
   warehouseDao
     .changeStateFarmer(req.body.id, req.body.product_id, req.body.state)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -575,7 +575,7 @@ app.put(
   async (req, res) => {
     try {
       await ordersDao.delivered(req.params.order_id, req.params.product_name);
-      res.status(200).end('Update Completed!');
+      res.status(200).json('Update Completed!');
     } catch (err) {
       res.status(503).json({
         code: 503,
@@ -592,7 +592,7 @@ app.put(
   async (req, res) => {
     try {
       await ordersDao.prepared(req.params.order_id, req.params.product_name);
-      res.status(200).end('Update Completed!');
+      res.status(200).json('Update Completed!');
     } catch (err) {
       res.status(503).json({
         code: 503,
@@ -866,7 +866,7 @@ app.get(
 
 //GET provider's expected production
 app.get(
-  '/api/products/provider/expected/:year/:week_number',
+  '/api/products/provider/available/:year/:week_number',
   async (req, res) => {
     if (!req.isAuthenticated() || req.user.role !== 'farmer') {
       res.status(401).json({ error: 'Unauthorized user' });
@@ -878,7 +878,7 @@ app.get(
       const week_number = req.params.week_number;
       const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
 
-      const expectedProducts = await productsDAO.getProviderExpectedProducts(
+      const expectedProducts = await productsDAO.getProviderAvailableProducts(
         provider_id,
         year,
         week_number
@@ -1111,7 +1111,7 @@ app.put('/api/modifyquantity', async (req, res) => {
   productsDAO
     .putProductQuantity(req.body.id, req.body.quantity)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
@@ -1120,8 +1120,8 @@ app.put('/api/modifyquantity', async (req, res) => {
     });
 });
 
-//update quantity
-app.put('/api/farmerConfirm/:product_id/:year/:week', async (req, res) => {
+//farmer mark product available
+app.put('/api/farmerConfirm/:product_id', async (req, res) => {
   if (!req.isAuthenticated() || req.user.role !== 'farmer') {
     res.status(401).json({ error: 'Unauthorized user' });
     return;
@@ -1130,19 +1130,34 @@ app.put('/api/farmerConfirm/:product_id/:year/:week', async (req, res) => {
   const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
   productsDAO
     .confirmExpectedProduct(
-      provider_id,
-      req.params.product_id,
-      req.params.year,
-      req.params.week
+      req.params.product_id
     )
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {
       console.log(error);
       res.status(500).json(error);
     });
+});
+
+//farmer mark product unavailable
+app.put('/api/farmerUnavailable/:product_id', async (req, res) => {
+  if (!req.isAuthenticated() || req.user.role !== 'farmer') {
+    res.status(401).json({ error: 'Unauthorized user' });
+    return;
+  }
+
+  try {
+    await productsDAO.unavailableProduct(req.params.product_id);
+    await productsDAO.deleteProduct(req.params.product_id);
+    return res.status(200).json('ok');
+  }
+  catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
 });
 
 // adding a client
@@ -1171,7 +1186,7 @@ app.post('/api/clients', async (req, res) => {
     } else {
       await clientsDao
         .createClient(client)
-        .then((id) => res.status(201).end('New Client was added !'))
+        .then((id) => res.status(201).json('New Client was added !'))
         .catch((err) => res.status(500).json(error));
     }
   } catch (e) {
@@ -1278,7 +1293,7 @@ app.post('/api/orderinsert', async (req, res) => {
 app.delete('/api/orders/:id', async (req, res) => {
   try {
     await ordersDao.deleteItem(req.params.id);
-    res.status(204).end('order item deleted!');
+    res.status(204).json('order item deleted!');
   } catch (err) {
     res.status(503).json({
       code: 503,
@@ -1342,7 +1357,7 @@ app.put('/api/modifyStato', async (req, res) => {
   deliverersDao
     .changeState(req.body.id, req.body.product, req.body.state)
     .then(() => {
-      res.status(200).json();
+      res.status(200).json('ok');
       return res;
     })
     .catch((error) => {

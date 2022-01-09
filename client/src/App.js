@@ -73,6 +73,8 @@ function App() {
   const [orderChangeItemID, setOrderChangeItemID] = useState(-1);
   const [orderAddItemID, setOrderAddItemID] = useState(-1);
 
+  const [orderModified, setOrderModified] = useState(null);
+
   const [authAlert, setAuthAlert] = useState(null);
 
   const updateRech = (x) => {
@@ -414,6 +416,7 @@ function App() {
                   clients={clients}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -441,6 +444,7 @@ function App() {
                   time={time}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -450,30 +454,27 @@ function App() {
           <Route
             path="/products-next-week"
             exact
-            render={() =>
-              logged ? (
-                <Booking
-                  cartItems={cartItems}
-                  setCartUpdated={setCartUpdated}
-                  setCartItems={setCartItems}
-                  browsing={true}
-                  purchasing={false}
-                  orderChangeItem={false}
-                  orderAddItem={false}
-                  logged={logged}
-                  userRole={userRole}
-                  updateProps={updateProps}
-                  time={time}
-                  clientid={userid}
-                  setRecharged={updateRech}
-                  clients={clients}
-                />
-              ) : (
-                <Redirect to="/login" />
-              )
-            }
+            render={() => (
+              <Booking
+                cartItems={cartItems}
+                setCartUpdated={setCartUpdated}
+                setCartItems={setCartItems}
+                browsing={true}
+                purchasing={false}
+                orderChangeItem={false}
+                orderAddItem={false}
+                logged={logged}
+                userRole={userRole}
+                updateProps={updateProps}
+                time={time}
+                clientid={userid}
+                setRecharged={updateRech}
+                setRecharged1={updateRech1}
+                clients={clients}
+              />
+            )}
           />
-          <Route
+          < Route
             path="/orders"
             exact
             render={() =>
@@ -485,6 +486,11 @@ function App() {
                   setRecharged={updateRech}
                   setOrderChangeItemID={setOrderChangeItemID}
                   setOrderAddItemID={setOrderAddItemID}
+                  orderChangeItemID={orderChangeItemID}
+                  orderAddItemID={orderAddItemID}
+                  orderModified={orderModified}
+                  setOrderModified={setOrderModified}
+                  time={time}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -510,6 +516,7 @@ function App() {
                   userRole={userRole}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
                 />
@@ -531,6 +538,7 @@ function App() {
                   purchasing={false}
                   orderChangeItem={true}
                   orderChangeItemID={orderChangeItemID}
+                  setOrderModified={setOrderModified}
                   orderAddItem={false}
                   logged={logged}
                   clients={clients}
@@ -538,6 +546,7 @@ function App() {
                   userRole={userRole}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
                 />
@@ -560,12 +569,14 @@ function App() {
                   orderChangeItem={false}
                   orderAddItem={true}
                   orderAddItemID={orderAddItemID}
+                  setOrderModified={setOrderModified}
                   logged={logged}
                   clients={clients}
                   orders={orders}
                   userRole={userRole}
                   clientid={userid}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
                 />
@@ -679,6 +690,7 @@ function App() {
                   products={products}
                   clients={clients}
                   time={time}
+                  setRecharged={setRecharged}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -814,7 +826,7 @@ function App() {
             exact
             render={() =>
               logged ? (
-                <FarmerOrderConfirmation time={time} />
+                <FarmerOrderConfirmation clients={clients} products={products} orders={orders} time={time} />
               ) : (
                 <Redirect to="/login" />
               )
@@ -850,6 +862,7 @@ function App() {
                   clients={clients}
                   clientid={userid}
                   orders={orders}
+                  time={time}
                 />
               ) : (
                 <Redirect to="/login" />

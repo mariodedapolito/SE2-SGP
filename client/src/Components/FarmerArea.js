@@ -55,6 +55,43 @@ function FarmerArea(props) {
     return false;
   }
 
+  /* prods confirmation is available Mon until 09.00 */
+  const confirmProductsAvailable = () => {
+    //Monday
+    if (dayjs(props.time.date).day() === 1) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
+        //Before MON 9AM -> available
+        return true;
+      }
+      //After MON 9AM -> unavailable
+      else {
+        //next week = week + 2
+        return false;
+      }
+    } else {
+      return false;
+    }
+  };
+
+  /* prods preparation is available from Mon 09.00 until Tuesday 23.59 */
+  const prepareProductsAvailable = () => {
+    //Sunday
+    if (dayjs(props.time.date).day() === 1) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() >= 9) {
+        //After MON 9AM -> available
+        return true;
+      } else {
+        return false;
+      }
+    }
+    //Monday
+    else if (dayjs(props.time.date).day() === 2) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   return (
     <div className="row w-100">
       <span className="d-block text-center mt-5 mb-2 display-2">
@@ -137,30 +174,21 @@ function FarmerArea(props) {
                     </h5>
                     <p>
                       Here you can report the expected available product amounts
-                      for the next week
                     </p>
                     <p className="card-text">
-                      • You can declare items for the next week from Monday
-                      until Saturday 09.00AM <br />
+                      • You can declare items expected availability <br />
                     </p>
                     <div className="d-block text-end">
-                      {intervalTimeBoolean() ? (
-                        <Link to="/declare-availability">
-                          <button
-                            className="btn"
-                            style={{
-                              backgroundColor: '#4A5B8C',
-                              color: 'white',
-                            }}
-                          >
-                            Declare availability
-                          </button>
-                        </Link>
-                      ) : (
-                        <button disabled className="btn btn-primary">
-                          Declare availability
-                        </button>
-                      )}
+                      <button
+                        className="btn"
+                        style={{
+                          backgroundColor: '#4A5B8C',
+                          color: 'white',
+                        }}
+                        onClick={() => history.push('/declare-availability')}
+                      >
+                        Declare availability
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -185,35 +213,24 @@ function FarmerArea(props) {
                   <div className="card-body">
                     <h5 className="card-title">Confirm product availability</h5>
                     <p className="card-text">
-                      • You can confirm items availability starting Saturday
-                      09.00AM until Monday 09.00AM <br />
+                      • You can confirm items availability on the Mondays until
+                      09.00AM <br />
                       <br />
                     </p>
                     <div className="d-block text-end">
-                      {!intervalTimeBoolean() ? (
-                        <Link to="/order-confirmation-farmer">
-                          <button
-                            className="btn"
-                            style={{
-                              backgroundColor: '#8697A6',
-                              color: 'black',
-                            }}
-                          >
-                            Confirm availability
-                          </button>
-                        </Link>
-                      ) : (
-                        <button
-                          disabled
-                          className="btn"
-                          style={{
-                            backgroundColor: '#8697A6',
-                            color: 'black',
-                          }}
-                        >
-                          Confirm availability
-                        </button>
-                      )}
+                      <button
+                        disabled={!confirmProductsAvailable()}
+                        style={{
+                          backgroundColor: '#8697A6',
+                          color: 'black',
+                        }}
+                        className="btn"
+                        onClick={() =>
+                          history.push('/order-confirmation-farmer')
+                        }
+                      >
+                        Confirm availability
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -240,19 +257,21 @@ function FarmerArea(props) {
                     <p className="card-text">
                       • Confirm the preparation of the booked orders to ship to
                       the SPG shop
+                      <br />• You can prepare orders starting Monday 9.00AM
+                      until Tuesday 11.59PM
                     </p>
                     <div className="d-block text-end">
-                      <Link to="/order-preparation">
-                        <button
-                          className="btn"
-                          style={{
-                            backgroundColor: '#BFCDD9',
-                            color: 'black',
-                          }}
-                        >
-                          Confirm preparation
-                        </button>
-                      </Link>
+                      <button
+                        disabled={!prepareProductsAvailable()}
+                        className="btn"
+                        style={{
+                          backgroundColor: '#BFCDD9',
+                          color: 'black',
+                        }}
+                        onClick={() => history.push('/order-preparation')}
+                      >
+                        Confirm preparation
+                      </button>
                     </div>
                   </div>
                 </div>

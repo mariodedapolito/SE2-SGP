@@ -181,7 +181,8 @@ async function updateStateFarmer(id, product_id, state) {
       product_id: product_id,
       state: state,
     }),
-  })
+  });
+  console.log(response);
   if (response.ok) {
     return await response.json();
   }
@@ -363,9 +364,9 @@ async function getProviderConfirmationStatus(year, week_number) {
 }
 
 //GET provider expected products + readme ok 
-async function getProviderExpectedProducts(year, week_number) {
+async function getProviderAvailableProducts(year, week_number) {
   const response = await fetch(
-    '/api/products/provider/expected/' + year + '/' + week_number
+    '/api/products/provider/available/' + year + '/' + week_number
   );
   if (response.ok) {
     return await response.json();
@@ -591,12 +592,27 @@ async function increaseBalance(amount, clientId) {
 
 // Confirm expexted product
 async function confirmExpectedProducts(product, year, week) {
-  const response = await fetch('/api/farmerConfirm/' + product + '/' + year + '/' + week, {
+  const response = await fetch('/api/farmerConfirm/' + product, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({}),
+    }
+  })
+  if (response.ok) {
+    return await response.json();
+  }
+  else {
+    let err = { status: response.status, errObj: await response.json() };
+    throw err; // An object with the error coming from the server
+  }
+}
+
+async function setUnavailableProducts(product, year, week) {
+  const response = await fetch('/api/farmerUnavailable/' + product, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    }
   })
   if (response.ok) {
     return await response.json();
@@ -845,7 +861,7 @@ const sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10 = async () =>
   // });
 };
 
-const sendTelegramOrderStateNotification = async (clientId,state) => {
+const sendTelegramOrderStateNotification = async (clientId, state) => {
   const response = await fetch('/api/orderStateConfirmation', {
     method: 'POST',
     headers: {
@@ -962,9 +978,10 @@ const API = {
   getAllProviders,
   getProviderById,
   getProviderProducts,
-  getProviderExpectedProducts,
+  getProviderAvailableProducts,
   getProviderBookings,
   getProviderConfirmationStatus,
+  setUnavailableProducts,
   declareAvailability,
   uploadProductImage,
   checkEmailAvailability,
@@ -1001,7 +1018,7 @@ const API = {
   sendTelegramNotificationOnSaturday,
   sendTelegramTopUpNotification,
   sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
-  getAllMissedPickups, 
+  getAllMissedPickups,
   addMissedPickup,
   sendTelegramOrderStateNotification
 };

@@ -5,20 +5,13 @@ import {
   Card,
   Container,
   Modal,
-  Dropdown,
   Form,
-  Tabs,
-  Tab,
-  ListGroup,
   Alert,
 } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import API from './../API';
-import Basket from './Basket';
 import ProductPage from './ProductPage';
 import { useHistory } from 'react-router-dom';
-import { clientOrders } from '../classes/ClientOrder';
-import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useMediaQuery } from 'react-responsive';
 
@@ -30,13 +23,15 @@ dayjs.Ls.en.weekStart = 1;
 function Booking(props) {
   const history = useHistory();
 
-  const [productsBasket, setProductsBasket] = useState([]);
   const [showProductDetailsModal, setShowProductDetailsModal] = useState(false);
   const [currentProductDetails, setCurrentProductDetails] = useState();
 
   const [products, setProducts] = useState([]);
   const [productRows, setProductRows] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [farmers, setFarmers] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(0);
+  const [activeFarmer, setActiveFarmer] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
 
   const isDesktopOrLaptop = useMediaQuery({
@@ -88,12 +83,20 @@ function Booking(props) {
           getRightWeek(tmp_dy).week_number
         );
         setProducts(res);
+        /* filter products already in the client order - used when client modifies order */
         if (props.orderChangeItem && props.orderChangeItemID !== -1) {
           const orderID = props.orders.find(
             (o) => o.id === props.orderChangeItemID
           ).order_id;
           const orderProducts = props.orders
             .filter((o) => o.order_id === orderID)
+            .map((o) => o.product_id);
+          res = res.filter((prod) => !orderProducts.includes(prod.id));
+        }
+        /* filter products already in the client order - used when client modifies order */
+        if (props.orderAddItem && props.orderAddItemID !== -1) {
+          const orderProducts = props.orders
+            .filter((o) => o.order_id === props.orderAddItemID)
             .map((o) => o.product_id);
           res = res.filter((prod) => !orderProducts.includes(prod.id));
         }
@@ -115,12 +118,20 @@ function Booking(props) {
           getRightWeek(props.time).week_number
         );
         setProducts(res);
+        /* filter products already in the client order - used when client modifies order */
         if (props.orderChangeItem && props.orderChangeItemID !== -1) {
           const orderID = props.orders.find(
             (o) => o.id === props.orderChangeItemID
           ).order_id;
           const orderProducts = props.orders
             .filter((o) => o.order_id === orderID)
+            .map((o) => o.product_id);
+          res = res.filter((prod) => !orderProducts.includes(prod.id));
+        }
+        /* filter products already in the client order - used when client modifies order */
+        if (props.orderAddItem && props.orderAddItemID !== -1) {
+          const orderProducts = props.orders
+            .filter((o) => o.order_id === props.orderAddItemID)
             .map((o) => o.product_id);
           res = res.filter((prod) => !orderProducts.includes(prod.id));
         }
@@ -141,6 +152,7 @@ function Booking(props) {
     getAllProducts();
   }, [props.time]);
 
+  /* UseEffect get prods when client wants to swap an item */
   useEffect(() => {
     if (!props.orderChangeItem || props.orderChangeItemID === -1) {
       return;
@@ -173,38 +185,111 @@ function Booking(props) {
     getAllProducts();
   }, [props.orderChangeItemID]);
 
+  /* UseEffect get prods when client wants to add an item to the order */
+  useEffect(() => {
+    if (!props.orderAddItem || props.orderAddItemID === -1) {
+      return;
+    }
+
+    const getAllProducts = async () => {
+      let res = await API.getAllConfirmedProducts(
+        getRightWeek(props.time).year,
+        getRightWeek(props.time).week_number
+      );
+      setProducts(res);
+      const orderProducts = props.orders
+        .filter((o) => o.order_id === props.orderAddItemID)
+        .map((o) => o.product_id);
+      res = res.filter((prod) => !orderProducts.includes(prod.id));
+      let rows = [
+        ...Array(Math.ceil(res.filter((p) => p && p.active === 1).length / 3)),
+      ];
+      let productsRows = Array(rows.length);
+      rows.forEach((row, idx) => {
+        productsRows[idx] = res
+          .filter((p) => p.active === 1)
+          .slice(idx * 3, idx * 3 + 3);
+      });
+      setProductRows(productsRows);
+    };
+    getAllProducts();
+  }, [props.orderAddItemID]);
+
   /* Categories UseEffect */
   useEffect(() => {
     const getCategories = async () => {
-      const c = [{ name: 'All', active: 1 }, ...(await API.getAllCategories())];
+      const c = [
+        { id: 0, name: 'All categories' },
+        ...(await API.getAllCategories()),
+      ];
       setCategories(c);
     };
     getCategories();
   }, []);
 
-  /* Product filtering by category */
-  const filterProducts = (activeCategory) => {
-    if (activeCategory === undefined || activeCategory === null) {
-      activeCategory = categories.find((c) => c.active === 1).name;
-    }
+  /* Farmers useEffect */
+  useEffect(() => {
+    const getFarmers = async () => {
+      const f = [
+        { id: 0, name: 'All farmers' },
+        ...(await API.getAllProviders()),
+      ];
+      setFarmers(f);
+    };
+    getFarmers();
+  }, []);
 
-    setProducts((prods) => {
-      const arr = prods.map((p) => {
-        if (activeCategory === 'All' || p.category === activeCategory) {
-          if (
-            searchTerm === '' ||
-            p.name.toLowerCase().includes(searchTerm.toLowerCase())
-          ) {
-            p.active = 1;
-            return p;
-          }
-        }
+  useEffect(() => {
+    console.log(activeCategory, activeFarmer, searchTerm);
+
+    let prods = products;
+
+    prods.forEach((p) => {
+      if (
+        searchTerm === '' ||
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ) {
+        p.active = 1;
+      } else {
         p.active = 0;
-        return p;
-      });
-      return arr;
+      }
     });
-  };
+
+    prods.forEach((p) => {
+      if (
+        p.active === 1 &&
+        (activeCategory === 0 || p.categoryId === activeCategory)
+      ) {
+        p.active = 1;
+      } else {
+        p.active = 0;
+      }
+    });
+
+    prods.forEach((p) => {
+      if (
+        p.active === 1 &&
+        (activeFarmer === 0 || p.providerId === activeFarmer)
+      ) {
+        p.active = 1;
+      } else {
+        p.active = 0;
+      }
+    });
+
+    setProducts(prods);
+
+    let rows = [
+      ...Array(Math.ceil(prods.filter((p) => p && p.active === 1).length / 3)),
+    ];
+    let productsRows = Array(rows.length);
+    rows.forEach((row, idx) => {
+      productsRows[idx] = prods
+        .filter((p) => p.active === 1)
+        .slice(idx * 3, idx * 3 + 3);
+    });
+    setProductRows(productsRows);
+  }, [activeCategory, activeFarmer, searchTerm]);
 
   /* User selection */
   useEffect(() => {
@@ -288,6 +373,10 @@ function Booking(props) {
               >
                 <Card.Img
                   variant="top"
+                  style={{
+                    filter:
+                      productline.quantity === 0 ? 'grayscale(100%)' : 'none',
+                  }}
                   src={
                     process.env.PUBLIC_URL +
                     'products/' +
@@ -302,18 +391,35 @@ function Booking(props) {
                     </span>
                     <br />
                     <span className="fs-6 text-muted">
-                      Producer: {productline.providerName}
+                      By <b>{productline.providerName}</b>
                     </span>
                     <br />
-                    <span className="fs-6 text-muted">Origin: Torino</span>
+                    <span className="fs-6 text-muted">
+                      {farmers.length > 0 &&
+                        farmers.find((f) => f.id === productline.providerId)
+                          .location}
+                    </span>
                   </div>
                   <hr className="my-1" />
                   <span className="d-block">
                     {productline.price} €/{productline.unit}{' '}
                   </span>
                   <small className="d-block text-muted mb-3">
-                    {productline.quantity} {productline.unit}{' '}
-                    {props.browsing ? 'expected' : 'left in stock'}
+                    {productline.quantity > 0 &&
+                      props.browsing &&
+                      productline.quantity +
+                        ' ' +
+                        productline.unit +
+                        ' expected'}
+                    {productline.quantity > 0 &&
+                      !props.browsing &&
+                      productline.quantity +
+                        ' ' +
+                        productline.unit +
+                        ' left in stock'}
+                    {productline.quantity <= 0 && (
+                      <span className="fw-bold text-danger">Out of stock</span>
+                    )}
                   </small>
                   {props.browsing && (
                     <Row>
@@ -335,6 +441,7 @@ function Booking(props) {
                         style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
+                        disabled={productline.quantity <= 0}
                         onClick={() => {
                           addToCart(productline, 0.5);
                         }}
@@ -359,7 +466,9 @@ function Booking(props) {
                         style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
-                        disabled={selectedUserID === -1}
+                        disabled={
+                          selectedUserID === -1 || productline.quantity <= 0
+                        }
                         onClick={() => {
                           addToCart(productline, 0.5);
                         }}
@@ -384,6 +493,7 @@ function Booking(props) {
                         style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
+                        disabled={productline.quantity <= 0}
                         onClick={() => {
                           setNewItemID(productline.id);
                           setShowChangeItemModal(true);
@@ -409,6 +519,7 @@ function Booking(props) {
                         style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
+                        disabled={productline.quantity <= 0}
                         onClick={() => {
                           setNewItemID(productline.id);
                           setShowAddItemModal(true);
@@ -510,7 +621,7 @@ function Booking(props) {
               lg={3}
               className="my-5 text-center vertical-separator-products"
             >
-              <ul className="list-group list-group-vertical mx-5">
+              <ul className="list-group list-group-vertical my-3 mx-5">
                 <div className="list-group-item bg-light">
                   <h3>Filter by category</h3>
                   <h6 className="text-muted">
@@ -519,25 +630,37 @@ function Booking(props) {
                 </div>
                 {categories.map((cat) => (
                   <button
-                    key={cat.name}
+                    key={cat.id}
                     className={
-                      cat.active
+                      cat.id === activeCategory
                         ? 'list-group-item list-group-item-action active'
                         : 'list-group-item list-group-item-action'
                     }
-                    onClick={() => {
-                      setCategories((cats) =>
-                        cats.map((c) => {
-                          if (c.name === cat.name) {
-                            return { name: c.name, active: 1 };
-                          }
-                          return { name: c.name, active: 0 };
-                        })
-                      );
-                      filterProducts(cat.name);
-                    }}
+                    onClick={() => setActiveCategory(cat.id)}
                   >
                     {cat.name}
+                  </button>
+                ))}
+              </ul>
+
+              <ul className="list-group list-group-vertical my-3 mx-5">
+                <div className="list-group-item bg-light">
+                  <h3>Filter by farmer</h3>
+                  <h6 className="text-muted">
+                    Click one of the farmers below to apply the filter
+                  </h6>
+                </div>
+                {farmers.map((farmer) => (
+                  <button
+                    key={farmer.id}
+                    className={
+                      farmer.id === activeFarmer
+                        ? 'list-group-item list-group-item-action active'
+                        : 'list-group-item list-group-item-action'
+                    }
+                    onClick={() => setActiveFarmer(farmer.id)}
+                  >
+                    {farmer.name}
                   </button>
                 ))}
               </ul>
@@ -546,23 +669,13 @@ function Booking(props) {
               <div className="d-block mx-5 my-3">
                 <div className="container">
                   <div className="row">
-                    <div className="col-lg-9 text-center">
-                      {isTabletOrMobile && <h4>Search for products</h4>}
-                      <input
-                        className="form-control mb-2"
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        placeholder="Type desired product here"
-                      />
-                    </div>
-                    <div className="col-lg-3 text-center px-3 mb-3">
-                      <button
-                        className="btn btn-primary w-100 "
-                        onClick={() => filterProducts()}
-                      >
-                        Search
-                      </button>
-                    </div>
+                    {isTabletOrMobile && <h4>Search for products</h4>}
+                    <input
+                      className="form-control form-control-lg mb-2"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      placeholder="Type desired product here"
+                    />
                   </div>
                 </div>
               </div>
@@ -594,11 +707,17 @@ function Booking(props) {
         </Modal.Header>
         <Modal.Body>
           <ProductPage
+            purchasing={props.purchasing}
             browsing={props.browsing}
-            onAdd={addToCart}
+            orderChangeItem={props.orderChangeItem}
+            orderAddItem={props.orderAddItem}
+            addToCart={addToCart}
             setShowProductDetailsModal={setShowProductDetailsModal}
             prod={currentProductDetails}
-            operationType="booking"
+            setShowChangeItemModal={setShowChangeItemModal}
+            setShowAddItemModal={setShowAddItemModal}
+            providers={farmers}
+            setNewItemID={setNewItemID}
           ></ProductPage>
         </Modal.Body>
         <Modal.Footer>
@@ -611,47 +730,49 @@ function Booking(props) {
         </Modal.Footer>
       </Modal>
 
-      <ItemChangeModal
-        show={showChangeItemModal}
-        setShow={setShowChangeItemModal}
-        oldID={props.orderChangeItemID}
-        newID={newItemID}
-        products={products}
-        orders={props.orders}
-        clients={props.clients}
-        clientid={props.clientid}
-      />
+      {props.orderChangeItem && (
+        <ItemChangeModal
+          show={showChangeItemModal}
+          setShow={setShowChangeItemModal}
+          oldID={props.orderChangeItemID}
+          newID={newItemID}
+          products={products}
+          orders={props.orders}
+          clients={props.clients}
+          clientid={props.clientid}
+          setRecharged={props.setRecharged}
+          setRecharged1={props.setRecharged1}
+          setOrderModified={props.setOrderModified}
+        />
+      )}
 
-      <Modal show={showAddItemModal} onHide={() => setShowAddItemModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            Order modification
-            <br />
-            <h4 className="lead text-muted">Adding a new item</h4>
-          </Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body>
-          <p>Modal body text goes here.</p>
-        </Modal.Body>
-
-        <Modal.Footer>
-          <Button style={{ borderRadius: '25px' }} variant="secondary">
-            Close
-          </Button>
-          <Button style={{ borderRadius: '25px' }} variant="primary">
-            Add item
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {props.orderAddItem && (
+        <ItemAddModal
+          show={showAddItemModal}
+          setShow={setShowAddItemModal}
+          oldID={props.orderAddItemID}
+          newID={newItemID}
+          products={products}
+          orders={props.orders}
+          clients={props.clients}
+          clientid={props.clientid}
+          setRecharged={props.setRecharged}
+          setRecharged1={props.setRecharged1}
+          setOrderModified={props.setOrderModified}
+        />
+      )}
     </>
   );
 }
 
 function ItemChangeModal(props) {
+  const history = useHistory();
+
   const [oldItem, setOldItem] = useState(null);
   const [newItem, setNewItem] = useState(null);
   const [buyQuantity, setBuyQuantity] = useState(0.5);
+  const [swapItems, setSwapItems] = useState(false);
+  const [actionAlert, setActionAlert] = useState(null);
 
   useEffect(() => {
     if (props.newID !== -1) {
@@ -672,6 +793,57 @@ function ItemChangeModal(props) {
       }
     }
   }, [props.newID, props.oldID]);
+
+  useEffect(() => {
+    if (!swapItems) {
+      return;
+    }
+
+    const changeItem = async () => {
+      try {
+        const oldOrderEntry = props.orders.find((o) => o.id === props.oldID);
+        const new_item = {
+          order_id: oldOrderEntry.order_id,
+          client_id: oldOrderEntry.client_id,
+          product_name: newItem.name,
+          product_id: newItem.id,
+          order_quantity: buyQuantity,
+          state: oldOrderEntry.state,
+          farmer_state: oldOrderEntry.farmer_state,
+          OrderPrice: buyQuantity * newItem.price,
+          id: oldOrderEntry.id,
+          address: oldOrderEntry.address,
+          city: oldOrderEntry.city,
+          zipcode: oldOrderEntry.zipcode,
+          Nation: oldOrderEntry.Nation,
+          date: oldOrderEntry.date,
+          time: oldOrderEntry.time,
+          pickup: oldOrderEntry.pickup,
+        };
+        await API.updateItem(new_item);
+        await API.increaseBalance(
+          oldItem.buyQty * oldItem.price,
+          oldOrderEntry.client_id
+        ); /* increase balance by old item price */
+        await API.increaseBalance(
+          buyQuantity * newItem.price * -1,
+          oldOrderEntry.client_id
+        ); /* decrease balance by new item price */
+        props.setRecharged(true);
+        props.setRecharged1(true);
+        props.setOrderModified(true);
+        history.push('/orders');
+      } catch (error) {
+        console.log(error);
+        setActionAlert({
+          variant: 'danger',
+          msg: 'Oops! Could not swap items. Please try again',
+        });
+      }
+    };
+
+    changeItem();
+  }, [swapItems]);
 
   const capitalizeEachFirstLetter = (str) => {
     return str
@@ -701,6 +873,38 @@ function ItemChangeModal(props) {
     return;
   };
 
+  const checkSwapItems = () => {
+    if (oldItem && newItem) {
+      const availableBudget =
+        props.clients.find((c) => c.client_id === props.clientid).budget +
+        oldItem.buyQty * oldItem.price;
+      if (
+        buyQuantity > 0 &&
+        buyQuantity <= newItem.quantity &&
+        buyQuantity * newItem.price <= availableBudget
+      ) {
+        setSwapItems(true);
+      }
+    }
+    return;
+  };
+
+  const buttonDisabled = () => {
+    if (oldItem && newItem) {
+      const availableBudget =
+        props.clients.find((c) => c.client_id === props.clientid).budget +
+        oldItem.buyQty * oldItem.price;
+      if (
+        buyQuantity > 0 &&
+        buyQuantity <= newItem.quantity &&
+        buyQuantity * newItem.price <= availableBudget
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   return (
     <Modal size="lg" show={props.show} onHide={() => props.setShow(false)}>
       <Modal.Header closeButton>
@@ -712,6 +916,16 @@ function ItemChangeModal(props) {
       </Modal.Header>
 
       <Modal.Body>
+        {actionAlert && (
+          <Alert
+            variant={actionAlert.variant}
+            className="my-3 mx-2"
+            dismissible={true}
+            onClose={() => setActionAlert(null)}
+          >
+            {actionAlert.msg}
+          </Alert>
+        )}
         {oldItem && (
           <div className="list-group-item shadow bg-light">
             <div className="d-block text-center">
@@ -719,9 +933,11 @@ function ItemChangeModal(props) {
                 Available wallet balance
               </h4>
               <h1 className="d-inline-block">
-                {props.clients.find((c) => c.client_id === props.clientid)
-                  .budget +
-                  oldItem.buyQty * oldItem.price}
+                {(
+                  props.clients.find((c) => c.client_id === props.clientid)
+                    .budget +
+                  oldItem.buyQty * oldItem.price
+                ).toFixed(2)}
                 €
               </h1>
             </div>
@@ -801,6 +1017,9 @@ function ItemChangeModal(props) {
             </div>
           </div>
         )}
+        <div className="d-block mb-0 mt-3 text-center">
+          <h3>Swap with</h3>
+        </div>
         <div className="d-block text-center">{arrowDown}</div>
         {newItem && (
           <div className="list-group-item shadow">
@@ -894,15 +1113,287 @@ function ItemChangeModal(props) {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button
-          style={{ borderRadius: '25px' }}
-          variant="secondary"
-          onClick={() => props.setShow(false)}
-        >
+        <Button variant="secondary" onClick={() => props.setShow(false)}>
           Close
         </Button>
-        <Button style={{ borderRadius: '25px' }} variant="primary">
-          Confirm swap
+        <Button
+          variant="primary"
+          onClick={() => checkSwapItems()}
+          disabled={swapItems || buttonDisabled()}
+        >
+          {swapItems ? 'Swapping items...' : 'Confirm swap'}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+function ItemAddModal(props) {
+  const history = useHistory();
+  const [newItem, setNewItem] = useState(null);
+  const [buyQuantity, setBuyQuantity] = useState(0.5);
+  const [addItems, setAddItems] = useState(false);
+  const [actionAlert, setActionAlert] = useState(null);
+
+  useEffect(() => {
+    if (props.newID !== -1) {
+      setNewItem({
+        ...props.products.find((p) => p.id === props.newID),
+        buyQty: 0.5,
+      });
+    } else {
+      setNewItem(null);
+    }
+  }, [props.newID]);
+
+  useEffect(() => {
+    if (!addItems) {
+      return;
+    }
+
+    const addItem = async () => {
+      try {
+        const oldOrderEntry = props.orders.find(
+          (o) => o.order_id === props.oldID
+        );
+        if (oldOrderEntry === undefined) {
+          throw 'Could not find old order';
+        }
+        const new_item = {
+          order_id: props.oldID,
+          client_id: oldOrderEntry.client_id,
+          product_name: newItem.name,
+          product_id: newItem.id,
+          order_quantity: buyQuantity,
+          state: 'booked',
+          farmer_state: null,
+          OrderPrice: buyQuantity * newItem.price,
+          id: Math.max(...props.orders.map((o) => o.id)) + 1,
+          address: oldOrderEntry.address,
+          city: oldOrderEntry.city,
+          zipcode: oldOrderEntry.zipcode,
+          Nation: oldOrderEntry.Nation,
+          date: oldOrderEntry.date,
+          time: oldOrderEntry.time,
+          pickup: oldOrderEntry.pickup,
+        };
+        await API.addOrder(new_item);
+        await API.increaseBalance(
+          buyQuantity * newItem.price * -1,
+          oldOrderEntry.client_id
+        );
+        props.setRecharged(true);
+        props.setRecharged1(true);
+        props.setOrderModified(true);
+        history.push('/orders');
+      } catch (error) {
+        console.log(error);
+        setActionAlert({
+          variant: 'danger',
+          msg: 'Oops! Could not swap items. Please try again',
+        });
+      }
+    };
+
+    addItem();
+  }, [addItems]);
+
+  const capitalizeEachFirstLetter = (str) => {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
+      .join(' ');
+  };
+
+  const incrementQuantity = (qty) => {
+    let item = newItem;
+    if (item.buyQty + qty > item.quantity) {
+      return;
+    }
+    item.buyQty += qty;
+    setNewItem(item);
+    setBuyQuantity(item.buyQty);
+  };
+
+  const decrementQuantity = (qty) => {
+    let item = newItem;
+    if (item.buyQty - qty > 0) {
+      item.buyQty -= qty;
+      setNewItem(item);
+      setBuyQuantity(item.buyQty);
+    }
+    return;
+  };
+
+  const checkAddItems = () => {
+    if (props.oldID !== -1 && newItem) {
+      const availableBudget = props.clients.find(
+        (c) => c.client_id === props.clientid
+      ).budget;
+      if (
+        buyQuantity > 0 &&
+        buyQuantity <= newItem.quantity &&
+        buyQuantity * newItem.price <= availableBudget
+      ) {
+        setAddItems(true);
+      }
+    }
+    return;
+  };
+
+  const buttonDisabled = () => {
+    if (props.oldID !== -1 && newItem) {
+      const availableBudget = props.clients.find(
+        (c) => c.client_id === props.clientid
+      ).budget;
+      if (
+        buyQuantity > 0 &&
+        buyQuantity <= newItem.quantity &&
+        buyQuantity * newItem.price <= availableBudget
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  return (
+    <Modal size="lg" show={props.show} onHide={() => props.setShow(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          Order modification
+          <br />
+          <h4 className="lead text-muted">Adding a new item</h4>
+        </Modal.Title>
+      </Modal.Header>
+
+      <Modal.Body>
+        {actionAlert && (
+          <Alert
+            variant={actionAlert.variant}
+            className="my-3 mx-2"
+            dismissible={true}
+            onClose={() => setActionAlert(null)}
+          >
+            {actionAlert.msg}
+          </Alert>
+        )}
+        {props.oldID !== -1 && (
+          <div className="list-group-item shadow bg-light">
+            <div className="d-block text-center">
+              <h4 className="d-inline-block text-muted me-3">
+                Available wallet balance
+              </h4>
+              <h1 className="d-inline-block">
+                {
+                  props.clients.find((c) => c.client_id === props.clientid)
+                    .budget
+                }
+                €
+              </h1>
+            </div>
+          </div>
+        )}
+        {newItem && (
+          <div className="list-group-item shadow">
+            <div className="row">
+              <div className="col-md-2 mb-2 my-auto align-middle">
+                <img
+                  className="w-100 shadow rounded-circle"
+                  src={
+                    process.env.PUBLIC_URL + 'products/' + newItem.id + '.jpg'
+                  }
+                  alt="Product img"
+                />
+              </div>
+              <div className="col-md-6 mb-2 text-start mt-2">
+                <div className="d-block">
+                  <h4>{capitalizeEachFirstLetter(newItem.name)}</h4>
+                </div>
+                <div className="d-block">
+                  {stockIcon} {newItem.quantity} {newItem.unit} available
+                </div>
+                <div className="d-block">
+                  {priceIcon} {newItem.price}€ / {newItem.unit}
+                </div>
+              </div>
+              <div className="col-md-4 mb-2 my-auto align-middle">
+                <div className="d-block w-100">
+                  <div className="d-inline-block my-1 px-1 w-25">
+                    <Button
+                      variant="secondary"
+                      className="w-100"
+                      onClick={() => decrementQuantity(0.5)}
+                    >
+                      -
+                    </Button>
+                  </div>
+                  <div className="d-inline-block my-1 px-1 w-50">
+                    <Form.Control
+                      type="text"
+                      className="w-100 text-center"
+                      value={buyQuantity + ' ' + newItem.unit}
+                      onChange={() => {
+                        return;
+                      }}
+                    />
+                  </div>
+                  <div className="d-inline-block my-1 px-1 w-25">
+                    <Button
+                      variant="primary"
+                      className="w-100"
+                      onClick={() => incrementQuantity(0.5)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+                <div className="d-block w-100 px-1">
+                  <Form.Control
+                    type="text"
+                    className="w-100 text-center fw-bold"
+                    value={
+                      'New item price: ' +
+                      (buyQuantity * newItem.price).toFixed(2) +
+                      '€'
+                    }
+                    onChange={() => {
+                      return;
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {props.oldID !== -1 &&
+          newItem &&
+          buyQuantity * newItem.price >
+            props.clients.find((c) => c.client_id === props.clientid)
+              .budget && (
+            <Alert variant="danger" className="mt-4">
+              <div className="d-block text-center">
+                <h3 className="lead">
+                  {dangerIcon} New item price cannot be greater than the
+                  available budget
+                </h3>
+              </div>
+            </Alert>
+          )}
+      </Modal.Body>
+
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => props.setShow(false)}>
+          Close
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => checkAddItems()}
+          disabled={addItems || buttonDisabled()}
+        >
+          {addItems ? 'Adding new item...' : 'Add item to order'}
         </Button>
       </Modal.Footer>
     </Modal>

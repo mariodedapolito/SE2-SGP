@@ -177,7 +177,7 @@ function DeliverList(props) {
                     <td className='align-middle'>
                       <Button variant="link" onClick={() => { setShow(true); setId(s.order_id); }}>Show ordered products</Button>
                     </td>
-                    <td className='align-middle'>{sum}{' '}€</td>
+                    <td className='align-middle'>{sum.toFixed(2)}€</td>
                     <td className='align-middle'><Button variant="link" onClick={() => { setShowOrderStatus(true); setOrderStatusID(s.order_id); }}>{getOrderStatus(s.order_id)}</Button></td>
                     <td className='align-middle'>{s.pickup === 0 ? 'Delivery' : 'Pick up'}</td>
                     {dayjs(time.date + " " + time.hour).isSameOrAfter(s.date + " " + s.time) && s.pickup === 1 && <td className='text-danger align-middle'>{dayjs(s.date + ' ' + s.time).format("ddd, MMM D, YYYY HH:mm")} (not picked up)</td>}
@@ -321,7 +321,7 @@ function Finestra(props) {
                   {stockIcon} {s.order_quantity} {props.products.find((p) => (p.id === s.product_id)).unit}
                 </div>
                 <div className="col-md-3 mb-2 text-start my-auto">
-                  {priceIcon} {s.OrderPrice}€
+                  {priceIcon} {s.OrderPrice.toFixed(2)}€
                 </div>
               </div>
             </li>

@@ -82,7 +82,7 @@ function Fbookings(props) {
                 <tr key={s.id}>
                   <td className="align-middle">{s.order_id}</td>
                   <td className="align-middle">{props.clients.find((c) => (c.client_id === s.client_id)) ? props.clients.find((c) => (c.client_id === s.client_id)).name + " " + props.clients.find((c) => (c.client_id === s.client_id)).surname : "Unknown"}</td>
-                  <td className="align-middle">{s.sum}€</td>
+                  <td className="align-middle">{s.sum.toFixed(2)}€</td>
                   <td className="align-middle">{s.pickup === 0 ? "Delivery" : "Pick up"}</td>
                   <td className="align-middle">{dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}</td>
                   <td className="align-middle">
@@ -136,7 +136,7 @@ function Fbookings(props) {
                     {stockIcon} {s.order_quantity + " " + s.product_unit}
                   </div>
                   <div className="col-md-3 mb-2 text-start my-auto">
-                    {priceIcon} {s.OrderPrice}€
+                    {priceIcon} {s.OrderPrice.toFixed(2)}€
                   </div>
                 </div>
               </li></>}}

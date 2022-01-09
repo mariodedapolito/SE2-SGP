@@ -523,7 +523,17 @@ const MyNavbar = function (props) {
                   </Popover>
                 }
               >
-                {clockIcon}
+                <div className='container'>
+                  <div className="row">
+                    <div className='col-6 text-center my-auto'>
+                      {clockIcon}
+                    </div>
+                    <div className='col-6 text-center my-auto'>
+                      <div className='d-block mx-auto fw-bold'>{dayjs(props.time.date).format('dddd')}</div>
+                      <div className='d-block mx-auto'>{props.time.hour}</div>
+                    </div>
+                  </div>
+                </div>
               </OverlayTrigger>
             </div>
           </Nav>

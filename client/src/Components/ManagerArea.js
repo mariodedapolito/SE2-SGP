@@ -196,7 +196,7 @@ function ManagerArea(props) {
               <div className="card-body">
                 <h5 className="card-title">List of past pickups </h5>
                 <p className="card-text">
-                  •Mark as missed the past pickups
+                  •Mark as missed an unpicked up order
                   <br />
                 </p>
                 <div className="d-block text-end">
@@ -205,7 +205,7 @@ function ManagerArea(props) {
                       className="btn"
                       style={{ backgroundColor: '#f5f5dc', color: 'black' }}
                     >
-                      See missed pickups{' '}
+                      See past pickups{' '}
                     </button>
                   </Link>
                 </div>
