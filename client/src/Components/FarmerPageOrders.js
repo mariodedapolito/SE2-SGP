@@ -18,11 +18,11 @@ function Fbookings(props) {
   /* Create orders array to show in table*/
   useEffect(() => {
     let data = dayjs(props.time.date);
-  
-    let array1=props.products.filter(x => x.providerId===props.providerid).map(x=>x.id);
-    
-    let filteredOrders=props.orders.filter(x=>array1.includes(x.product_id));
-    let m = filteredOrders.filter(x => x.state === "booked" && dayjs(`${x.date}`).isSame(data)).map(s => s.order_id).filter(onlyUnique);
+
+    let array1 = props.products.filter(x => x.providerId === props.providerid).map(x => x.id);
+
+    let filteredOrders = props.orders.filter(x => array1.includes(x.product_id));
+    let m = filteredOrders.filter(x => x.state !== "missed").map(s => s.order_id).filter(onlyUnique);
     m.reverse();
 
     let ords = [];
@@ -39,7 +39,7 @@ function Fbookings(props) {
         ords.push({ ...o, sum: sum });
       }
     });
-    setOrders(ords);
+    setOrders(ords.sort((a, b) => (b.order_id - a.order_id)));
   }, [props.time.date])
 
   const handleClose = (x) => setShow(x);
@@ -60,7 +60,7 @@ function Fbookings(props) {
           Bookings
         </span>
         <h5 className="d-block mx-auto mb-5 text-center text-muted">
-          Choose a date clicking on the clock up above to see only the orders of that day containing the products i can provide as a farmer 
+          Choose a date clicking on the clock up above to see only the orders of that day containing the products i can provide as a farmer
         </h5>
 
         <div className="col-lg-2"></div>
@@ -82,7 +82,7 @@ function Fbookings(props) {
                 <tr key={s.id}>
                   <td className="align-middle">{s.order_id}</td>
                   <td className="align-middle">{props.clients.find((c) => (c.client_id === s.client_id)) ? props.clients.find((c) => (c.client_id === s.client_id)).name + " " + props.clients.find((c) => (c.client_id === s.client_id)).surname : "Unknown"}</td>
-                  <td className="align-middle">{s.sum.toFixed(2)}€</td>
+                  <td className="align-middle">{s.sum}€</td>
                   <td className="align-middle">{s.pickup === 0 ? "Delivery" : "Pick up"}</td>
                   <td className="align-middle">{dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}</td>
                   <td className="align-middle">
@@ -111,35 +111,38 @@ function Fbookings(props) {
         <Modal.Body>
           <ul className="list-group">
             {props.orders.filter(x => (x.state === "booked") && (x.order_id === id)).map((s) => {
-               if (!props.products.filter(x => x.providerId===props.providerid).map(x=>x.id).find(x=>x===s.product_id))
-                   {
-                    return <li key={s.product_id}style={{ display: "none" }}></li> }
-          else {return <>
-              <li key={s.product_id} className="list-group-item">
-                <div className="row">
-                  <div className="col-md-1 mb-2 my-auto">
-                    <img
-                      className="w-100 shadow rounded-circle"
-                      src={
-                        process.env.PUBLIC_URL +
-                        'products/' +
-                        s.product_id +
-                        '.jpg'
-                      }
-                      alt="Product img"
-                    />
-                  </div>
-                  <div className="col-md-5 mb-2 text-start my-auto">
-                    <h4>{capitalizeEachFirstLetter(s.product_name)}</h4>
-                  </div>
-                  <div className="col-md-3 mb-2 text-start my-auto">
-                    {stockIcon} {s.order_quantity + " " + s.product_unit}
-                  </div>
-                  <div className="col-md-3 mb-2 text-start my-auto">
-                    {priceIcon} {s.OrderPrice.toFixed(2)}€
-                  </div>
-                </div>
-              </li></>}}
+              if (!props.products.filter(x => x.providerId === props.providerid).map(x => x.id).find(x => x === s.product_id)) {
+                return <li key={s.product_id} style={{ display: "none" }}></li>
+              }
+              else {
+                return <>
+                  <li key={s.product_id} className="list-group-item">
+                    <div className="row">
+                      <div className="col-md-1 mb-2 my-auto">
+                        <img
+                          className="w-100 shadow rounded-circle"
+                          src={
+                            process.env.PUBLIC_URL +
+                            'products/' +
+                            s.product_id +
+                            '.jpg'
+                          }
+                          alt="Product img"
+                        />
+                      </div>
+                      <div className="col-md-5 mb-2 text-start my-auto">
+                        <h4>{capitalizeEachFirstLetter(s.product_name)}</h4>
+                      </div>
+                      <div className="col-md-3 mb-2 text-start my-auto">
+                        {stockIcon} {s.order_quantity + " " + s.product_unit}
+                      </div>
+                      <div className="col-md-3 mb-2 text-start my-auto">
+                        {priceIcon} {s.OrderPrice.toFixed(2)}€
+                      </div>
+                    </div>
+                  </li></>
+              }
+            }
             )
             }
           </ul>

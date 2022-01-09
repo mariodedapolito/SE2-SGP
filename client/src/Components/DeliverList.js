@@ -52,6 +52,10 @@ function DeliverList(props) {
   const [showOrderStatus, setShowOrderStatus] = useState(false);
   const [orderStatusID, setOrderStatusID] = useState(-1);
 
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const [payOrder, setPayOrder] = useState(false);
+
   let m = props.orders.map((s) => s.order_id).filter(onlyUnique);
   m.reverse();
 
@@ -84,6 +88,40 @@ function DeliverList(props) {
 
     handoutOrder();
   }, [handoutOrderID]);
+
+  useEffect(() => {
+    if (!payOrder) {
+      return;
+    }
+
+    const confirmOrderPayment = async () => {
+      try {
+        const budget = props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget.toFixed(2);
+        const orderPrice = props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0).toFixed(2);
+        if (budget < orderPrice) {
+          throw 'budget not enough';
+        }
+        await API.updateState(id, 'booked');
+        await API.increaseBalance((budget - orderPrice) * (-1), props.orders.find(o => o.order_id === props.id).client_id);
+        props.setRecharged(true);
+        props.setRecharged1(true);
+
+        setActionAlert({
+          variant: 'success',
+          msg: 'Order #' + id + ' payment was successfully completed and the client budget was updated.',
+        });
+      } catch (error) {
+        console.log(error);
+        setActionAlert({
+          variant: 'danger',
+          msg: 'Order #' + id + ' payment could not be completed.',
+        });
+      }
+      setShowPaymentModal(false);
+      setPayOrder(false);
+    }
+    confirmOrderPayment();
+  }, payOrder)
 
   const getOrderStatus = (order_id) => {
     let min = 1000;
@@ -253,12 +291,12 @@ function DeliverList(props) {
                         s.date + ' ' + s.time
                       ) ||
                         s.pickup === 0) && (
-                        <td className="align-middle">
-                          {dayjs(s.date + ' ' + s.time).format(
-                            'ddd, MMM D, YYYY HH:mm'
-                          )}
-                        </td>
-                      )}
+                          <td className="align-middle">
+                            {dayjs(s.date + ' ' + s.time).format(
+                              'ddd, MMM D, YYYY HH:mm'
+                            )}
+                          </td>
+                        )}
                       <td>
                         {s.state === 'prepared' && s.pickup === 1 && (
                           <Button
@@ -281,6 +319,18 @@ function DeliverList(props) {
                             }}
                           >
                             Notify order pending
+                          </Button>
+                        )}
+                        {s.state === 'pending' && (
+                          <Button
+                            variant="secondary"
+                            className="d-block my-1 mx-2 w-100"
+                            onClick={() => {
+                              setShowPaymentModal(true);
+                              setId(s.order_id);
+                            }}
+                          >
+                            Complete order payment
                           </Button>
                         )}
                         {dayjs(time.date + ' ' + time.hour).isSameOrAfter(
@@ -321,7 +371,7 @@ function DeliverList(props) {
                                     Math.abs(
                                       new Date(s.date) - new Date(time.date)
                                     ) /
-                                      (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24)
                                   ) <= 1
                                 ) {
                                   setShouldBeNotified(1);
@@ -359,7 +409,7 @@ function DeliverList(props) {
                                     Math.abs(
                                       new Date(s.date) - new Date(time.date)
                                     ) /
-                                      (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24)
                                   ) <= 1
                                 ) {
                                   setShouldBeNotified(1);
@@ -387,6 +437,50 @@ function DeliverList(props) {
           </Table>
         </Row>
       </Container>
+
+      <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Client wallet balance</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className='d-block text-center'>
+            <h2>{props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).name + ' ' + props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).name}</h2>
+          </div>
+          <div className="d-block text-center my-3">
+            <h4 className="d-inline-block text-muted me-3">
+              Available wallet balance
+            </h4>
+            <h1 className="d-inline-block">
+              {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget.toFixed(2)}
+              €
+            </h1>
+          </div>
+          <div className="d-block text-center my-3">
+            <h4 className="d-inline-block text-muted me-3">
+              Total order price
+            </h4>
+            <h1 className="d-inline-block">
+              {props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0).toFixed(2)}
+              €
+            </h1>
+          </div>
+          {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget < props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0) && (
+            <div className="d-block text-danger text-center my-auto">
+              {dangerIcon} The client wallet balance is not enough to complete the payment of this order.<br />
+              Please top-up the client wallet and then confirm the payment.
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="danger" onClick={() => setShowPaymentModal(false)}>
+            Close
+          </Button>
+          <Button variant="success" disabled={props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget < props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0)} onClick={() => setPayOrder(true)}>
+            Confirm order payment
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <Finestra
         show={show}
         setShow={setShow}

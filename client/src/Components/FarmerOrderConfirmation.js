@@ -85,7 +85,7 @@ function FarmerOrderConfirmation(props) {
           };
           /* order payed */
           if (o.state === 'booked') {
-            await API.increaseBalance(o.OrderPrice, o.client_id);
+            await API.increaseBalance(o.OrderPrice.toFixed(2), o.client_id);
             mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order and the balance was refunded to your wallet.\nKind regards\nSPG";
           }
           /* order pending */

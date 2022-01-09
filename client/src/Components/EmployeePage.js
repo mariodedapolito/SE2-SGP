@@ -199,6 +199,7 @@ function EmployeePage(props) {
             {show && (
               <DeliverList
                 setRecharged={props.setRecharged}
+                setRecharged1={props.setRecharged1}
                 products={props.products}
                 orders={props.orders}
                 clients={clients}

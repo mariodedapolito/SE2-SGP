@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 var isSameOrAfter = require('dayjs/plugin/isSameOrAfter');
 dayjs.extend(isSameOrAfter);
 
+dayjs.Ls.en.weekStart = 1; //set week to start on monday
 
 function PickupListManager(props) {
   const [show, setShow] = useState(false);
@@ -26,9 +27,12 @@ function PickupListManager(props) {
     }
     setUpdateOrders(false);
 
+    const previousWeek = getPreviousWeek().week_number;
+    const previousWeekYear = getPreviousWeek().year;
+
     const condensedOrders = new Map();
 
-    props.orders.forEach((order) => {
+    props.orders.filter(o => props.products.find((p) => (p.id === o.product_id).week === previousWeek) && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear)).forEach((order) => {
       if (!condensedOrders.has(order.order_id)) {
         condensedOrders.set(order.order_id, { order_not_shipped: false, order_prepared: false, farmer_shipped: false, warehouse_received: false, order_array: new Array() });
       }
@@ -103,6 +107,15 @@ function PickupListManager(props) {
     }
     updateOrders();
   }, [prepare])
+
+  const getPreviousWeek = () => {
+    //every time get previous week
+    let previousWeekDate = dayjs(props.time.date).subtract(1, 'week');
+    return {
+      year: dayjs(props.time.date).year(),
+      week_number: dayjs(previousWeekDate).week(),
+    };
+  };
 
   const capitalizeEachFirstLetter = (str) => {
     return str

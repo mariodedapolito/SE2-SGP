@@ -9,6 +9,8 @@ import dayjs from 'dayjs'
 var isBetween = require('dayjs/plugin/isBetween')
 dayjs.extend(isBetween)
 
+dayjs.Ls.en.weekStart = 1;
+
 function Cart(props) {
 
   const history = useHistory();
@@ -434,7 +436,7 @@ function Cart(props) {
                 <li className="list-group-item shadow bg-light">
                   <div className='d-block text-center'>
                     <h4 className='d-inline-block text-muted me-3'>Available wallet balance</h4>
-                    <h1 className='d-inline-block'>{client.budget}€</h1>
+                    <h1 className='d-inline-block'>{client.budget.toFixed(2)}€</h1>
                   </div>
                   {orderTotal > client.budget && (
                     <div className='d-block text-center text-muted'>
@@ -584,13 +586,13 @@ function Cart(props) {
                         <Col lg={4}>
                           <Form.Group>
                             <Form.Label as="h6">Delivery date</Form.Label>
-                            <Form.Control type="date" value={date} onChange={(ev) => setDate(ev.target.value)} />
+                            <Form.Control type="date" min={dayjs(props.time.date).add(1, 'week').day(2).format('YYYY-MM-DD')} max={dayjs(props.time.date).add(1, 'week').day(4).format('YYYY-MM-DD')} value={date} onChange={(ev) => setDate(ev.target.value)} />
                           </Form.Group>
                         </Col>
                         <Col lg={4}>
                           <Form.Group>
                             <Form.Label as="h6">Delivery date</Form.Label>
-                            <Form.Control type="time" value={time} onChange={(ev) => setTime(ev.target.value)} />
+                            <Form.Control type="time" value={time} min='08:00' max='18:00' onChange={(ev) => setTime(ev.target.value)} />
                           </Form.Group>
                         </Col>
                         <Col lg={4}></Col>
@@ -668,7 +670,7 @@ function Cart(props) {
                   <div className='row'>
                     <div className='col-lg-6'>
                       <h5 className='d-inline-block text-muted me-3'>Available budget</h5>
-                      <h3 className='d-inline-block'>{client ? client.budget : 0}€</h3>
+                      <h3 className='d-inline-block'>{client ? client.budget.toFixed(2) : 0}€</h3>
                     </div>
                     <div className='col-lg-6'>
                       <h5 className='d-inline-block text-muted me-3'>Order total</h5>

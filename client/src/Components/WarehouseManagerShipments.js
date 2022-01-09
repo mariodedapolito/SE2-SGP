@@ -2,6 +2,9 @@ import API from '../API';
 import { Button, Modal, Alert, Spinner } from 'react-bootstrap';
 import { useState, useEffect } from "react";
 import { BoxSeam } from 'react-bootstrap-icons';
+import dayjs from 'dayjs';
+
+dayjs.Ls.en.weekStart = 1; //set week to start on monday
 
 function WarehouseManagerShipments(props) {
 
@@ -39,7 +42,10 @@ function WarehouseManagerShipments(props) {
       const prods = await API.getAllProducts();
       setProducts(prods);
 
-      let orders = await API.getAllOrders();
+      const previousWeek = getPreviousWeek().week_number;
+      const previousWeekYear = getPreviousWeek().year;
+
+      let orders = (await API.getAllOrders()).filter(o => props.products.find((p) => (p.id === o.product_id).week === previousWeek) && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear));
 
       orders = orders.filter((order) => (order.farmer_state === 'farmer-shipped'));
 
@@ -61,6 +67,14 @@ function WarehouseManagerShipments(props) {
     loadOrders();
   }, [providerFilterID, update]);
 
+  const getPreviousWeek = () => {
+    //every time get previous week
+    let previousWeekDate = dayjs(props.time.date).subtract(1, 'week');
+    return {
+      year: dayjs(props.time.date).year(),
+      week_number: dayjs(previousWeekDate).week(),
+    };
+  };
 
 
   return (

@@ -99,7 +99,7 @@ function ClientArea(props) {
                   Budget:{' '}
                   {props.clients.find((c) => c.client_id === props.clientid)
                     ? props.clients.find((c) => c.client_id === props.clientid)
-                        .budget + '€'
+                      .budget.toFixed(2) + '€'
                     : '0.00€'}
                 </li>
               </ul>
@@ -297,33 +297,33 @@ function ClientArea(props) {
             <h1 className="d-inline-block">
               {props.clients.find((c) => c.client_id === props.clientid) &&
                 props.clients.find((c) => c.client_id === props.clientid)
-                  .budget}
+                  .budget.toFixed(2)}
               €
             </h1>
           </div>
           {props.orders.filter(
             (o) => o.client_id === props.clientid && o.state === 'pending'
           ).length > 0 && (
-            <div className="d-block text-danger text-center my-auto">
-              {dangerIcon} You have orders that are <b>pending payment</b>.
-              Please contact the SPG shop to top-up your wallet and confirm the
-              order payment.
-            </div>
-          )}
+              <div className="d-block text-danger text-center my-auto">
+                {dangerIcon} You have orders that are <b>pending payment</b>.
+                Please contact the SPG shop to top-up your wallet and confirm the
+                order payment.
+              </div>
+            )}
           {props.orders.filter(
             (o) => o.client_id === props.clientid && o.state === 'pending'
           ).length === 0 && (
-            <>
-              <div className="d-block text-success text-center my-auto py-4">
-                {successIcon} Congratulations! You have no orders that are
-                pending payment.
-              </div>
-              <div className="d-block text-muted text-center my-auto">
-                {infoIcon} If you want to top-up your wallet you can contact the
-                SPG shop and we will top-up your wallet balance.
-              </div>
-            </>
-          )}
+              <>
+                <div className="d-block text-success text-center my-auto py-4">
+                  {successIcon} Congratulations! You have no orders that are
+                  pending payment.
+                </div>
+                <div className="d-block text-muted text-center my-auto">
+                  {infoIcon} If you want to top-up your wallet you can contact the
+                  SPG shop and we will top-up your wallet balance.
+                </div>
+              </>
+            )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={() => setShowWalletModal(false)}>

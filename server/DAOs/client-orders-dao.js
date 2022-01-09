@@ -169,7 +169,7 @@ exports.prepared = async (order_id, product_name) => {
 
 
 exports.changeState = async (id, state) => {
-  
+
 
   return new Promise((resolve, reject) => {
     const sql =
@@ -307,7 +307,7 @@ exports.getBookedOrders = (provider_id, year, week_number) => {
     const sql =
       'SELECT products.product_id AS productID, products.product_name, SUM(order_quantity) AS TotQty, products.product_unit ' +
       'FROM products, orders ' +
-      'WHERE products.provider_id=? AND products.year=? AND products.week_number=? AND products.product_id=orders.product_id AND orders.state="booked" AND orders.farmer_state IS NULL ' +
+      'WHERE products.provider_id=? AND products.year=? AND products.week_number=? AND products.product_id=orders.product_id AND orders.farmer_state="confirmed" ' +
       'GROUP BY products.product_id, products.product_name, products.product_unit';
     db.all(sql, [provider_id, year, week_number], (err, rows) => {
       if (err) {
@@ -401,8 +401,8 @@ exports.getOrderAndClientForPickup = () => {
     const sql =
       'SELECT * ' +
       'FROM clients, orders ' +
-      'WHERE clients.client_id=orders.client_id AND pickup=1 '+
-      'GROUP BY orders.order_id' 
+      'WHERE clients.client_id=orders.client_id AND pickup=1 ' +
+      'GROUP BY orders.order_id'
     db.all(sql, [], (err, rows) => {
       if (err) {
         reject(err);

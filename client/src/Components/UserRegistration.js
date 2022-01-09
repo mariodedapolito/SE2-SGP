@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import { React, useEffect, useState } from 'react';
 import { Button, Form, Row, Col } from 'react-bootstrap';
 import { useHistory } from 'react-router-dom';
 import 'react-phone-number-input/style.css';
@@ -22,6 +22,8 @@ function UserRegistration(props) {
   const [password1, setPassword1] = useState('');
   const [passwordEqual, setPasswordEqual] = useState(0);
 
+  const [register, setRegister] = useState(false);
+
   let j, v;
   if (props.users.length === 0) v = 1;
   else {
@@ -31,48 +33,64 @@ function UserRegistration(props) {
   const okayStyle = { color: 'green' };
   const noStyle = { color: 'red' };
 
-  const addClient = async (client) => {
-    const update = await API.addClient(client);
-    console.log(update);
-  };
+  useEffect(() => {
+    if (!register) {
+      return;
+    }
 
-  const handleSubmit = (event) => {
+    const signup = async () => {
+      try {
+        const newClient = Object.assign(
+          {},
+          {
+            budget: 0.0,
+            name: name,
+            surname: surname,
+            gender: gender,
+            birthdate: date,
+            country: country,
+            region: region,
+            address: address,
+            city: city,
+            phone: phone,
+            email: email,
+            hash: password1,
+          }
+        );
+        const newUser = {
+          id: v,
+          name: name,
+          email: email,
+          hash: password1,
+          role: 'client',
+        };
+
+        await API.addClient(newClient);
+        await API.addUser(newUser);
+        props.setRecharged(true);
+        if (props.userRole === 'employee') {
+          history.push('/employee');
+          props.setAuthAlert({ variant: 'success', msg: <>The client account was successfully created!</> });
+        }
+        else {
+          history.push('/');
+          props.setAuthAlert({ variant: 'success', msg: <>Your account was successfully created!<br />You can now login using the details provided in the registration form</> });
+        }
+      } catch (error) {
+        console.log(error);
+        props.setAuthAlert({ variant: 'danger', msg: <>Oops! Something went wrong.<br />Please double check the provided information and try again</> });
+      }
+      setRegister(false);
+    }
+
+    signup();
+
+  }, [register])
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     event.stopPropagation();
-
-    const newClient = Object.assign(
-      {},
-      {
-        budget: 0.0,
-        name: name,
-        surname: surname,
-        gender: gender,
-        birthdate: date,
-        country: country,
-        region: region,
-        address: address,
-        city: city,
-        phone: phone,
-        email: email,
-        hash: password1,
-      }
-    );
-    const newUser = {
-      id: v,
-      name: name,
-      email: email,
-      hash: password1,
-      role: 'client',
-    };
-
-    try {
-      addClient(newClient).then(() => {
-        props.setRecharged(true);
-
-        API.addUser(newUser);
-      });
-      setTimeout(() => history.push('/'), 500);
-    } catch {}
+    setRegister(true);
   };
 
   return (

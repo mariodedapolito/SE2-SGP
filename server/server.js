@@ -1252,6 +1252,7 @@ app.post(
       await dbt.addclient(t);
       res.status(201).json('Added client as a user!');
     } catch (err) {
+      console.log(err);
       res.status(503).json({ code: 503, error: 'Unavailable service.' });
     }
   }

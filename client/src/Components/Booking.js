@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from 'react';
 import API from './../API';
 import ProductPage from './ProductPage';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useMediaQuery } from 'react-responsive';
 
@@ -49,57 +49,68 @@ function Booking(props) {
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [newItemID, setNewItemID] = useState(-1);
 
-  function getRightWeek(timepassed) {
-    // the week number should be changed after the 23 o'clock of sunday. It becomes a new week since the customer can not order anymore in this week
-    //Sunday from 23.00 until 23.59 consider this week orders
+  function getPurchasingWeek(time) {
+    return {
+      year: dayjs(time.date).year(),
+      week_number: dayjs(time.date).week(),
+    };
+  }
 
-    if (dayjs(timepassed.date).day() === 0) {
-      if (dayjs('01/01/2021 ' + timepassed.hour).hour() === 23) {
-        const addWeekTime = dayjs(timepassed.date).add(1, 'week');
-        //this week orders
+  function getBrowsingWeek(time) {
+    //Saturday
+    if (dayjs(time.date).day() === 6) {
+      if (dayjs('01/01/2021 ' + time.hour).hour() < 9) {
+        //Before SAT 9AM -> not available
         return {
-          year: dayjs(addWeekTime).year(),
-          week_number: dayjs(addWeekTime).week(),
+          year: dayjs(time.date).year(),
+          week_number: dayjs(time.date).week(),
+        };
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return {
+          year: dayjs(time.date).add(1, 'week').year(),
+          week_number: dayjs(time.date).add(1, 'week').week(),
         };
       }
     }
-    console.log(dayjs(timepassed.date).week());
-    return {
-      year: dayjs(timepassed.date).year(),
-      week_number: dayjs(timepassed.date).week(),
-    };
+    //Sunday
+    else if (dayjs(time.date).day() === 0) {
+      if (dayjs('01/01/2021 ' + time.hour).hour() < 23) {
+        //Before SUN 11PM -> available
+        return {
+          year: dayjs(time.date).year(),
+          week_number: dayjs(time.date).week(),
+        };
+      }
+      //After SUN 11PM -> available
+      else {
+        return {
+          year: dayjs(time.date).add(1, 'week').year(),
+          week_number: dayjs(time.date).add(1, 'week').week(),
+        };
+      }
+    }
+    //from Monday up to Saturday 9am -> showing for this week
+    else {
+      return {
+        year: dayjs(time.date).year(),
+        week_number: dayjs(time.date).week(),
+      };
+    }
   }
 
   /*USEFFECT products*/
   useEffect(() => {
     const getAllProducts = async () => {
+      /* exploring products */
       if (props.browsing) {
-        const tmp_dy = {
-          date: dayjs(props.time.date).add(1, 'week'),
-          hour: props.time.hour,
-        };
         let res = await API.getAllExpectedProducts(
-          getRightWeek(tmp_dy).year,
-          getRightWeek(tmp_dy).week_number
+          getBrowsingWeek(props.time).year,
+          getBrowsingWeek(props.time).week_number
         );
         setProducts(res);
-        /* filter products already in the client order - used when client modifies order */
-        if (props.orderChangeItem && props.orderChangeItemID !== -1) {
-          const orderID = props.orders.find(
-            (o) => o.id === props.orderChangeItemID
-          ).order_id;
-          const orderProducts = props.orders
-            .filter((o) => o.order_id === orderID)
-            .map((o) => o.product_id);
-          res = res.filter((prod) => !orderProducts.includes(prod.id));
-        }
-        /* filter products already in the client order - used when client modifies order */
-        if (props.orderAddItem && props.orderAddItemID !== -1) {
-          const orderProducts = props.orders
-            .filter((o) => o.order_id === props.orderAddItemID)
-            .map((o) => o.product_id);
-          res = res.filter((prod) => !orderProducts.includes(prod.id));
-        }
         let rows = [
           ...Array(
             Math.ceil(res.filter((p) => p && p.active === 1).length / 3)
@@ -112,29 +123,73 @@ function Booking(props) {
             .slice(idx * 3, idx * 3 + 3);
         });
         setProductRows(productsRows);
-      } else {
+      }
+      /* buying products as client or staff */
+      else if (props.purchasing) {
         let res = await API.getAllConfirmedProducts(
-          getRightWeek(props.time).year,
-          getRightWeek(props.time).week_number
+          getPurchasingWeek(props.time).year,
+          getPurchasingWeek(props.time).week_number
+        );
+        setProducts(res);
+        let rows = [
+          ...Array(
+            Math.ceil(res.filter((p) => p && p.active === 1).length / 3)
+          ),
+        ];
+        let productsRows = Array(rows.length);
+        rows.forEach((row, idx) => {
+          productsRows[idx] = res
+            .filter((p) => p.active === 1)
+            .slice(idx * 3, idx * 3 + 3);
+        });
+        setProductRows(productsRows);
+      }
+      /* swapping item from order */
+      else if (props.orderChangeItem && props.orderChangeItemID !== -1) {
+        const order = props.orders.find(o => o.id === props.orderChangeItemID);
+        const prod_week = props.prods.find(p => p.id === order.product_id).week;
+        const prod_year = props.prods.find(p => p.id === order.product_id).year;
+        let res = await API.getAllConfirmedProducts(
+          prod_year,
+          prod_week
         );
         setProducts(res);
         /* filter products already in the client order - used when client modifies order */
-        if (props.orderChangeItem && props.orderChangeItemID !== -1) {
-          const orderID = props.orders.find(
-            (o) => o.id === props.orderChangeItemID
-          ).order_id;
-          const orderProducts = props.orders
-            .filter((o) => o.order_id === orderID)
-            .map((o) => o.product_id);
-          res = res.filter((prod) => !orderProducts.includes(prod.id));
-        }
+        const orderID = props.orders.find(
+          (o) => o.id === props.orderChangeItemID
+        ).order_id;
+        const orderProducts = props.orders
+          .filter((o) => o.order_id === orderID)
+          .map((o) => o.product_id);
+        res = res.filter((prod) => !orderProducts.includes(prod.id));
+        let rows = [
+          ...Array(
+            Math.ceil(res.filter((p) => p && p.active === 1).length / 3)
+          ),
+        ];
+        let productsRows = Array(rows.length);
+        rows.forEach((row, idx) => {
+          productsRows[idx] = res
+            .filter((p) => p.active === 1)
+            .slice(idx * 3, idx * 3 + 3);
+        });
+        setProductRows(productsRows);
+      }
+      /* adding new item to order */
+      else if (props.orderAddItem && props.orderAddItemID !== -1) {
+        const order = props.orders.find(o => o.order_id === props.orderAddItemID);
+        const prod_week = props.prods.find(p => p.id === order.product_id).week;
+        const prod_year = props.prods.find(p => p.id === order.product_id).year;
+        let res = await API.getAllConfirmedProducts(
+          prod_year,
+          prod_week
+        );
+        setProducts(res);
         /* filter products already in the client order - used when client modifies order */
-        if (props.orderAddItem && props.orderAddItemID !== -1) {
-          const orderProducts = props.orders
-            .filter((o) => o.order_id === props.orderAddItemID)
-            .map((o) => o.product_id);
-          res = res.filter((prod) => !orderProducts.includes(prod.id));
-        }
+        const orderProducts = props.orders
+          .filter((o) => o.order_id === props.orderAddItemID)
+          .map((o) => o.product_id);
+        res = res.filter((prod) => !orderProducts.includes(prod.id));
         let rows = [
           ...Array(
             Math.ceil(res.filter((p) => p && p.active === 1).length / 3)
@@ -150,70 +205,7 @@ function Booking(props) {
       }
     };
     getAllProducts();
-  }, [props.time]);
-
-  /* UseEffect get prods when client wants to swap an item */
-  useEffect(() => {
-    if (!props.orderChangeItem || props.orderChangeItemID === -1) {
-      return;
-    }
-
-    const getAllProducts = async () => {
-      let res = await API.getAllConfirmedProducts(
-        getRightWeek(props.time).year,
-        getRightWeek(props.time).week_number
-      );
-      setProducts(res);
-      const orderID = props.orders.find(
-        (o) => o.id === props.orderChangeItemID
-      ).order_id;
-      const orderProducts = props.orders
-        .filter((o) => o.order_id === orderID)
-        .map((o) => o.product_id);
-      res = res.filter((prod) => !orderProducts.includes(prod.id));
-      let rows = [
-        ...Array(Math.ceil(res.filter((p) => p && p.active === 1).length / 3)),
-      ];
-      let productsRows = Array(rows.length);
-      rows.forEach((row, idx) => {
-        productsRows[idx] = res
-          .filter((p) => p.active === 1)
-          .slice(idx * 3, idx * 3 + 3);
-      });
-      setProductRows(productsRows);
-    };
-    getAllProducts();
-  }, [props.orderChangeItemID]);
-
-  /* UseEffect get prods when client wants to add an item to the order */
-  useEffect(() => {
-    if (!props.orderAddItem || props.orderAddItemID === -1) {
-      return;
-    }
-
-    const getAllProducts = async () => {
-      let res = await API.getAllConfirmedProducts(
-        getRightWeek(props.time).year,
-        getRightWeek(props.time).week_number
-      );
-      setProducts(res);
-      const orderProducts = props.orders
-        .filter((o) => o.order_id === props.orderAddItemID)
-        .map((o) => o.product_id);
-      res = res.filter((prod) => !orderProducts.includes(prod.id));
-      let rows = [
-        ...Array(Math.ceil(res.filter((p) => p && p.active === 1).length / 3)),
-      ];
-      let productsRows = Array(rows.length);
-      rows.forEach((row, idx) => {
-        productsRows[idx] = res
-          .filter((p) => p.active === 1)
-          .slice(idx * 3, idx * 3 + 3);
-      });
-      setProductRows(productsRows);
-    };
-    getAllProducts();
-  }, [props.orderAddItemID]);
+  }, [props.time, props.orderChangeItemID, props.orderAddItemID]);
 
   /* Categories UseEffect */
   useEffect(() => {
@@ -239,8 +231,8 @@ function Booking(props) {
     getFarmers();
   }, []);
 
+  /* Product filters useEffect */
   useEffect(() => {
-    console.log(activeCategory, activeFarmer, searchTerm);
 
     let prods = products;
 
@@ -291,7 +283,7 @@ function Booking(props) {
     setProductRows(productsRows);
   }, [activeCategory, activeFarmer, searchTerm]);
 
-  /* User selection */
+  /* User selection by staff */
   useEffect(() => {
     if (selectedUserID === -1) {
       setSelectedUser(null);
@@ -340,9 +332,13 @@ function Booking(props) {
       prod.buyQty = qty;
       cart.get(clientID).items.push(prod);
     }
-    console.log(cart);
     props.setCartItems(cart);
     props.setCartUpdated(true);
+    props.setAuthAlert(null);
+    props.setCartAlert({ variant: 'success', msg: qty + ' ' + prod.unit + ' of ' + prod.name + ' was added to your cart.' });
+    setTimeout(() => {
+      props.setCartAlert(null);
+    }, 10000);
   };
 
   function handleClick() {
@@ -408,15 +404,15 @@ function Booking(props) {
                     {productline.quantity > 0 &&
                       props.browsing &&
                       productline.quantity +
-                        ' ' +
-                        productline.unit +
-                        ' expected'}
+                      ' ' +
+                      productline.unit +
+                      ' expected'}
                     {productline.quantity > 0 &&
                       !props.browsing &&
                       productline.quantity +
-                        ' ' +
-                        productline.unit +
-                        ' left in stock'}
+                      ' ' +
+                      productline.unit +
+                      ' left in stock'}
                     {productline.quantity <= 0 && (
                       <span className="fw-bold text-danger">Out of stock</span>
                     )}
@@ -578,17 +574,30 @@ function Booking(props) {
         <span className="d-block text-center mt-5 mb-2 display-2">
           Product Booking
         </span>
-        {props.browsing ? (
+        {props.browsing && (
           <h5 className="d-block mx-auto mb-5 text-center text-muted">
-            These are the products planned for the next week. They are not yet
+            These are the expected products by the farmers. They are not yet
             purchasable
+          </h5>)}
+        {props.purchasing && props.userRole === 'employee' && (
+          <h5 className="d-block mx-auto mb-5 text-center text-muted">
+            Choose the client and then choose below the products you want to book for the selected client
           </h5>
-        ) : (
-          <>
-            <h5 className="d-block mx-auto mb-5 text-center text-muted">
-              Choose below the products you want to book for the client
-            </h5>
-          </>
+        )}
+        {props.purchasing && props.userRole === 'client' && (
+          <h5 className="d-block mx-auto mb-5 text-center text-muted">
+            Choose below the products you want to book and add them to the cart
+          </h5>
+        )}
+        {props.orderChangeItem && (
+          <h5 className="d-block mx-auto mb-5 text-center text-muted">
+            Choose below the item to swap with the previously selected product
+          </h5>
+        )}
+        {props.orderAddItem && (
+          <h5 className="d-block mx-auto mb-5 text-center text-muted">
+            Choose below the item to add to your order
+          </h5>
         )}
         {props.userRole === 'employee' && (
           <div className="row">
@@ -1099,8 +1108,8 @@ function ItemChangeModal(props) {
         {oldItem &&
           newItem &&
           buyQuantity * newItem.price >
-            props.clients.find((c) => c.client_id === props.clientid).budget +
-              oldItem.buyQty * oldItem.price && (
+          props.clients.find((c) => c.client_id === props.clientid).budget +
+          oldItem.buyQty * oldItem.price && (
             <Alert variant="danger" className="mt-4">
               <div className="d-block text-center">
                 <h3 className="lead">
@@ -1371,8 +1380,8 @@ function ItemAddModal(props) {
         {props.oldID !== -1 &&
           newItem &&
           buyQuantity * newItem.price >
-            props.clients.find((c) => c.client_id === props.clientid)
-              .budget && (
+          props.clients.find((c) => c.client_id === props.clientid)
+            .budget && (
             <Alert variant="danger" className="mt-4">
               <div className="d-block text-center">
                 <h3 className="lead">

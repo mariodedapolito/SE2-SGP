@@ -11,10 +11,13 @@ function FarmerOrderPreparation(props) {
   const [bookedProducts, setBookedProducts] = useState([]);
 
   /*ship status alert*/
-  const [itemsAlreadyShipped, setItemsAlreadyShipped] = useState(false);
-  const [shipmentWindowValidity, setShipmentWindowValidity] = useState(true);
+  //const [itemsAlreadyShipped, setItemsAlreadyShipped] = useState(false);
+  //const [shipmentWindowValidity, setShipmentWindowValidity] = useState(true);
   const [refreshData, setRefreshData] = useState(true);
   const [shipError, setShipError] = useState('');
+
+  /*items shipped alert*/
+  const [itemsShippedAlert, setItemsShippedAlert] = useState(null);
 
   /*spinning circle*/
   const [showLoading, setShowLoading] = useState(true);
@@ -31,26 +34,27 @@ function FarmerOrderPreparation(props) {
     const getBookedOrders = async () => {
       setShowLoading(true);
 
-      const previousWeek = getPreviousWeek();
+      const previousWeek = getPreviousWeek().week_number;
+      const previousWeekYear = getPreviousWeek().year;
 
-      const timeWindowValid = checkShipmentTimeWindow();
+      /*const timeWindowValid = checkShipmentTimeWindow();
       if (!timeWindowValid) {
         setShipmentWindowValidity(false);
       } else {
         setShipmentWindowValidity(true);
-      }
+      }*/
 
-      const checkItemsAlreadyShipped = await API.getProviderShipmentStatus(
+      /*const checkItemsAlreadyShipped = await API.getProviderShipmentStatus(
         previousWeek.year,
         previousWeek.week_number
       );
       if (checkItemsAlreadyShipped) {
         setItemsAlreadyShipped(true);
-      }
+      }*/
       const prods = (
         await API.getOrderedProductsForProvider(
-          previousWeek.year,
-          previousWeek.week_number
+          previousWeek,
+          previousWeekYear
         )
       ).map((p) => ({ ...p, prepared: 0 }));
       setBookedProducts(prods);
@@ -71,38 +75,22 @@ function FarmerOrderPreparation(props) {
         .map((p) => p.id);
       await API.setProductsAsFarmerShipped(shippedIDs);
       setRefreshData(true);
+      setItemsShippedAlert({ variant: 'success', msg: 'All the selected items were marked as prepared and shipped to the warehouse' })
     };
     shipItems();
   }, [confirmShipment]);
 
   /*Utility functions*/
   const getPreviousWeek = () => {
-    //Sunday from 23.00 until 23.59 consider this week orders
-    if (dayjs(props.time.date).day() === 0) {
-      if (dayjs('01/01/2021 ' + props.time.hour).hour() === 23) {
-        //this week orders
-        const thisWeekDate = dayjs(props.time.date);
-        return {
-          year: dayjs(thisWeekDate).year(),
-          week_number: dayjs(thisWeekDate).week(),
-        };
-      }
-    }
-    //every other time get previous week
+    //every time get previous week
     let previousWeekDate = dayjs(props.time.date).subtract(1, 'week');
-    if (dayjs(props.time.date).week() === 2) {
-      return {
-        year: dayjs(props.time.date).year(),
-        week_number: dayjs(previousWeekDate).week(),
-      };
-    }
     return {
-      year: dayjs(previousWeekDate).year(),
+      year: dayjs(props.time.date).year(),
       week_number: dayjs(previousWeekDate).week(),
     };
   };
 
-  const checkShipmentTimeWindow = () => {
+  /*const checkShipmentTimeWindow = () => {
     const dayOfWeek = dayjs(props.time.date).day();
     //if not sunday,monday or tuesday window is expired
     if (dayOfWeek !== 0 && dayOfWeek !== 1 && dayOfWeek !== 2) {
@@ -113,7 +101,7 @@ function FarmerOrderPreparation(props) {
       return false;
     }
     return true;
-  };
+  };*/
 
   const checkShipmentCorrectness = () => {
     let noOrderPreparedFlag = true;
@@ -156,7 +144,7 @@ function FarmerOrderPreparation(props) {
           <div className="row">
             <div className="col-lg-2" />
             <div className="col-lg-8">
-              {!showLoading && !shipmentWindowValidity && !itemsAlreadyShipped && (
+              {/*!showLoading && !shipmentWindowValidity && !itemsAlreadyShipped && (
                 <Alert show={true} variant="danger">
                   <Alert.Heading>
                     Item shipment windows terminated
@@ -176,8 +164,8 @@ function FarmerOrderPreparation(props) {
                     </Link>
                   </div>
                 </Alert>
-              )}
-              {!showLoading &&
+              )*/}
+              {/*!showLoading &&
                 shipmentWindowValidity &&
                 bookedProducts.length === 0 &&
                 itemsAlreadyShipped && (
@@ -199,17 +187,25 @@ function FarmerOrderPreparation(props) {
                       </Link>
                     </div>
                   </Alert>
-                )}
+                )*/}
+              {itemsShippedAlert && (
+                <Alert
+                  variant={itemsShippedAlert.variant}
+                  className="text-center my-3 mx-5"
+                  dismissible={true}
+                  onClose={() => setItemsShippedAlert(null)} >
+                  {itemsShippedAlert.msg}
+                </Alert>)}
               {showLoading && (
                 <div className="d-block text-center p-5">
                   <Spinner className="m-5" animation="grow" />
                 </div>
               )}
-              {shipmentWindowValidity && !showLoading && (
+              {/*shipmentWindowValidity &&*/ !showLoading && (
                 <div className="d-block text-center">
                   {
                     /*DISPLAYING NOTIFICATION IF NO PRODUCTS ORDERED YET*/
-                    bookedProducts.length === 0 && !itemsAlreadyShipped && (
+                    bookedProducts.length === 0 && /*!itemsAlreadyShipped &&*/ (
                       <div className="d-block text-center">
                         No orders received yet.
                       </div>
@@ -257,12 +253,12 @@ function FarmerOrderPreparation(props) {
                                     })
                                   }
                                 >
-                                  Confirm prepared
+                                  Confirm prepared & shipped to warehouse
                                 </button>
                               )}
                               {product.prepared === 1 && (
                                 <span className="d-block text-center text-success">
-                                  {checkIcon} Prepared
+                                  {checkIcon} Prepared & shipped
                                 </span>
                               )}
                             </div>

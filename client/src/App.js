@@ -12,14 +12,15 @@ import PickupOrders from './Components/PickupOrders';
 import EmployeePage from './Components/EmployeePage';
 import UserRegistration from './Components/UserRegistration';
 import { useState, useEffect } from 'react';
-import { Container, Alert, Row, Button } from 'react-bootstrap';
+import { Container, Alert, Row, Button, Fade } from 'react-bootstrap';
 import {
   Redirect,
   BrowserRouter as Router,
   Switch,
   Route,
+  useHistory,
 } from 'react-router-dom';
-import { useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { LoginForm1 } from './Components/LoginForm';
 import ClientArea from './Components/ClientArea';
 import FarmerRegistration from './Components/FarmerRegistration';
@@ -42,6 +43,9 @@ import Cart from './Components/Cart';
 let r = [];
 
 function App() {
+
+  const history = useHistory();
+
   const [time, setTime] = useState({
     date: dayjs().format('MM-DD-YYYY'),
     hour: dayjs().format('HH:mm'),
@@ -76,6 +80,7 @@ function App() {
   const [orderModified, setOrderModified] = useState(null);
 
   const [authAlert, setAuthAlert] = useState(null);
+  const [cartAlert, setCartAlert] = useState(null);
 
   const updateRech = (x) => {
     setRecharged(x);
@@ -317,10 +322,15 @@ function App() {
       setCartItems(new Map());
       setCartUpdated(true);
 
+      setCartAlert(null);
       setAuthAlert({
         variant: 'success',
         msg: 'Welcome, ' + user.name + '! The login was successful.',
       });
+
+      setTimeout(() => {
+        setAuthAlert(null);
+      }, 10000);
 
       if (user.role === 'client') {
         return <Redirect to="/client" />;
@@ -345,10 +355,15 @@ function App() {
   const doLogOut = async () => {
     await API.logOut();
 
+    setCartAlert(null);
     setAuthAlert({
       variant: 'danger',
       msg: 'Goodbye, ' + userName + '! We hope to see you soon.',
     });
+
+    setTimeout(() => {
+      setAuthAlert(null);
+    }, 7500);
 
     setLogged(false);
     setUserRole('');
@@ -376,10 +391,33 @@ function App() {
         clientid={userid}
       />
 
+      {cartAlert && (
+        <Row
+          style={{
+            position: 'fixed',
+            zIndex: 1000,
+            marginTop: 20,
+            right: 10,
+            paddingRight: 15
+          }}>
+          <Alert
+            variant={cartAlert.variant}
+            className="d-inline my-3"
+            dismissible={true}
+            onClose={() => setCartAlert(null)}
+          >
+            {cartAlert.msg}
+            <div className='d-block text-end my-2'>
+              <Link to='/cart'><Button variant='outline-light' onClick={() => (setCartAlert(null))}>Go to cart</Button></Link>
+            </div>
+          </Alert>
+        </Row>
+      )}
+
       {authAlert && (
         <Row
           style={{
-            position: 'absolute',
+            position: 'fixed',
             zIndex: 1000,
             marginTop: 20,
             right: 10,
@@ -445,6 +483,8 @@ function App() {
                   clientid={userid}
                   setRecharged={updateRech}
                   setRecharged1={updateRech1}
+                  setAuthAlert={setAuthAlert}
+                  setCartAlert={setCartAlert}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -471,6 +511,8 @@ function App() {
                 setRecharged={updateRech}
                 setRecharged1={updateRech1}
                 clients={clients}
+                setAuthAlert={setAuthAlert}
+                setCartAlert={setCartAlert}
               />
             )}
           />
@@ -519,6 +561,8 @@ function App() {
                   setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
+                  setAuthAlert={setAuthAlert}
+                  setCartAlert={setCartAlert}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -549,6 +593,8 @@ function App() {
                   setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
+                  setAuthAlert={setAuthAlert}
+                  setCartAlert={setCartAlert}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -579,6 +625,8 @@ function App() {
                   setRecharged1={updateRech1}
                   updateProps={updateProps}
                   time={time}
+                  setAuthAlert={setAuthAlert}
+                  setCartAlert={setCartAlert}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -599,6 +647,7 @@ function App() {
                   addTr={addTransaction}
                   topUp={topUpBalance}
                   setRecharged={updateRech}
+                  setRecharged1={updateRech1}
                   logout={doLogOut}
                   time={time}
                 />
@@ -891,7 +940,7 @@ function App() {
             path="/registration"
             exact
             render={() => (
-              <UserRegistration users={users} setRecharged={updateRech1} />
+              <UserRegistration users={users} userRole={userRole} setAuthAlert={setAuthAlert} setRecharged={updateRech1} />
             )}
           />
           <Route
@@ -908,7 +957,7 @@ function App() {
           />
         </Switch>
       </div>
-    </Router>
+    </Router >
   );
 }
 
