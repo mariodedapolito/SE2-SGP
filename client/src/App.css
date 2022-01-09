@@ -32,8 +32,8 @@
   border-color: #31708e !important;
 }
 .btn-secondary {
-  background-color: #5085a5 !important;
-  border-color: #5085a5 !important;
+  background-color: #9c645d !important;
+  border-color: #9c645d !important;
 }
 .btn-danger {
   background-color: #f14666 !important;
@@ -52,8 +52,8 @@
   font-weight: 700 !important;
 }
 .list-group-item.active {
-  background-color: #8fc1e3 !important;
-  border-color: #8fc1e3 !important;
+  background-color: #31708e !important;
+  border-color: #31708e !important;
 }
 .btn-success {
   background-color: #66915c !important;
