@@ -16,9 +16,7 @@ exports.setTestDB = (db_name) => {
 
 exports.getAllProducts = () => {
   return new Promise((resolve, reject) => {
-   
-    const sql =
-      'SELECT * FROM products';
+    const sql = 'SELECT * FROM products';
     db.all(sql, [], (err, rows) => {
       if (err) {
         reject(err);
@@ -44,13 +42,11 @@ exports.getAllProducts = () => {
   });
 };
 
-
 exports.getAllConfirmedProducts = (year, week) => {
   return new Promise((resolve, reject) => {
-    const product_status = 'confirmed';
     const sql =
-      'SELECT * FROM products, providers, product_categories WHERE products.year=? AND products.week_number=? AND products.product_status=? AND products.category_id=product_categories.category_id AND products.provider_id=providers.provider_id';
-    db.all(sql, [year, week, product_status], (err, rows) => {
+      'SELECT * FROM products, providers, product_categories WHERE products.year=? AND products.week_number=?  AND products.category_id=product_categories.category_id AND products.provider_id=providers.provider_id';
+    db.all(sql, [year, week], (err, rows) => {
       if (err) {
         reject(err);
       }

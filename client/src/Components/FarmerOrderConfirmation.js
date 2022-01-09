@@ -71,7 +71,7 @@ function FarmerOrderConfirmation(props) {
 
   return (
     <>
-      <div className="container-fluid mx-5 w-max100-custom">
+      <div className="container-fluid">
         <span className="d-block text-center mt-5 mb-2 display-2">
           Confirm Product availability
         </span>

@@ -47,8 +47,6 @@ function Booking(props) {
   const isPortrait = useMediaQuery({ query: '(orientation: portrait)' });
   const isRetina = useMediaQuery({ query: '(min-resolution: 2dppx)' });
 
-
-
   const [selectedUserID, setSelectedUserID] = useState(-1);
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -85,15 +83,24 @@ function Booking(props) {
           date: dayjs(props.time.date).add(1, 'week'),
           hour: props.time.hour,
         };
-        let res = await API.getAllExpectedProducts(getRightWeek(tmp_dy).year, getRightWeek(tmp_dy).week_number)
+        let res = await API.getAllExpectedProducts(
+          getRightWeek(tmp_dy).year,
+          getRightWeek(tmp_dy).week_number
+        );
         setProducts(res);
         if (props.orderChangeItem && props.orderChangeItemID !== -1) {
-          const orderID = props.orders.find((o) => (o.id === props.orderChangeItemID)).order_id;
-          const orderProducts = props.orders.filter((o) => (o.order_id === orderID)).map((o) => (o.product_id));
-          res = res.filter((prod) => (!orderProducts.includes(prod.id)));
+          const orderID = props.orders.find(
+            (o) => o.id === props.orderChangeItemID
+          ).order_id;
+          const orderProducts = props.orders
+            .filter((o) => o.order_id === orderID)
+            .map((o) => o.product_id);
+          res = res.filter((prod) => !orderProducts.includes(prod.id));
         }
         let rows = [
-          ...Array(Math.ceil(res.filter((p) => p && p.active === 1).length / 3)),
+          ...Array(
+            Math.ceil(res.filter((p) => p && p.active === 1).length / 3)
+          ),
         ];
         let productsRows = Array(rows.length);
         rows.forEach((row, idx) => {
@@ -102,17 +109,25 @@ function Booking(props) {
             .slice(idx * 3, idx * 3 + 3);
         });
         setProductRows(productsRows);
-      }
-      else {
-        let res = await API.getAllConfirmedProducts(getRightWeek(props.time).year, getRightWeek(props.time).week_number)
+      } else {
+        let res = await API.getAllConfirmedProducts(
+          getRightWeek(props.time).year,
+          getRightWeek(props.time).week_number
+        );
         setProducts(res);
         if (props.orderChangeItem && props.orderChangeItemID !== -1) {
-          const orderID = props.orders.find((o) => (o.id === props.orderChangeItemID)).order_id;
-          const orderProducts = props.orders.filter((o) => (o.order_id === orderID)).map((o) => (o.product_id));
-          res = res.filter((prod) => (!orderProducts.includes(prod.id)));
+          const orderID = props.orders.find(
+            (o) => o.id === props.orderChangeItemID
+          ).order_id;
+          const orderProducts = props.orders
+            .filter((o) => o.order_id === orderID)
+            .map((o) => o.product_id);
+          res = res.filter((prod) => !orderProducts.includes(prod.id));
         }
         let rows = [
-          ...Array(Math.ceil(res.filter((p) => p && p.active === 1).length / 3)),
+          ...Array(
+            Math.ceil(res.filter((p) => p && p.active === 1).length / 3)
+          ),
         ];
         let productsRows = Array(rows.length);
         rows.forEach((row, idx) => {
@@ -132,11 +147,18 @@ function Booking(props) {
     }
 
     const getAllProducts = async () => {
-      let res = await API.getAllConfirmedProducts(getRightWeek(props.time).year, getRightWeek(props.time).week_number);
+      let res = await API.getAllConfirmedProducts(
+        getRightWeek(props.time).year,
+        getRightWeek(props.time).week_number
+      );
       setProducts(res);
-      const orderID = props.orders.find((o) => (o.id === props.orderChangeItemID)).order_id;
-      const orderProducts = props.orders.filter((o) => (o.order_id === orderID)).map((o) => (o.product_id));
-      res = res.filter((prod) => (!orderProducts.includes(prod.id)));
+      const orderID = props.orders.find(
+        (o) => o.id === props.orderChangeItemID
+      ).order_id;
+      const orderProducts = props.orders
+        .filter((o) => o.order_id === orderID)
+        .map((o) => o.product_id);
+      res = res.filter((prod) => !orderProducts.includes(prod.id));
       let rows = [
         ...Array(Math.ceil(res.filter((p) => p && p.active === 1).length / 3)),
       ];
@@ -191,21 +213,23 @@ function Booking(props) {
       return;
     }
 
-    if (props.clients.find((c) => (c.client_id === parseInt(selectedUserID)))) {
-      setSelectedUser(props.clients.find((c) => (c.client_id === parseInt(selectedUserID))));
-    }
-    else {
+    if (props.clients.find((c) => c.client_id === parseInt(selectedUserID))) {
+      setSelectedUser(
+        props.clients.find((c) => c.client_id === parseInt(selectedUserID))
+      );
+    } else {
       setSelectedUserID(-1);
       setSelectedUser(null);
     }
-  }, [selectedUserID])
+  }, [selectedUserID]);
 
   const addToCart = (product, qty) => {
     if (props.userRole === 'employee' && selectedUserID === -1) {
       return;
     }
 
-    const clientID = props.userRole === 'employee' ? selectedUserID : props.clientid;
+    const clientID =
+      props.userRole === 'employee' ? selectedUserID : props.clientid;
 
     if (product.quantity === 0) {
       return;
@@ -217,16 +241,14 @@ function Booking(props) {
       cart.set(clientID, { items: [] });
     }
     let clientCart = cart.get(clientID).items;
-    let cartItemIndex = clientCart.findIndex((item) => (item.id === product.id));
+    let cartItemIndex = clientCart.findIndex((item) => item.id === product.id);
     if (cartItemIndex !== -1) {
       if (clientCart[cartItemIndex].buyQty + qty > product.quantity) {
         cart.get(clientID).items[cartItemIndex].buyQty = product.quantity;
-      }
-      else {
+      } else {
         cart.get(clientID).items[cartItemIndex].buyQty += qty;
       }
-    }
-    else {
+    } else {
       if (qty > product.quantity) {
         qty = product.quantity;
       }
@@ -236,7 +258,7 @@ function Booking(props) {
     console.log(cart);
     props.setCartItems(cart);
     props.setCartUpdated(true);
-  }
+  };
 
   function handleClick() {
     history.push('/registration');
@@ -245,7 +267,6 @@ function Booking(props) {
   function handleLogin() {
     history.push('/login');
   }
-
 
   function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -260,7 +281,10 @@ function Booking(props) {
             <Col key={productline.id}>
               <Card
                 className="rounded-3 shadow-lg mb-5 mx-auto"
-                style={{ width: '18rem', maxWidth: '18rem' }}
+                style={{
+                  width: '18rem',
+                  maxWidth: '18rem',
+                }}
               >
                 <Card.Img
                   variant="top"
@@ -288,11 +312,13 @@ function Booking(props) {
                     {productline.price} €/{productline.unit}{' '}
                   </span>
                   <small className="d-block text-muted mb-3">
-                    {productline.quantity} {productline.unit} {props.browsing ? 'expected' : 'left in stock'}
+                    {productline.quantity} {productline.unit}{' '}
+                    {props.browsing ? 'expected' : 'left in stock'}
                   </small>
                   {props.browsing && (
                     <Row>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="secondary"
                         onClick={() => {
                           setCurrentProductDetails(productline);
@@ -306,6 +332,7 @@ function Booking(props) {
                   {props.purchasing && props.userRole !== 'employee' && (
                     <Row>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
                         onClick={() => {
@@ -315,6 +342,7 @@ function Booking(props) {
                         {cartIcon} Add to Cart
                       </Button>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="secondary"
                         onClick={() => {
                           setCurrentProductDetails(productline);
@@ -328,6 +356,7 @@ function Booking(props) {
                   {props.purchasing && props.userRole === 'employee' && (
                     <Row>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
                         disabled={selectedUserID === -1}
@@ -338,6 +367,7 @@ function Booking(props) {
                         {cartIcon} Add to client Cart
                       </Button>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="secondary"
                         onClick={() => {
                           setCurrentProductDetails(productline);
@@ -351,6 +381,7 @@ function Booking(props) {
                   {props.orderChangeItem && (
                     <Row>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
                         onClick={() => {
@@ -361,6 +392,7 @@ function Booking(props) {
                         {cartIcon} Swap with this product
                       </Button>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="secondary"
                         onClick={() => {
                           setCurrentProductDetails(productline);
@@ -374,6 +406,7 @@ function Booking(props) {
                   {props.orderAddItem && (
                     <Row>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="primary"
                         className="mb-1 align-middle"
                         onClick={() => {
@@ -384,6 +417,7 @@ function Booking(props) {
                         {cartIcon} Add this product
                       </Button>
                       <Button
+                        style={{ borderRadius: '25px' }}
                         variant="secondary"
                         onClick={() => {
                           setCurrentProductDetails(productline);
@@ -447,12 +481,17 @@ function Booking(props) {
         )}
         {props.userRole === 'employee' && (
           <div className="row">
-            <div className='col-lg-4'></div>
-            <div className='col-lg-4'>
+            <div className="col-lg-4"></div>
+            <div className="col-lg-4">
               <div className="d-block text-center">
                 <h3 className="text-muted">Ordering for</h3>
               </div>
-              <Form.Select size="lg" className="mb-3 mx-2" value={selectedUserID} onChange={(event) => setSelectedUserID(event.target.value)}>
+              <Form.Select
+                size="lg"
+                className="mb-3 mx-2"
+                value={selectedUserID}
+                onChange={(event) => setSelectedUserID(event.target.value)}
+              >
                 <option value={-1}>No client selected</option>
                 {props.clients.map((c) => (
                   <option key={c.client_id} value={c.client_id}>
@@ -461,18 +500,22 @@ function Booking(props) {
                 ))}
               </Form.Select>
             </div>
-            <div className='col-lg-4'></div>
+            <div className="col-lg-4"></div>
           </div>
         )}
 
         {props.logged ? (
           <Row className="m-1">
-
-            <Col lg={3} className="my-5 text-center vertical-separator-products">
+            <Col
+              lg={3}
+              className="my-5 text-center vertical-separator-products"
+            >
               <ul className="list-group list-group-vertical mx-5">
-                <div className='list-group-item bg-light'>
+                <div className="list-group-item bg-light">
                   <h3>Filter by category</h3>
-                  <h6 className='text-muted'>Click one of the categories below to apply the filter</h6>
+                  <h6 className="text-muted">
+                    Click one of the categories below to apply the filter
+                  </h6>
                 </div>
                 {categories.map((cat) => (
                   <button
@@ -499,10 +542,7 @@ function Booking(props) {
                 ))}
               </ul>
             </Col>
-            <Col
-              lg={9}
-              className="my-5 text-center"
-            >
+            <Col lg={9} className="my-5 text-center">
               <div className="d-block mx-5 my-3">
                 <div className="container">
                   <div className="row">
@@ -534,7 +574,6 @@ function Booking(props) {
                 </div>
               )}
             </Col>
-
           </Row>
         ) : (
           <YouAreNotLoggedScreen />
@@ -564,7 +603,7 @@ function Booking(props) {
         </Modal.Body>
         <Modal.Footer>
           <button
-            className="btn btn-secondary"
+            className="btn btn-danger"
             onClick={() => setShowProductDetailsModal(false)}
           >
             Back to the products
@@ -572,13 +611,23 @@ function Booking(props) {
         </Modal.Footer>
       </Modal>
 
-      <ItemChangeModal show={showChangeItemModal} setShow={setShowChangeItemModal} oldID={props.orderChangeItemID} newID={newItemID} products={products} orders={props.orders} clients={props.clients} clientid={props.clientid} />
+      <ItemChangeModal
+        show={showChangeItemModal}
+        setShow={setShowChangeItemModal}
+        oldID={props.orderChangeItemID}
+        newID={newItemID}
+        products={products}
+        orders={props.orders}
+        clients={props.clients}
+        clientid={props.clientid}
+      />
 
-      <Modal show={showAddItemModal} onHide={() => (setShowAddItemModal(false))}>
+      <Modal show={showAddItemModal} onHide={() => setShowAddItemModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>
-            Order modification<br />
-            <h4 className='lead text-muted'>Adding a new item</h4>
+            Order modification
+            <br />
+            <h4 className="lead text-muted">Adding a new item</h4>
           </Modal.Title>
         </Modal.Header>
 
@@ -587,8 +636,12 @@ function Booking(props) {
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary">Close</Button>
-          <Button variant="primary">Add item</Button>
+          <Button style={{ borderRadius: '25px' }} variant="secondary">
+            Close
+          </Button>
+          <Button style={{ borderRadius: '25px' }} variant="primary">
+            Add item
+          </Button>
         </Modal.Footer>
       </Modal>
     </>
@@ -596,21 +649,25 @@ function Booking(props) {
 }
 
 function ItemChangeModal(props) {
-
   const [oldItem, setOldItem] = useState(null);
   const [newItem, setNewItem] = useState(null);
   const [buyQuantity, setBuyQuantity] = useState(0.5);
 
   useEffect(() => {
     if (props.newID !== -1) {
-      setNewItem({ ...props.products.find((p) => (p.id === props.newID)), buyQty: 0.5 });
+      setNewItem({
+        ...props.products.find((p) => p.id === props.newID),
+        buyQty: 0.5,
+      });
     }
     if (props.oldID !== -1) {
-      const oldOrderEntry = props.orders.find((o) => (o.id === props.oldID));
-      if (props.products.find((p) => (p.id === oldOrderEntry.product_id))) {
-        setOldItem({ ...props.products.find((p) => (p.id === oldOrderEntry.product_id)), buyQty: oldOrderEntry.order_quantity });
-      }
-      else {
+      const oldOrderEntry = props.orders.find((o) => o.id === props.oldID);
+      if (props.products.find((p) => p.id === oldOrderEntry.product_id)) {
+        setOldItem({
+          ...props.products.find((p) => p.id === oldOrderEntry.product_id),
+          buyQty: oldOrderEntry.order_quantity,
+        });
+      } else {
         setOldItem(null);
       }
     }
@@ -632,7 +689,7 @@ function ItemChangeModal(props) {
     item.buyQty += qty;
     setNewItem(item);
     setBuyQuantity(item.buyQty);
-  }
+  };
 
   const decrementQuantity = (qty) => {
     let item = newItem;
@@ -642,23 +699,31 @@ function ItemChangeModal(props) {
       setBuyQuantity(item.buyQty);
     }
     return;
-  }
+  };
 
   return (
-    <Modal size="lg" show={props.show} onHide={() => (props.setShow(false))}>
+    <Modal size="lg" show={props.show} onHide={() => props.setShow(false)}>
       <Modal.Header closeButton>
         <Modal.Title>
-          Order modification<br />
-          <h4 className='lead text-muted'>Swapping items</h4>
+          Order modification
+          <br />
+          <h4 className="lead text-muted">Swapping items</h4>
         </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         {oldItem && (
           <div className="list-group-item shadow bg-light">
-            <div className='d-block text-center'>
-              <h4 className='d-inline-block text-muted me-3'>Available wallet balance</h4>
-              <h1 className='d-inline-block'>{props.clients.find((c) => (c.client_id === props.clientid)).budget + oldItem.buyQty * oldItem.price}€</h1>
+            <div className="d-block text-center">
+              <h4 className="d-inline-block text-muted me-3">
+                Available wallet balance
+              </h4>
+              <h1 className="d-inline-block">
+                {props.clients.find((c) => c.client_id === props.clientid)
+                  .budget +
+                  oldItem.buyQty * oldItem.price}
+                €
+              </h1>
             </div>
           </div>
         )}
@@ -669,47 +734,74 @@ function ItemChangeModal(props) {
                 <img
                   className="w-100 shadow rounded-circle"
                   src={
-                    process.env.PUBLIC_URL +
-                    'products/' +
-                    oldItem.id +
-                    '.jpg'
+                    process.env.PUBLIC_URL + 'products/' + oldItem.id + '.jpg'
                   }
                   alt="Product img"
                 />
               </div>
               <div className="col-md-6 mb-2 text-start mt-2">
-                <div className='d-block'>
+                <div className="d-block">
                   <h4>{capitalizeEachFirstLetter(oldItem.name)}</h4>
                 </div>
-                <div className='d-block'>
+                <div className="d-block">
                   {stockIcon} {oldItem.buyQty} {oldItem.unit} purchased
                 </div>
-                <div className='d-block'>
+                <div className="d-block">
                   {priceIcon} {oldItem.price}€ / {oldItem.unit}
                 </div>
               </div>
               <div className="col-md-4 mb-2 my-auto align-middle">
                 <div className="d-block w-100">
-                  <div className='d-inline-block my-1 px-1 w-25'>
-                    <Button variant="secondary" className="w-100" disabled={true}>-</Button>
+                  <div className="d-inline-block my-1 px-1 w-25">
+                    <Button
+                      style={{ borderRadius: '25px' }}
+                      variant="secondary"
+                      className="w-100"
+                      disabled={true}
+                    >
+                      -
+                    </Button>
                   </div>
-                  <div className='d-inline-block my-1 px-1 w-50'>
-                    <Form.Control type="text" className="w-100 text-center" value={oldItem.buyQty + " " + oldItem.unit} onChange={() => { return; }} />
+                  <div className="d-inline-block my-1 px-1 w-50">
+                    <Form.Control
+                      type="text"
+                      className="w-100 text-center"
+                      value={oldItem.buyQty + ' ' + oldItem.unit}
+                      onChange={() => {
+                        return;
+                      }}
+                    />
                   </div>
-                  <div className='d-inline-block my-1 px-1 w-25'>
-                    <Button variant="primary" className="w-100" disabled={true}>+</Button>
+                  <div className="d-inline-block my-1 px-1 w-25">
+                    <Button
+                      style={{ borderRadius: '25px' }}
+                      variant="primary"
+                      className="w-100"
+                      disabled={true}
+                    >
+                      +
+                    </Button>
                   </div>
                 </div>
-                <div className='d-block w-100 px-1'>
-                  <Form.Control type="text" className="w-100 text-center" value={"Old item price: " + (oldItem.buyQty * oldItem.price).toFixed(2) + "€"} onChange={() => { return; }} />
+                <div className="d-block w-100 px-1">
+                  <Form.Control
+                    type="text"
+                    className="w-100 text-center"
+                    value={
+                      'Old item price: ' +
+                      (oldItem.buyQty * oldItem.price).toFixed(2) +
+                      '€'
+                    }
+                    onChange={() => {
+                      return;
+                    }}
+                  />
                 </div>
               </div>
             </div>
           </div>
         )}
-        <div className='d-block text-center'>
-          {arrowDown}
-        </div>
+        <div className="d-block text-center">{arrowDown}</div>
         {newItem && (
           <div className="list-group-item shadow">
             <div className="row">
@@ -717,58 +809,101 @@ function ItemChangeModal(props) {
                 <img
                   className="w-100 shadow rounded-circle"
                   src={
-                    process.env.PUBLIC_URL +
-                    'products/' +
-                    newItem.id +
-                    '.jpg'
+                    process.env.PUBLIC_URL + 'products/' + newItem.id + '.jpg'
                   }
                   alt="Product img"
                 />
               </div>
               <div className="col-md-6 mb-2 text-start mt-2">
-                <div className='d-block'>
+                <div className="d-block">
                   <h4>{capitalizeEachFirstLetter(newItem.name)}</h4>
                 </div>
-                <div className='d-block'>
+                <div className="d-block">
                   {stockIcon} {newItem.quantity} {newItem.unit} available
                 </div>
-                <div className='d-block'>
+                <div className="d-block">
                   {priceIcon} {newItem.price}€ / {newItem.unit}
                 </div>
               </div>
               <div className="col-md-4 mb-2 my-auto align-middle">
                 <div className="d-block w-100">
-                  <div className='d-inline-block my-1 px-1 w-25'>
-                    <Button variant="secondary" className="w-100" onClick={() => (decrementQuantity(0.5))}>-</Button>
+                  <div className="d-inline-block my-1 px-1 w-25">
+                    <Button
+                      style={{ borderRadius: '25px' }}
+                      variant="secondary"
+                      className="w-100"
+                      onClick={() => decrementQuantity(0.5)}
+                    >
+                      -
+                    </Button>
                   </div>
-                  <div className='d-inline-block my-1 px-1 w-50'>
-                    <Form.Control type="text" className="w-100 text-center" value={buyQuantity + " " + newItem.unit} onChange={() => { return; }} />
+                  <div className="d-inline-block my-1 px-1 w-50">
+                    <Form.Control
+                      type="text"
+                      className="w-100 text-center"
+                      value={buyQuantity + ' ' + newItem.unit}
+                      onChange={() => {
+                        return;
+                      }}
+                    />
                   </div>
-                  <div className='d-inline-block my-1 px-1 w-25'>
-                    <Button variant="primary" className="w-100" onClick={() => (incrementQuantity(0.5))}>+</Button>
+                  <div className="d-inline-block my-1 px-1 w-25">
+                    <Button
+                      style={{ borderRadius: '25px' }}
+                      variant="primary"
+                      className="w-100"
+                      onClick={() => incrementQuantity(0.5)}
+                    >
+                      +
+                    </Button>
                   </div>
                 </div>
-                <div className='d-block w-100 px-1'>
-                  <Form.Control type="text" className="w-100 text-center fw-bold" value={"New item price: " + (buyQuantity * newItem.price).toFixed(2) + "€"} onChange={() => { return; }} />
+                <div className="d-block w-100 px-1">
+                  <Form.Control
+                    type="text"
+                    className="w-100 text-center fw-bold"
+                    value={
+                      'New item price: ' +
+                      (buyQuantity * newItem.price).toFixed(2) +
+                      '€'
+                    }
+                    onChange={() => {
+                      return;
+                    }}
+                  />
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {oldItem && newItem && buyQuantity * newItem.price > props.clients.find((c) => (c.client_id === props.clientid)).budget + oldItem.buyQty * oldItem.price && (
-          <Alert variant="danger" className="mt-4">
-            <div className='d-block text-center'>
-              <h3 className='lead'>{dangerIcon} New item price cannot be greater than the available budget</h3>
-            </div>
-          </Alert>
-        )}
-
+        {oldItem &&
+          newItem &&
+          buyQuantity * newItem.price >
+            props.clients.find((c) => c.client_id === props.clientid).budget +
+              oldItem.buyQty * oldItem.price && (
+            <Alert variant="danger" className="mt-4">
+              <div className="d-block text-center">
+                <h3 className="lead">
+                  {dangerIcon} New item price cannot be greater than the
+                  available budget
+                </h3>
+              </div>
+            </Alert>
+          )}
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={() => (props.setShow(false))}>Close</Button>
-        <Button variant="primary">Confirm swap</Button>
+        <Button
+          style={{ borderRadius: '25px' }}
+          variant="secondary"
+          onClick={() => props.setShow(false)}
+        >
+          Close
+        </Button>
+        <Button style={{ borderRadius: '25px' }} variant="primary">
+          Confirm swap
+        </Button>
       </Modal.Footer>
     </Modal>
   );
@@ -818,18 +953,45 @@ const stockIcon = (
   </svg>
 );
 
-const priceIcon = (<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-tag" viewBox="0 0 16 16">
-  <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0z" />
-  <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1zm0 5.586 7 7L13.586 9l-7-7H2v4.586z" />
-</svg>)
+const priceIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="32"
+    height="32"
+    fill="currentColor"
+    className="bi bi-tag"
+    viewBox="0 0 16 16"
+  >
+    <path d="M6 4.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm-1 0a.5.5 0 1 0-1 0 .5.5 0 0 0 1 0z" />
+    <path d="M2 1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 1 6.586V2a1 1 0 0 1 1-1zm0 5.586 7 7L13.586 9l-7-7H2v4.586z" />
+  </svg>
+);
 
-const arrowDown = <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" className="bi bi-caret-down-fill" viewBox="0 0 16 16">
-  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-</svg>
+const arrowDown = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="64"
+    height="64"
+    fill="currentColor"
+    className="bi bi-caret-down-fill"
+    viewBox="0 0 16 16"
+  >
+    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+  </svg>
+);
 
-const dangerIcon = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-exclamation-triangle" viewBox="0 0 16 16">
-  <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
-  <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" />
-</svg>
+const dangerIcon = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="32"
+    height="32"
+    fill="currentColor"
+    className="bi bi-exclamation-triangle"
+    viewBox="0 0 16 16"
+  >
+    <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z" />
+    <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z" />
+  </svg>
+);
 
 export default Booking;

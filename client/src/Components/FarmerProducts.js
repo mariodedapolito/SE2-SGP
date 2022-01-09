@@ -163,14 +163,14 @@ function FarmerProducts(props) {
     if (dayjs(props.time.date).day() === 6) {
       if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
         //next week = week + 1
-        const nextWeekDate = dayjs(props.time.date).add(1, 'week');
+        const nextWeekDate = dayjs(props.time.date).add(0, 'week');
         return {
           year: dayjs(nextWeekDate).year(),
           week_number: dayjs(nextWeekDate).week(),
         };
       } else {
         //next week = week + 2
-        const nextWeekDate = dayjs(props.time.date).add(2, 'week');
+        const nextWeekDate = dayjs(props.time.date).add(1, 'week');
         return {
           year: dayjs(nextWeekDate).year(),
           week_number: dayjs(nextWeekDate).week(),
@@ -179,7 +179,7 @@ function FarmerProducts(props) {
     }
     //Sunday
     else if (dayjs(props.time.date).day() === 0) {
-      const nextWeekDate = dayjs(props.time.date).add(2, 'week');
+      const nextWeekDate = dayjs(props.time.date).add(1, 'week');
       return {
         year: dayjs(nextWeekDate).year(),
         week_number: dayjs(nextWeekDate).week(),
@@ -187,7 +187,7 @@ function FarmerProducts(props) {
     }
     //from Monday up to Saturday 9am
     else {
-      const nextWeekDate = dayjs(props.time.date).add(1, 'week');
+      const nextWeekDate = dayjs(props.time.date).add(0, 'week');
       return {
         year: dayjs(nextWeekDate).year(),
         week_number: dayjs(nextWeekDate).week(),
@@ -238,10 +238,7 @@ function FarmerProducts(props) {
                   /*DISPLAYING CURRENTLY INSERTED PRODUCTS*/
                   expectedProducts.map((product) => {
                     return (
-                      <div
-                        key={product.id}
-                        className="card mb-3 shadow-lg"
-                      >
+                      <div key={product.id} className="card mb-3 shadow-lg">
                         <div className="row g-0">
                           <div className="col-md-3">
                             <img
@@ -284,16 +281,16 @@ function FarmerProducts(props) {
                               </div>
                               <div className="d-block mt-4 text-center">
                                 <button
+                                  className="d-inlnee btn btn-danger mr-3"
+                                  onClick={() => setRemoveProductID(product.id)}
+                                >
+                                  Remove product
+                                </button>
+                                <button
                                   className="d-inline btn btn-primary mx-3"
                                   onClick={() => setModifyProductID(product.id)}
                                 >
                                   Modify details
-                                </button>
-                                <button
-                                  className="d-inlnee btn btn-secondary mr-3"
-                                  onClick={() => setRemoveProductID(product.id)}
-                                >
-                                  Remove product
                                 </button>
                               </div>
                             </div>
@@ -340,7 +337,7 @@ function FarmerProducts(props) {
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleNewProductModalClose}>
+          <Button variant="danger" onClick={handleNewProductModalClose}>
             Cancel
           </Button>
         </Modal.Footer>
@@ -364,7 +361,7 @@ function FarmerProducts(props) {
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleModifyProductModalClose}>
+          <Button variant="danger" onClick={handleModifyProductModalClose}>
             Cancel
           </Button>
         </Modal.Footer>
@@ -380,7 +377,7 @@ function FarmerProducts(props) {
         </Modal.Header>
         <Modal.Body>Are you sure you want to remove this product?</Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleRemoveProductModalClose}>
+          <Button variant="danger" onClick={handleRemoveProductModalClose}>
             Cancel
           </Button>
           <Button
@@ -1053,15 +1050,15 @@ function ModifyProductModalBody(props) {
   const [previewImage, setPreviewImage] = useState(
     props.productID !== -1
       ? URL.createObjectURL(
-        props.expectedProducts.find((p) => p.id === props.productID).image
-      )
+          props.expectedProducts.find((p) => p.id === props.productID).image
+        )
       : null
   );
   const [productName, setProductName] = useState(
     props.productID !== -1
       ? capitalizeEachFirstLetter(
-        props.expectedProducts.find((p) => p.id === props.productID).name
-      )
+          props.expectedProducts.find((p) => p.id === props.productID).name
+        )
       : ''
   );
   const [productDescription, setProductDescription] = useState(
@@ -1326,7 +1323,11 @@ function ModifyProductModalBody(props) {
         <small className="d-block text-danger">{formImageError}</small>
       </div>
       <div className="d-block text-end">
-        <button className="btn btn-primary" type="button" onClick={() => modifyProduct()}>
+        <button
+          className="btn btn-primary"
+          type="button"
+          onClick={() => modifyProduct()}
+        >
           Modify product
         </button>
       </div>
