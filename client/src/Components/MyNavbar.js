@@ -95,14 +95,14 @@ const MyNavbar = function (props) {
               )}
 
               {/* CLIENT NAVBAR */}
-              {props.userRole === 'client' && (
+              {props.userRole === 'client' && props.suspended === 0 && (
                 <li className="nav-item">
                   <Link to="/login" className="nav-link text-light">
                     Client area
                   </Link>
                 </li>
               )}
-              {props.userRole === 'client' && (
+              {props.userRole === 'client' && props.suspended === 0 && (
                 <NavDropdown
                   className="text-light"
                   title="Shopping"
@@ -387,7 +387,7 @@ const MyNavbar = function (props) {
             )}
             {props.userRole === 'client' && (
               <>
-                <div className="px-2 border-end" /> {/*spacer divs*/}
+                {props.suspended === 0 && (<> <div className="px-2 border-end" /> </> )}{/*spacer divs*/}
                 <div className="px-2" /> {/*spacer divs*/}
                 <div className="my-auto py-2 nav-accessory">
                   <OverlayTrigger
@@ -423,11 +423,13 @@ const MyNavbar = function (props) {
                     }
                   >
                     <span className="position-relative">
+                      {props.suspended === 0 && ( <>
                       {cartIcon}
                       <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                         {cartNumber}
                         <span className="visually-hidden">Cart items</span>
                       </span>
+                      </>)}
                     </span>
                   </OverlayTrigger>
                 </div>

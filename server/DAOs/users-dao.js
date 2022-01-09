@@ -11,8 +11,8 @@ exports.setTestDB = (db_name) => {
 // Add a new client
 exports.addclient = (t) => {
     return new Promise((resolve, reject) => {
-        const sql = 'INSERT INTO users( id, name, email, hash, role ) VALUES ( ?, ?, ?, ?, ? )';
-        db.run(sql, [t.id, t.name, t.email, t.hash, t.role], function (err) {
+        const sql = 'INSERT INTO users( id, name, email, hash, role, suspended ) VALUES ( ?, ?, ?, ?, ?, ? )';
+        db.run(sql, [t.id, t.name, t.email, t.hash, t.role, t.suspended], function (err) {
             if (err) {
                 reject(err);
 
@@ -37,7 +37,8 @@ exports.getAllUsers = () => {
                 name: e.name,
                 email: e.email,
                 hash: e.hash,
-                role: e.role
+                role: e.role, 
+                suspended: e.suspended
             }));
             resolve(o);
         });
@@ -56,7 +57,7 @@ exports.getUser = (email, password) => {
                 resolve(false);
             }
             else {
-                const user = { id: row.id, username: row.email, name: row.name, role: row.role };
+                const user = { id: row.id, username: row.email, name: row.name, role: row.role, suspended: row.suspended };
                 bcrypt.compare(password, row.hash).then(result => {
                     if (result)
                         resolve(user); 
@@ -78,7 +79,7 @@ exports.getUserById = (id) => {
             else if (row === undefined)
                 resolve({ error: 'User not found.' });
             else {
-                const user = { id: row.id, username: row.email, name: row.name, role: row.role }
+                const user = { id: row.id, username: row.email, name: row.name, role: row.role, suspended: row.suspended }
                 resolve(user);
             }
         });
@@ -113,6 +114,35 @@ exports.checkIfEmailExists = (email) => {
         });
     });
 }
+
+//update user suspension 
+exports.suspension = async (id) => {
+    const test = await this.getUserById(id);
+  
+    return new Promise((resolve, reject) => {
+      const sql =
+        'UPDATE users SET id=?, name=?, email=?, hash=?, role=?, suspended=? WHERE id=?';
+      db.run(
+        sql,
+        [
+          test.id,
+          test.name,
+          test.email,
+          test.hash,
+          test.role,
+          1,
+          id,
+        ],
+        function (err) {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(null);
+        }
+      );
+    });
+  };
 
 exports.getProviderIDfromUserID = (user_id) => {
     return new Promise((resolve, reject) => {

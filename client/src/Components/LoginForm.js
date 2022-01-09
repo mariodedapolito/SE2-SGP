@@ -29,8 +29,12 @@ function LoginForm1(props) {
     props.setMessage('');
   };
 
+
   if (props.logged) {
     if (props.userRole === 'client') {
+      if (props.users.find(x => x.email === username && x.suspended === 1))
+      return <Redirect to="/suspended-client" />;
+      else 
       return <Redirect to="/client" />;
     } else if (props.userRole === 'employee') {
       return <Redirect to="/employee" />;

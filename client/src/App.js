@@ -38,6 +38,7 @@ import WarehouseManagerOrders from './Components/WarehouseManagerOrders';
 import WarehouseManagerShipments from './Components/WarehouseManagerShipments';
 import WarehouseEmployeePrepare from './Components/WarehouseEmployeePrepare';
 import Cart from './Components/Cart';
+import SuspendedClient from './Components/SuspendedClient';
 
 let r = [];
 
@@ -66,6 +67,7 @@ function App() {
   const [userRole, setUserRole] = useState('');
   const [userMail, setUserMail] = useState('');
   const [userName, setUserName] = useState('');
+  const [suspended, setSuspended] = useState(0);
 
   const [cartItems, setCartItems] = useState(new Map());
   const [cartUpdated, setCartUpdated] = useState(false);
@@ -314,6 +316,13 @@ function App() {
       setUserRole(user.role);
       setUserMail(user.username);
       setUserName(user.name);
+      
+      if (user.suspended === 0) {
+        setSuspended(0);
+      }
+      else setSuspended(1);
+
+
       setCartItems(new Map());
       setCartUpdated(true);
 
@@ -322,9 +331,15 @@ function App() {
         msg: 'Welcome, ' + user.name + '! The login was successful.',
       });
 
+      
+
       if (user.role === 'client') {
+        if (user.suspended === 0)
         return <Redirect to="/client" />;
-      } else if (user.role === 'employee') {
+        else 
+        return <Redirect to="/suspended-client" />;
+      } 
+        else if (user.role === 'employee') {
         return <Redirect to="/employee" />;
       } else if (user.role === 'farmer') {
         return <Redirect to="/farmer" />;
@@ -355,6 +370,7 @@ function App() {
     setUserMail('');
     setUserName('');
     setUserid(-1);
+    setSuspended(0);
 
     return <Redirect to="/" />;
   };
@@ -374,6 +390,7 @@ function App() {
         cartUpdated={cartUpdated}
         setCartUpdated={setCartUpdated}
         clientid={userid}
+        suspended={suspended}
       />
 
       {authAlert && (
@@ -845,6 +862,7 @@ function App() {
                 users={users}
                 message={message}
                 setMessage={setMessage}
+                suspended={suspended}
               />
             )}
           />
@@ -869,6 +887,29 @@ function App() {
               )
             }
           />
+          <Route
+            path="/suspended-client"
+            exact
+            render={() =>
+              logged ? (
+                <SuspendedClient
+                  missed={missed}
+                  logout={doLogOut}
+                  userRole={userRole}
+                  userName={userName}
+                  userMail={userMail}
+                  clients={clients}
+                  clientid={userid}
+                  orders={orders}
+                  time={time}
+                  suspended = {suspended}
+                />
+              ) : (
+                <Redirect to="/login" />
+              )
+            }
+          />
+          
           <Route
             path="/see-pickups"
             exact

@@ -63,6 +63,7 @@ function UserRegistration(props) {
       email: email,
       hash: password1,
       role: 'client',
+      suspended: 0
     };
 
     try {
