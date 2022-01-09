@@ -52,10 +52,15 @@ function FarmerOrderConfirmation(props) {
         await API.confirmExpectedProducts(confirmedProduct);
         setRefreshData(true);
         setConfirmedProduct(-1);
-        setActionAlert({ variant: 'success', msg: 'Product availability successfully confirmed' });
-      }
-      catch (error) {
-        setActionAlert({ variant: 'danger', msg: 'Oops! Could not confirm product availability. Please try again' });
+        setActionAlert({
+          variant: 'success',
+          msg: 'Product availability successfully confirmed',
+        });
+      } catch (error) {
+        setActionAlert({
+          variant: 'danger',
+          msg: 'Oops! Could not confirm product availability. Please try again',
+        });
       }
     };
     shipItems();
@@ -69,12 +74,14 @@ function FarmerOrderConfirmation(props) {
     const removeItems = async () => {
       try {
         setShowLoading(true);
-        for (const o of props.orders.filter(o => o.product_id === unavailableProduct)) {
-          let client = props.clients.find(c => c.client_id === o.client_id);
-          let product = props.products.find(p => p.id === unavailableProduct);
+        for (const o of props.orders.filter(
+          (o) => o.product_id === unavailableProduct
+        )) {
+          let client = props.clients.find((c) => c.client_id === o.client_id);
+          let product = props.products.find((p) => p.id === unavailableProduct);
           let mailObj = {
             email: client.email,
-            message: ''
+            message: '',
           };
           /* order payed */
           if (o.state === 'booked') {
@@ -86,15 +93,20 @@ function FarmerOrderConfirmation(props) {
             mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order.\nKind regards\nSPG";
           }
           await API.submitEmail(mailObj);
-        };
+        }
         await API.setUnavailableProducts(unavailableProduct);
         setRefreshData(true);
-        setActionAlert({ variant: 'success', msg: 'Product was marked as unavailable. Clients were notified by email and they were refounded for the unavailable product.' });
+        setActionAlert({
+          variant: 'success',
+          msg: 'Product was marked as unavailable. Clients were notified by email and they were refounded for the unavailable product.',
+        });
         setUnavailableProduct(-1);
-      }
-      catch (error) {
+      } catch (error) {
         console.log(error);
-        setActionAlert({ variant: 'danger', msg: 'Oops! Could not mark product as unavailable. Please try again' });
+        setActionAlert({
+          variant: 'danger',
+          msg: 'Oops! Could not mark product as unavailable. Please try again',
+        });
       }
     };
     removeItems();
@@ -119,16 +131,16 @@ function FarmerOrderConfirmation(props) {
           <br />
         </h5>
 
-        {actionAlert &&
+        {actionAlert && (
           <Alert
             variant={actionAlert.variant}
-            className='text-center my-3 mx-5'
+            className="text-center my-3 mx-5"
             dismissible={true}
             onClose={() => setActionAlert(null)}
           >
             {actionAlert.msg}
           </Alert>
-        }
+        )}
 
         {showLoading && (
           <div className="d-block text-center p-5">

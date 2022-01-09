@@ -5,9 +5,10 @@ body {
     sans-serif, 'Montserrat';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
 }
-
+.btn {
+  border-radius: 25px;
+}
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace, 'Montserrat', sans-serif;
@@ -46,9 +47,10 @@ code {
 .navbar-brand:hover {
   color: white !important;
 }
-
+.roundbox-t {
+  border-radius: '25px';
+}
 .paragraph {
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -60,7 +62,6 @@ code {
   width: 50%;
   margin: 12% auto;
   text-align: center;
-
 }
 
 .title {

@@ -1,4 +1,5 @@
 import './App.css';
+import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from './Components/MyNavbar';
 import Frontpage from './Components/Frontpage';
@@ -18,7 +19,7 @@ import {
   Switch,
   Route,
 } from 'react-router-dom';
-import { useHistory } from "react-router-dom"
+import { useHistory } from 'react-router-dom';
 import { LoginForm1 } from './Components/LoginForm';
 import ClientArea from './Components/ClientArea';
 import FarmerRegistration from './Components/FarmerRegistration';
@@ -41,7 +42,6 @@ import Cart from './Components/Cart';
 let r = [];
 
 function App() {
-
   const [time, setTime] = useState({
     date: dayjs().format('MM-DD-YYYY'),
     hour: dayjs().format('HH:mm'),
@@ -247,34 +247,32 @@ function App() {
 
   /* USEFFECT Telegram Notification */
   useEffect(() => {
-    let dayOfWeek = dayjs(time.date).day()
-    if ((dayOfWeek === 6) && (time.hour === "09:00")) {
+    let dayOfWeek = dayjs(time.date).day();
+    if (dayOfWeek === 6 && time.hour === '09:00') {
       const SendNotification = async () => {
         await API.sendTelegramNotificationOnSaturday()
           .then((res) => {
-            console.log("telegram message was sent to group")
+            console.log('telegram message was sent to group');
           })
           .catch((err) => {
             console.log(err);
           });
       };
-      SendNotification()
+      SendNotification();
     }
 
-    if (time.hour === "10:00") {
+    if (time.hour === '10:00') {
       const SendNotificationAboutInsufficientBalance = async () => {
         await API.sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10()
           .then((res) => {
-            console.log("telegram message was sent to the user")
+            console.log('telegram message was sent to the user');
           })
           .catch((err) => {
             console.log(err);
           });
       };
-      SendNotificationAboutInsufficientBalance()
+      SendNotificationAboutInsufficientBalance();
     }
-
-
   }, [time]);
 
   function topUpBalance(amount, client) {
@@ -306,8 +304,8 @@ function App() {
         id = index[0];
       } else id = user.id;
 
-      if (user.role === "farmer") {
-        let y = providers.filter(x => x.name === user.name).map(x => x.id);
+      if (user.role === 'farmer') {
+        let y = providers.filter((x) => x.name === user.name).map((x) => x.id);
         let p = y[0];
         setProviderid(p);
       }
@@ -319,7 +317,10 @@ function App() {
       setCartItems(new Map());
       setCartUpdated(true);
 
-      setAuthAlert({ variant: "success", msg: "Welcome, " + user.name + "! The login was successful." });
+      setAuthAlert({
+        variant: 'success',
+        msg: 'Welcome, ' + user.name + '! The login was successful.',
+      });
 
       if (user.role === 'client') {
         return <Redirect to="/client" />;
@@ -337,15 +338,17 @@ function App() {
         return <Redirect to="/manager" />;
       }
     } catch (err) {
-      setMessage("Oops! Could not perform login. Please try again later.");
+      setMessage('Oops! Could not perform login. Please try again later.');
     }
   };
 
   const doLogOut = async () => {
     await API.logOut();
 
-
-    setAuthAlert({ variant: "danger", msg: "Goodbye, " + userName + "! We hope to see you soon." });
+    setAuthAlert({
+      variant: 'danger',
+      msg: 'Goodbye, ' + userName + '! We hope to see you soon.',
+    });
 
     setLogged(false);
     setUserRole('');
@@ -373,18 +376,26 @@ function App() {
         clientid={userid}
       />
 
-      {authAlert &&
-        <Row style={{ position: 'absolute', zIndex: 1000, marginTop: 20, right: 10 }} className="text-end me-2">
+      {authAlert && (
+        <Row
+          style={{
+            position: 'absolute',
+            zIndex: 1000,
+            marginTop: 20,
+            right: 10,
+          }}
+          className="text-end me-2"
+        >
           <Alert
             variant={authAlert.variant}
-            className='d-inline my-3 mx-2'
+            className="d-inline my-3 mx-2"
             dismissible={true}
             onClose={() => setAuthAlert(null)}
           >
             {authAlert.msg}
           </Alert>
         </Row>
-      }
+      )}
 
       <div className="container-fluid w-100">
         <Switch>
@@ -779,7 +790,6 @@ function App() {
             render={() =>
               logged ? (
                 <Fbookings
-
                   providerid={providerid}
                   products={products}
                   clients={clients}
@@ -884,7 +894,18 @@ function App() {
               <UserRegistration users={users} setRecharged={updateRech1} />
             )}
           />
-          <Route path="/" render={() => <Frontpage logout={doLogOut} logged={logged} userRole={userRole} userName={userName} userMail={userMail} />} />
+          <Route
+            path="/"
+            render={() => (
+              <Frontpage
+                logout={doLogOut}
+                logged={logged}
+                userRole={userRole}
+                userName={userName}
+                userMail={userMail}
+              />
+            )}
+          />
         </Switch>
       </div>
     </Router>

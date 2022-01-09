@@ -2,7 +2,9 @@ import { Button, Alert } from 'react-bootstrap';
 import { Link, useHistory } from 'react-router-dom';
 import dayjs from 'dayjs';
 import API from '../API';
+import '../App.css';
 import { useState, useEffect } from 'react';
+import { App } from 'react-bootstrap-icons';
 
 var isBetween = require('dayjs/plugin/isBetween');
 dayjs.extend(isBetween);
@@ -51,8 +53,6 @@ function FarmerArea(props) {
       }
     }
     return false;
-
-
   }
 
   /* prods confirmation is available Mon until 09.00 */
@@ -68,11 +68,10 @@ function FarmerArea(props) {
         //next week = week + 2
         return false;
       }
-    }
-    else {
+    } else {
       return false;
     }
-  }
+  };
 
   /* prods preparation is available from Mon 09.00 until Tuesday 23.59 */
   const prepareProductsAvailable = () => {
@@ -81,19 +80,17 @@ function FarmerArea(props) {
       if (dayjs('01/01/2021 ' + props.time.hour).hour() >= 9) {
         //After MON 9AM -> available
         return true;
-      }
-      else {
+      } else {
         return false;
       }
     }
     //Monday
     else if (dayjs(props.time.date).day() === 2) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
-  }
+  };
 
   return (
     <div className="row w-100">
@@ -101,7 +98,11 @@ function FarmerArea(props) {
         Farmer Area
       </span>
       <div className="d-block">
-        <Alert className="my-2 mx-5" show={triggerNotification} variant="warning">
+        <Alert
+          className="my-2 mx-5"
+          show={triggerNotification}
+          variant="warning"
+        >
           <Alert.Heading>
             It seems that one of your products is out of stock!
           </Alert.Heading>
@@ -155,13 +156,13 @@ function FarmerArea(props) {
       <div className="col-lg-9 ">
         <div className="row w-100">
           <div className="col-lg-12">
-            <div className="card m-3 w-100 shadow">
-              <div className="row no-gutters">
+            <div className="card m-3 w-100 shadow ">
+              <div className="row no-gutters ">
                 <div
-                  className="col-md-4 p-3 text-center"
+                  className="col-md-4 p-3 text-center "
                   style={{
-                    backgroundColor:
-                      '#4A5B8C',
+                    backgroundColor: '#4A5B8C',
+                    borderRadius: '25px',
                   }}
                 >
                   {declareIcon}
@@ -172,8 +173,7 @@ function FarmerArea(props) {
                       Declare products availability
                     </h5>
                     <p>
-                      Here you can report the expected available product
-                      amounts
+                      Here you can report the expected available product amounts
                     </p>
                     <p className="card-text">
                       • You can declare items expected availability <br />
@@ -185,7 +185,7 @@ function FarmerArea(props) {
                           backgroundColor: '#4A5B8C',
                           color: 'white',
                         }}
-                        onClick={() => (history.push("/declare-availability"))}
+                        onClick={() => history.push('/declare-availability')}
                       >
                         Declare availability
                       </button>
@@ -203,19 +203,18 @@ function FarmerArea(props) {
                 <div
                   className="col-md-4 p-3 text-center"
                   style={{
-                    backgroundColor:
-                      '#8697A6',
+                    backgroundColor: '#8697A6',
+                    borderRadius: '25px',
                   }}
                 >
                   {availabilityIcon}
                 </div>
                 <div className="col-md-8">
                   <div className="card-body">
-                    <h5 className="card-title">
-                      Confirm product availability
-                    </h5>
+                    <h5 className="card-title">Confirm product availability</h5>
                     <p className="card-text">
-                      • You can confirm items availability on the Mondays until 09.00AM <br />
+                      • You can confirm items availability on the Mondays until
+                      09.00AM <br />
                       <br />
                     </p>
                     <div className="d-block text-end">
@@ -225,8 +224,10 @@ function FarmerArea(props) {
                           backgroundColor: '#8697A6',
                           color: 'black',
                         }}
-                        className='btn'
-                        onClick={() => (history.push("/order-confirmation-farmer"))}
+                        className="btn"
+                        onClick={() =>
+                          history.push('/order-confirmation-farmer')
+                        }
                       >
                         Confirm availability
                       </button>
@@ -244,8 +245,8 @@ function FarmerArea(props) {
                 <div
                   className="col-md-4 p-3 text-center"
                   style={{
-                    backgroundColor:
-                      '#BFCDD9',
+                    backgroundColor: '#BFCDD9',
+                    borderRadius: '25px',
                   }}
                 >
                   {perparationIcon}
@@ -254,21 +255,20 @@ function FarmerArea(props) {
                   <div className="card-body">
                     <h5 className="card-title">Confirm order preparation</h5>
                     <p className="card-text">
-                      • Confirm the preparation of the booked orders to ship
-                      to the SPG shop
-                      <br />
-                      • You can prepare orders starting Monday
-                      9.00AM until Tuesday 11.59PM
+                      • Confirm the preparation of the booked orders to ship to
+                      the SPG shop
+                      <br />• You can prepare orders starting Monday 9.00AM
+                      until Tuesday 11.59PM
                     </p>
                     <div className="d-block text-end">
                       <button
                         disabled={!prepareProductsAvailable()}
-                        className='btn'
+                        className="btn"
                         style={{
                           backgroundColor: '#BFCDD9',
                           color: 'black',
                         }}
-                        onClick={() => (history.push("/order-preparation"))}
+                        onClick={() => history.push('/order-preparation')}
                       >
                         Confirm preparation
                       </button>
@@ -286,8 +286,8 @@ function FarmerArea(props) {
                 <div
                   className="col-md-4 p-3 text-center"
                   style={{
-                    backgroundColor:
-                      '#BF8756',
+                    backgroundColor: '#BF8756',
+                    borderRadius: '25px',
                   }}
                 >
                   {walletIcon}
