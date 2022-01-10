@@ -11,8 +11,9 @@ exports.setTestDB = (db_name) => {
 // Add a new client
 exports.addclient = (t) => {
     return new Promise((resolve, reject) => {
-        const sql = 'INSERT INTO users( id, name, email, hash, role, suspended ) VALUES ( ?, ?, ?, ?, ?, ? )';
-        db.run(sql, [t.id, t.name, t.email, t.hash, t.role, t.suspended], function (err) {
+        const suspended=0
+        const sql = 'INSERT INTO users( id, name, email, hash, role, suspended ) VALUES ( NULL, ?, ?, ?, ?, ? )';
+        db.run(sql, [t.name, t.email, t.hash, t.role, suspended], function (err) {
             if (err) {
                 reject(err);
 

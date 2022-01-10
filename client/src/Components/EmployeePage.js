@@ -24,6 +24,8 @@ function EmployeePage(props) {
 
   const [actionAlert, setActionAlert] = useState(null);
 
+  console.log(props.orders);
+
   const handleClose = () => {
     setSelectedTask(MODAL.CLOSED);
     setClicked(false);
@@ -187,6 +189,7 @@ function EmployeePage(props) {
           {selectedTask !== MODAL.CLOSED && (
             <ModalWalletTopUp
               setActionAlert={setActionAlert}
+              setRecharged1={props.setRecharged1}
               setClick={setClicked}
               onSave={handleSave}
               clients={clients}
@@ -202,7 +205,7 @@ function EmployeePage(props) {
                 setRecharged1={props.setRecharged1}
                 products={props.products}
                 orders={props.orders}
-                clients={clients}
+                clients={props.clients}
                 setShow={setShow}
                 b={b}
                 time={props.time}
@@ -292,6 +295,7 @@ function ModalWalletTopUp(props) {
             clientNameSurname +
             ' was successfully completed.',
         });
+        props.setRecharged1(true);
       } catch (error) {
         props.setActionAlert({
           variant: 'danger',

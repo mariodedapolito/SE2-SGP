@@ -97,7 +97,10 @@ function FarmerRegistration(props) {
     send();
   }, [sendApplication])
 
-  const handleSubmit = () => {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     let errorFlag = false;
     if (name.trim() === "") {
       setNameError("• Please fill in your name");
@@ -199,7 +202,7 @@ function FarmerRegistration(props) {
             <hr />
             <div className="d-flex justify-content-end">
               <Link to="/">
-                <Button variant="outline-success">Back to Homepage</Button>
+                <Button variant="outline-light">Back to Homepage</Button>
               </Link>
             </div>
           </Alert>
@@ -325,7 +328,7 @@ function FarmerRegistration(props) {
                 <Button variant="secondary" type="button" size="lg" className="mb-3" onClick={() => (handleClear())}>
                   Clear form data
                 </Button>
-                <Button variant="primary" type="button" size="lg" className="mx-2 mb-3" onClick={() => (handleSubmit())}>
+                <Button variant="primary" type="button" size="lg" className="mx-2 mb-3" onClick={(event) => (handleSubmit(event))}>
                   Submit application
                 </Button>
               </div>

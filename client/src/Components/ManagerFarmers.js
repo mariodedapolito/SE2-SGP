@@ -258,6 +258,22 @@ function ManagerFarmers(props) {
                   </Card.Footer>
                 </Card>
               ))}
+            {!loading &&
+              inspectApplication === null &&
+              props.pendingOnly &&
+              pendingApplications.length === 0 && (
+                <div className='d-block text-center my-4'>
+                  There are no pending farmer applications
+                </div>
+              )}
+            {!loading &&
+              inspectApplication === null &&
+              props.acceptedOnly &&
+              acceptedApplications.length === 0 && (
+                <div className='d-block text-center my-4'>
+                  There are no accepted farmer applications
+                </div>
+              )}
             {!loading && inspectApplication && (
               <ApplicationInspector
                 application={inspectApplication}

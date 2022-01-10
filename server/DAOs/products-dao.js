@@ -168,20 +168,23 @@ exports.getProviderAvailableProducts = (provider_id, year, week_number) => {
       if (err) {
         reject(err);
       }
-      const products = rows.map((p) => ({
-        id: p.product_id,
-        name: p.product_name,
-        description: p.product_description,
-        category: p.category_id,
-        price: p.product_price,
-        unit: p.product_unit,
-        quantity: p.product_quantity,
-        expiryDate: p.product_expiry,
-        providerId: p.provider_id,
-        year: p.year,
-        week: p.week_number,
-        status: p.product_status,
-      }));
+      let products = [];
+      if (rows.length > 0) {
+        products = rows.map((p) => ({
+          id: p.product_id,
+          name: p.product_name,
+          description: p.product_description,
+          category: p.category_id,
+          price: p.product_price,
+          unit: p.product_unit,
+          quantity: p.product_quantity,
+          expiryDate: p.product_expiry,
+          providerId: p.provider_id,
+          year: p.year,
+          week: p.week_number,
+          status: p.product_status,
+        }));
+      }
       resolve(products);
     });
   });
@@ -189,10 +192,9 @@ exports.getProviderAvailableProducts = (provider_id, year, week_number) => {
 
 exports.deleteExpectedProducts = (provider_id, year, week_number) => {
   return new Promise((resolve, reject) => {
-    const product_status = 'expected';
     const sql =
-      'DELETE from products WHERE provider_id=? AND year=? AND week_number=? AND product_status=?';
-    db.run(sql, [provider_id, year, week_number, product_status], (err) => {
+      'DELETE from products WHERE provider_id=? AND year=? AND week_number=?';
+    db.run(sql, [provider_id, year, week_number], (err) => {
       if (err) {
         console.log(err);
         reject(err.message);

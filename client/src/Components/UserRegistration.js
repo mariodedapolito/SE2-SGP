@@ -69,6 +69,7 @@ function UserRegistration(props) {
         await API.addClient(newClient);
         await API.addUser(newUser);
         props.setRecharged(true);
+        props.setRecharged1(true);
         if (props.userRole === 'employee') {
           history.push('/employee');
           props.setAuthAlert({ variant: 'success', msg: <>The client account was successfully created!</> });

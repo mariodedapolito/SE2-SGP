@@ -963,7 +963,7 @@ app.post('/api/products/expected/:year/:week_number', async (req, res) => {
     const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
 
     const oldProductIDs = (
-      await productsDAO.getProviderExpectedProducts(
+      await productsDAO.getProviderAvailableProducts(
         provider_id,
         year,
         week_number

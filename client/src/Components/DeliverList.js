@@ -43,7 +43,7 @@ function DeliverList(props) {
     date: '',
     hour: '',
   });
-  const [id, setId] = useState();
+  const [id, setId] = useState(-1);
   const [client, setClient] = useState(0);
 
   const [handoutOrderID, setHandoutOrderID] = useState(-1);
@@ -96,13 +96,14 @@ function DeliverList(props) {
 
     const confirmOrderPayment = async () => {
       try {
-        const budget = props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget.toFixed(2);
-        const orderPrice = props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0).toFixed(2);
+        const budget = parseFloat(props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget.toFixed(2));
+        const orderPrice = parseFloat(props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))).toFixed(2));
         if (budget < orderPrice) {
-          throw 'budget not enough';
+          console.log('budget not enough');
+          throw false;
         }
         await API.updateState(id, 'booked');
-        await API.increaseBalance((budget - orderPrice) * (-1), props.orders.find(o => o.order_id === props.id).client_id);
+        await API.increaseBalance((budget - orderPrice) * (-1), props.orders.find(o => o.order_id === id).client_id);
         props.setRecharged(true);
         props.setRecharged1(true);
 
@@ -110,7 +111,8 @@ function DeliverList(props) {
           variant: 'success',
           msg: 'Order #' + id + ' payment was successfully completed and the client budget was updated.',
         });
-      } catch (error) {
+      }
+      catch (error) {
         console.log(error);
         setActionAlert({
           variant: 'danger',
@@ -121,7 +123,7 @@ function DeliverList(props) {
       setPayOrder(false);
     }
     confirmOrderPayment();
-  }, payOrder)
+  }, [payOrder])
 
   const getOrderStatus = (order_id) => {
     let min = 1000;
@@ -139,7 +141,7 @@ function DeliverList(props) {
         } else if (item.state === 'pending') {
           orderStatusLocal = 'Payment pending';
           num_steps = 0;
-        } else if (item.state === 'booked' && item.farmer_state === null) {
+        } else if (item.state === 'booked') {
           orderStatusLocal = 'Payment completed';
           num_steps = 1;
         } else if (
@@ -438,48 +440,51 @@ function DeliverList(props) {
         </Row>
       </Container>
 
-      <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Client wallet balance</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className='d-block text-center'>
-            <h2>{props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).name + ' ' + props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).name}</h2>
-          </div>
-          <div className="d-block text-center my-3">
-            <h4 className="d-inline-block text-muted me-3">
-              Available wallet balance
-            </h4>
-            <h1 className="d-inline-block">
-              {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget.toFixed(2)}
-              €
-            </h1>
-          </div>
-          <div className="d-block text-center my-3">
-            <h4 className="d-inline-block text-muted me-3">
-              Total order price
-            </h4>
-            <h1 className="d-inline-block">
-              {props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0).toFixed(2)}
-              €
-            </h1>
-          </div>
-          {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget < props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0) && (
-            <div className="d-block text-danger text-center my-auto">
-              {dangerIcon} The client wallet balance is not enough to complete the payment of this order.<br />
-              Please top-up the client wallet and then confirm the payment.
+      {showPaymentModal && id !== -1 && (
+        <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Client wallet balance</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className='d-block text-center'>
+              <h2>{props.clients.find(c => (c.client_id === (props.orders.find(o => o.order_id === id).client_id))).name + ' '
+                + props.clients.find(c => (c.client_id === (props.orders.find(o => o.order_id === id).client_id))).surname}</h2>
             </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={() => setShowPaymentModal(false)}>
-            Close
-          </Button>
-          <Button variant="success" disabled={props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === props.id).client_id).budget < props.orders.filter(o => o.order_id === props.id).reduce((a, b) => a + b, 0)} onClick={() => setPayOrder(true)}>
-            Confirm order payment
-          </Button>
-        </Modal.Footer>
-      </Modal>
+            <div className="d-block text-center my-3">
+              <h4 className="d-inline-block text-muted me-3">
+                Available wallet balance
+              </h4>
+              <h1 className="d-inline-block">
+                {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget.toFixed(2)}
+                €
+              </h1>
+            </div>
+            <div className="d-block text-center my-3">
+              <h4 className="d-inline-block text-muted me-3">
+                Total order price
+              </h4>
+              <h1 className="d-inline-block">
+                {props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))).toFixed(2)}
+                €
+              </h1>
+            </div>
+            {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget < props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))) && (
+              <div className="d-block text-danger text-center my-auto">
+                {dangerIcon} The client wallet balance is not enough to complete the payment of this order.<br />
+                Please top-up the client wallet and then confirm the payment.
+              </div>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="danger" onClick={() => setShowPaymentModal(false)}>
+              Close
+            </Button>
+            <Button variant="success" disabled={props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget < props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice)))} onClick={() => { console.log('set true'); setPayOrder(true) }}>
+              Confirm order payment
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
 
       <Finestra
         show={show}

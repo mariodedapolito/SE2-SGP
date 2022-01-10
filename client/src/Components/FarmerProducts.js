@@ -50,7 +50,7 @@ function FarmerProducts(props) {
       setShowLoading(true);
       setRefreshExpected(false);
 
-      let prods = await API.getProviderExpectedProducts(
+      let prods = await API.getProviderAvailableProducts(
         nextWeek.year,
         nextWeek.week_number
       );
@@ -67,19 +67,13 @@ function FarmerProducts(props) {
 
       setExpectedProducts(expectedProds);
 
+      const providerProds = await API.getProviderProducts();
+      setProviderProducts(providerProds);
+
       setShowLoading(false);
     };
     getExpectedProducts();
   }, [refreshExpected]);
-
-  //Get provider products
-  useEffect(() => {
-    const getExistingProducts = async () => {
-      const prods = await API.getProviderProducts();
-      setProviderProducts(prods);
-    };
-    getExistingProducts();
-  }, []);
 
   //Get product categories
   useEffect(() => {
@@ -121,6 +115,8 @@ function FarmerProducts(props) {
         nextWeek.year,
         nextWeek.week_number
       );
+
+      console.log("hi");
 
       for (let i = 0; i < productIDs.length; i++) {
         let formData = new FormData();
@@ -318,7 +314,7 @@ function FarmerProducts(props) {
         </button>
         <button
           className="mx-2 mt-2 p-3 btn btn-success"
-          onClick={() => setSaveAvailability(true)}
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); setSaveAvailability(true) }}
         >
           Save expected availability
         </button>
@@ -743,6 +739,11 @@ function NewProductModalBody(props) {
                 </div>
               ))
             }
+            {props.providerProducts.length === 0 && (
+              <div className='d-block text-center my-3'>
+                You have no previously inserted products
+              </div>
+            )}
           </div>
         </div>
         <div className="d-block text-center mt-3">
@@ -1052,15 +1053,15 @@ function ModifyProductModalBody(props) {
   const [previewImage, setPreviewImage] = useState(
     props.productID !== -1
       ? URL.createObjectURL(
-          props.expectedProducts.find((p) => p.id === props.productID).image
-        )
+        props.expectedProducts.find((p) => p.id === props.productID).image
+      )
       : null
   );
   const [productName, setProductName] = useState(
     props.productID !== -1
       ? capitalizeEachFirstLetter(
-          props.expectedProducts.find((p) => p.id === props.productID).name
-        )
+        props.expectedProducts.find((p) => p.id === props.productID).name
+      )
       : ''
   );
   const [productDescription, setProductDescription] = useState(

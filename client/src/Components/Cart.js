@@ -39,8 +39,8 @@ function Cart(props) {
 
   const [shippingError, setShippingError] = useState('');
 
-  const [sendEmail, setSendEmail] = useState(true);
-  const [sendTelegram, setSendTelegram] = useState(true);
+  const [sendEmail, setSendEmail] = useState(false);
+  const [sendTelegram, setSendTelegram] = useState(false);
   const [resendEmail, setResendEmail] = useState(false);
 
   // let location = useLocation();
@@ -111,6 +111,7 @@ function Cart(props) {
         console.log(error);
         setPlaceOrder(false);
         props.setRecharged(true);
+        props.setRecharged1(true);
         setOrderAlert({ variant: 'danger', msg: 'Oops! Could not place the order. Please try again.' });
       }
     }
@@ -245,7 +246,7 @@ function Cart(props) {
       setShippingError('');
       items.forEach((item) => {
         orderItems.push({
-          order_id: Math.max(...props.orders.map((o) => (o.order_id))) + 1,
+          order_id: props.orders.length > 0 ? Math.max(...props.orders.map((o) => (o.order_id))) + 1 : 1,
           client_id: clientID,
           product_name: item.name,
           product_id: item.id,
@@ -253,7 +254,7 @@ function Cart(props) {
           state: orderTotal > client.budget ? 'pending' : 'booked',
           farmer_state: null,
           OrderPrice: item.buyQty * item.price,
-          id: Math.max(...props.orders.map((o) => (o.id))) + indexInc,
+          id: props.orders.length > 0 ? Math.max(...props.orders.map((o) => (o.id))) + indexInc : indexInc,
           address: address,
           city: city,
           nation: Country.getCountryByCode(nation).name,
@@ -277,7 +278,7 @@ function Cart(props) {
       setShippingError('');
       items.forEach((item) => {
         orderItems.push({
-          order_id: Math.max(...props.orders.map((o) => (o.order_id))) + 1,
+          order_id: props.orders.length > 0 ? Math.max(...props.orders.map((o) => (o.order_id))) + 1 : 1,
           client_id: clientID,
           product_name: item.name,
           product_id: item.id,
@@ -285,7 +286,7 @@ function Cart(props) {
           state: orderTotal > client.budget ? 'pending' : 'booked',
           farmer_state: null,
           OrderPrice: item.buyQty * item.price,
-          id: Math.max(...props.orders.map((o) => (o.id))) + indexInc,
+          id: props.orders.length > 0 ? Math.max(...props.orders.map((o) => (o.id))) + indexInc : indexInc,
           address: '',
           city: '',
           nation: '',
@@ -695,6 +696,7 @@ function Cart(props) {
                   <div className='d-block'>
                     <Form.Check
                       type="switch"
+                      disabled={client && (client.telegramId === '' || client.telegramId === null)}
                       checked={sendTelegram}
                       onChange={() => (setSendTelegram((send) => (!send)))}
                       id="custom-switch"

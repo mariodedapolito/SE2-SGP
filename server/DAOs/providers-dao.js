@@ -53,10 +53,9 @@ exports.getProviderById = (provider_id) => {
 
 exports.getProviderExistingProducts = (provider_id) => {
     return new Promise((resolve, reject) => {
-        const product_status = 'confirmed';
         const sql =
-            'SELECT * FROM products WHERE products.provider_id=? AND products.product_status=? GROUP BY product_name ORDER BY year, week_number DESC';
-        db.all(sql, [provider_id, product_status], (err, rows) => {
+            'SELECT * FROM products WHERE products.provider_id=? GROUP BY product_name ORDER BY year, week_number DESC';
+        db.all(sql, [provider_id], (err, rows) => {
             if (err) {
                 reject(err);
             }
@@ -315,7 +314,7 @@ exports.acceptApplication = (applicationID) => {
                             /*insert new farmer user*/
                             const dummy_user_id = null;
                             const sql2 =
-                                'INSERT INTO users( id, name, email, hash, role ) VALUES ( ?, ?, ?, ?, "farmer" )';
+                                'INSERT INTO users( id, name, email, hash, role, suspended ) VALUES ( ?, ?, ?, ?, "farmer", 0 )';
                             db.run(
                                 sql2,
                                 [

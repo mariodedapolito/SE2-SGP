@@ -979,7 +979,7 @@ function App() {
             path="/registration"
             exact
             render={() => (
-              <UserRegistration users={users} userRole={userRole} setAuthAlert={setAuthAlert} setRecharged={updateRech1} />
+              <UserRegistration users={users} userRole={userRole} setAuthAlert={setAuthAlert} setRecharged={updateRech} setRecharged1={updateRech1} />
             )}
           />
           <Route
