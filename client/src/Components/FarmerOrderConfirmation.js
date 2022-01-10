@@ -1,6 +1,6 @@
-import { Button, Spinner, Alert } from 'react-bootstrap';
+import { Button, Spinner, Alert, Modal } from 'react-bootstrap';
 import dayjs from 'dayjs';
-import { Link } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import API from '../API';
 
 dayjs.Ls.en.weekStart = 1; //set week start as monday
@@ -14,6 +14,7 @@ function FarmerOrderConfirmation(props) {
   const [unavailableProduct, setUnavailableProduct] = useState(-1);
 
   const [actionAlert, setActionAlert] = useState(null);
+  const history = useHistory();
 
   /*ship status alert*/
   const [refreshData, setRefreshData] = useState(true);
@@ -86,11 +87,24 @@ function FarmerOrderConfirmation(props) {
           /* order payed */
           if (o.state === 'booked') {
             await API.increaseBalance(o.OrderPrice.toFixed(2), o.client_id);
-            mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order and the balance was refunded to your wallet.\nKind regards\nSPG";
-          }
-          /* order pending */
-          else {
-            mailObj.message = "Dear " + client.name + " " + client.surname + ",\nUnfortunately due to unforeseen circumstances the item \"" + product.name + "\" was marked as unavailable from the farmer.\nThe item was removed from your order.\nKind regards\nSPG";
+            mailObj.message =
+              'Dear ' +
+              client.name +
+              ' ' +
+              client.surname +
+              ',\nUnfortunately due to unforeseen circumstances the item "' +
+              product.name +
+              '" was marked as unavailable from the farmer.\nThe item was removed from your order and the balance was refunded to your wallet.\nKind regards\nSPG';
+          } else {
+            /* order pending */
+            mailObj.message =
+              'Dear ' +
+              client.name +
+              ' ' +
+              client.surname +
+              ',\nUnfortunately due to unforeseen circumstances the item "' +
+              product.name +
+              '" was marked as unavailable from the farmer.\nThe item was removed from your order.\nKind regards\nSPG';
           }
           await API.submitEmail(mailObj);
         }
@@ -118,6 +132,23 @@ function FarmerOrderConfirmation(props) {
       .split(' ')
       .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
       .join(' ');
+  };
+
+  const confirmProductsAvailable = () => {
+    //Monday
+    if (dayjs(props.time.date).day() === 1) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
+        //Before MON 9AM -> available
+        return true;
+      }
+      //After MON 9AM -> unavailable
+      else {
+        //next week = week + 2
+        return false;
+      }
+    } else {
+      return false;
+    }
   };
 
   return (
@@ -214,6 +245,28 @@ function FarmerOrderConfirmation(props) {
         </div>
         <div className="d-block mb-5 text-center"></div>
       </div>
+      {!confirmProductsAvailable() && (
+        <Modal
+          show={true}
+          dismissible={false}
+          backdrop="static"
+          keyboard={false}
+        >
+          <Modal.Body>
+            The confirming windows is available only <b>on Monday until 9 AM</b>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              onClick={() => {
+                history.push('/farmer');
+              }}
+            >
+              Understood
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </>
   );
 }

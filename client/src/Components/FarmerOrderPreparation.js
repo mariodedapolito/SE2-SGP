@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import { Button, Spinner, Alert } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Button, Spinner, Alert, Modal } from 'react-bootstrap';
+import { useHistory, Link } from 'react-router-dom';
 import API from '../API';
 const { useState, useEffect } = require('react');
 
@@ -15,7 +15,7 @@ function FarmerOrderPreparation(props) {
   //const [shipmentWindowValidity, setShipmentWindowValidity] = useState(true);
   const [refreshData, setRefreshData] = useState(true);
   const [shipError, setShipError] = useState('');
-
+  const history = useHistory();
   /*items shipped alert*/
   const [itemsShippedAlert, setItemsShippedAlert] = useState(null);
 
@@ -37,24 +37,43 @@ function FarmerOrderPreparation(props) {
       const previousWeek = getPreviousWeek().week_number;
       const previousWeekYear = getPreviousWeek().year;
 
-      let orders = props.orders.filter(o => o.state === 'booked' && o.farmer_state === 'confirmed' && (props.products.find(p => p.id === o.product_id).week === previousWeek && props.products.find(p => p.id === o.product_id).year === previousWeekYear));
+      let orders = props.orders.filter(
+        (o) =>
+          o.state === 'booked' &&
+          o.farmer_state === 'confirmed' &&
+          props.products.find((p) => p.id === o.product_id).week ===
+            previousWeek &&
+          props.products.find((p) => p.id === o.product_id).year ===
+            previousWeekYear
+      );
       let orders_collapsed = [];
       for (const o of orders) {
-        if (orders_collapsed.find(order => order.product_id === o.product_id)) {
-          orders_collapsed.find(order => order.product_id === o.product_id).order_quantity += o.order_quantity;
-          orders_collapsed.find(order => order.product_id === o.product_id).orderPrice += o.orderPrice;
-        }
-        else {
+        if (
+          orders_collapsed.find((order) => order.product_id === o.product_id)
+        ) {
+          orders_collapsed.find(
+            (order) => order.product_id === o.product_id
+          ).order_quantity += o.order_quantity;
+          orders_collapsed.find(
+            (order) => order.product_id === o.product_id
+          ).orderPrice += o.orderPrice;
+        } else {
           orders_collapsed.push(o);
         }
       }
 
       let orders_collapsed_formatted = [];
       for (let o of orders_collapsed) {
-        if (props.products.find(p => p.id === o.product_id)) {
-          const prod = props.products.find(p => p.id === o.product_id);
+        if (props.products.find((p) => p.id === o.product_id)) {
+          const prod = props.products.find((p) => p.id === o.product_id);
           console.log(prod);
-          orders_collapsed_formatted.push({ id: prod.id, name: prod.name, tot_quantity: o.order_quantity, unit: prod.unit, prepared: 0 });
+          orders_collapsed_formatted.push({
+            id: prod.id,
+            name: prod.name,
+            tot_quantity: o.order_quantity,
+            unit: prod.unit,
+            prepared: 0,
+          });
         }
       }
 
@@ -78,13 +97,18 @@ function FarmerOrderPreparation(props) {
           .filter((p) => p.prepared === 1)
           .map((p) => p.id);
         await API.setProductsAsFarmerShipped(shippedIDs);
-        setBookedProducts((prods) => (prods.filter(p => p.prepared === 0)))
-        setItemsShippedAlert({ variant: 'success', msg: 'All the selected items were marked as prepared and shipped to the warehouse' });
+        setBookedProducts((prods) => prods.filter((p) => p.prepared === 0));
+        setItemsShippedAlert({
+          variant: 'success',
+          msg: 'All the selected items were marked as prepared and shipped to the warehouse',
+        });
         props.setRecharged(true);
         setConfirmShipment(false);
-      }
-      catch (error) {
-        setItemsShippedAlert({ variant: 'danger', msg: 'Oops! The items could not be prepared. Please try again.' });
+      } catch (error) {
+        setItemsShippedAlert({
+          variant: 'danger',
+          msg: 'Oops! The items could not be prepared. Please try again.',
+        });
       }
     };
     shipItems();
@@ -125,6 +149,23 @@ function FarmerOrderPreparation(props) {
       .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
       .join(' ');
   };
+  const prepareProductsAvailable = () => {
+    //Sunday
+    if (dayjs(props.time.date).day() === 1) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() >= 9) {
+        //After MON 9AM -> available
+        return true;
+      } else {
+        return false;
+      }
+    }
+    //Monday
+    else if (dayjs(props.time.date).day() === 2) {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   return (
     <>
@@ -133,9 +174,11 @@ function FarmerOrderPreparation(props) {
           Order preparation
         </span>
         <h5 className="d-block mx-auto mb-5 text-center text-muted">
-          Select the items which the client has ordered & payed that you have prepared for shipping to the SPG warehouse.
+          Select the items which the client has ordered & payed that you have
+          prepared for shipping to the SPG warehouse.
           <br />
-          Any additional order that was left pending and that will be payed by the client during this Shipping Window will be shown here.
+          Any additional order that was left pending and that will be payed by
+          the client during this Shipping Window will be shown here.
         </h5>
         <div className="container">
           <div className="row">
@@ -146,82 +189,88 @@ function FarmerOrderPreparation(props) {
                   variant={itemsShippedAlert.variant}
                   className="text-center my-3 mx-5"
                   dismissible={true}
-                  onClose={() => setItemsShippedAlert(null)} >
+                  onClose={() => setItemsShippedAlert(null)}
+                >
                   {itemsShippedAlert.msg}
-                </Alert>)}
+                </Alert>
+              )}
               {showLoading && (
                 <div className="d-block text-center p-5">
                   <Spinner className="m-5" animation="grow" />
                 </div>
               )}
-              {/*shipmentWindowValidity &&*/ !showLoading && (
-                <div className="d-block text-center">
-                  {
-                    /*DISPLAYING NOTIFICATION IF NO PRODUCTS ORDERED YET*/
-                    bookedProducts.length === 0 && /*!itemsAlreadyShipped &&*/ (
-                      <div className="d-block text-center">
-                        No orders received yet.
-                      </div>
-                    )
-                  }
-                  {/*DISPLAYING CURRENTLY INSERTED PRODUCTS*/}
-                  <ul className="list-group list-group-flush mx-auto">
-                    {bookedProducts.map((product) => {
-                      return (
-                        <li key={product.id} className="list-group-item">
-                          <div className="row w-100">
-                            <div className="col-md-1 mb-2 my-auto">
-                              <img
-                                className="w-100 shadow rounded-circle"
-                                src={
-                                  process.env.PUBLIC_URL +
-                                  'products/' +
-                                  product.id +
-                                  '.jpg'
-                                }
-                                alt="Product img"
-                              />
-                            </div>
-                            <div className="col-md-5 mb-2 text-start my-auto">
-                              <h4>{capitalizeEachFirstLetter(product.name)}</h4>
-                            </div>
-                            <div className="col-md-3 mb-2 text-start my-auto">
-                              {stockIcon}{' '}
-                              {product.tot_quantity + ' ' + product.unit}
-                            </div>
-                            <div className="col-md-3 mb-2 text-center my-auto">
-                              {product.prepared === 0 && (
-                                <button
-                                  className="btn btn-success shadow"
-                                  onClick={() =>
-                                    setBookedProducts((prods) => {
-                                      const newProds = [];
-                                      for (const prod of prods) {
-                                        if (prod.id === product.id) {
-                                          prod.prepared = 1;
-                                        }
-                                        newProds.push(prod);
-                                      }
-                                      return newProds;
-                                    })
+              {
+                /*shipmentWindowValidity &&*/ !showLoading && (
+                  <div className="d-block text-center">
+                    {
+                      /*DISPLAYING NOTIFICATION IF NO PRODUCTS ORDERED YET*/
+                      bookedProducts.length === 0 && (
+                        /*!itemsAlreadyShipped &&*/ <div className="d-block text-center">
+                          No orders received yet.
+                        </div>
+                      )
+                    }
+                    {/*DISPLAYING CURRENTLY INSERTED PRODUCTS*/}
+                    <ul className="list-group list-group-flush mx-auto">
+                      {bookedProducts.map((product) => {
+                        return (
+                          <li key={product.id} className="list-group-item">
+                            <div className="row w-100">
+                              <div className="col-md-1 mb-2 my-auto">
+                                <img
+                                  className="w-100 shadow rounded-circle"
+                                  src={
+                                    process.env.PUBLIC_URL +
+                                    'products/' +
+                                    product.id +
+                                    '.jpg'
                                   }
-                                >
-                                  Confirm prepared & shipped
-                                </button>
-                              )}
-                              {product.prepared === 1 && (
-                                <span className="d-block text-center text-success">
-                                  {checkIcon} Marked as prepared
-                                </span>
-                              )}
+                                  alt="Product img"
+                                />
+                              </div>
+                              <div className="col-md-5 mb-2 text-start my-auto">
+                                <h4>
+                                  {capitalizeEachFirstLetter(product.name)}
+                                </h4>
+                              </div>
+                              <div className="col-md-3 mb-2 text-start my-auto">
+                                {stockIcon}{' '}
+                                {product.tot_quantity + ' ' + product.unit}
+                              </div>
+                              <div className="col-md-3 mb-2 text-center my-auto">
+                                {product.prepared === 0 && (
+                                  <button
+                                    className="btn btn-success shadow"
+                                    onClick={() =>
+                                      setBookedProducts((prods) => {
+                                        const newProds = [];
+                                        for (const prod of prods) {
+                                          if (prod.id === product.id) {
+                                            prod.prepared = 1;
+                                          }
+                                          newProds.push(prod);
+                                        }
+                                        return newProds;
+                                      })
+                                    }
+                                  >
+                                    Confirm prepared & shipped
+                                  </button>
+                                )}
+                                {product.prepared === 1 && (
+                                  <span className="d-block text-center text-success">
+                                    {checkIcon} Marked as prepared
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )
+              }
             </div>
             <div className="col-lg-2" />
           </div>
@@ -241,6 +290,29 @@ function FarmerOrderPreparation(props) {
           </Button>
         </div>
       </div>
+      {!prepareProductsAvailable() && (
+        <Modal
+          show={true}
+          dismissible={false}
+          backdrop="static"
+          keyboard={false}
+        >
+          <Modal.Body>
+            The preparing windows is available from:{' '}
+            <b>Monday 09 AM until Tuesday evening </b>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              onClick={() => {
+                history.push('/farmer');
+              }}
+            >
+              Understood
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </>
   );
 }
