@@ -4,6 +4,8 @@ import ClientAlert from './ClientAlert';
 import { Alert, Button, Container, Modal, Row } from 'react-bootstrap';
 import { useState } from 'react';
 import dayjs from 'dayjs';
+import API from '../API';
+
 
 function ClientArea(props) {
   const [showWalletModal, setShowWalletModal] = useState(false);
