@@ -580,7 +580,7 @@ app.put(
     } catch (err) {
       res.status(503).json({
         code: 503,
-        error: `Unavailable service during the update of order`,
+        error: `Unavailable service during the update of user`,
       });
     }
   }
