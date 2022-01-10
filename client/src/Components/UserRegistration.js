@@ -63,7 +63,8 @@ function UserRegistration(props) {
           email: email,
           hash: password1,
           role: 'client',
-          suspended: 0
+          suspended: 0,
+          date_suspension: null,
         };
 
         await API.addClient(newClient);
