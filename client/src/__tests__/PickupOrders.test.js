@@ -21,7 +21,7 @@ const renderResult = render(<PickupOrders orders={testOrders} missed={missed} cl
     expect(renderResult.getByText('Alan Green')).toBeInTheDocument();
     expect(renderResult.getByText("1.23€")).toBeInTheDocument();
     expect(renderResult.getByText("Tue, Dec 21, 2021 11:00")).toBeInTheDocument();
-    expect(renderResult.getByText("missed")).toBeInTheDocument();
+    expect(renderResult.getByText("Mark as missed")).toBeInTheDocument();
     
-    fireEvent.click(screen.getByText('missed'));
+    fireEvent.click(screen.getByText('Mark as missed'));
 });
