@@ -32,7 +32,7 @@ function PickupListEmployee(props) {
 
       const condensedOrders = new Map();
 
-      (await API.getAllOrders()).filter(o => o.pickup === 1 && (o.state !== 'prepared' && o.state !== 'shipped' && o.state!=='delivered')
+      (await API.getAllOrders()).filter(o => o.pickup === 1 && (o.state !== 'prepared' && o.state !== 'shipped' && o.state !== 'delivered' && o.state !== 'pending')
         && props.products.find((p) => (p.id === o.product_id)).week === previousWeek
         && props.products.find((p) => (p.id === o.product_id)).year === previousWeekYear)
         .forEach((order) => {
