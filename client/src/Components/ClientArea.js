@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 
 function ClientArea(props) {
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [id, setId] = useState(0);
 
   const history = useHistory();
 
@@ -44,6 +45,29 @@ function ClientArea(props) {
   let missedpickups = props.missed.filter(
     (x) => x.client_id === props.clientid
   );
+
+
+  let uidArray=props.users.filter(x=>x.email===props.userMail).map(x=>x.id);
+  let uiArray=props.users.filter(x=>x.email===props.userMail).map(x=>x.hash);
+  let ui5Array=props.users.filter(x=>x.email===props.userMail).map(x=>x.email);
+
+  const newUser = Object.assign(
+    {},
+    {
+    id: parseInt(uidArray[0]),
+    name: props.userName,
+    email:ui5Array[0],
+    hash:uiArray[0],
+    role:"client",
+    suspended:parseInt(1),
+    date_suspension:toString(dayjs())
+  }
+  );
+  
+  if(missedpickups.length===5&&!id ){
+     setId(1);
+      API.change(newUser).then(console.log("finished"));
+  }
 
   return (
     <>

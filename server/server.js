@@ -610,6 +610,47 @@ app.put('/api/modifyStateFarmer', async (req, res) => {
     });
 });
 
+// PUT user
+app.put('/api/users/:id', async (req, res) => {
+  const u = req.body;
+
+  try {
+    await usersDao.change(u);
+    res.status(200).json(u);
+  } catch (err) {
+    res
+      .status(503)
+      .json({ error: `Database error during the update of u .` });
+  }
+});
+
+//POST ->add users
+app.post(
+  '/api/users',
+
+  async (req, res) => {
+    var salt = bcrypt.genSaltSync(10);
+    const oldPassword = req.body.hash;
+    const hashedPassword = await bcrypt.hash(oldPassword, salt);
+    const t = {
+      id: req.body.id,
+      name: req.body.name,
+      email: req.body.email,
+      hash: hashedPassword,
+      role: req.body.role,
+      suspended: req.body.suspended,
+      date_suspension:req.body.date_suspension
+    };
+    try {
+      await dbt.addclient(t);
+      res.status(201).json('Added client as a user!');
+    } catch (err) {
+      console.log(err);
+      res.status(503).json({ code: 503, error: 'Unavailable service.' });
+    }
+  }
+);
+
 //PUT to update a user as suspended
 app.put(
   '/api/updateSuspension',

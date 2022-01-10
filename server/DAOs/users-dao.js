@@ -11,9 +11,9 @@ exports.setTestDB = (db_name) => {
 // Add a new client
 exports.addclient = (t) => {
     return new Promise((resolve, reject) => {
-        const suspended=0
-        const sql = 'INSERT INTO users( id, name, email, hash, role, suspended ) VALUES ( NULL, ?, ?, ?, ?, ? )';
-        db.run(sql, [t.name, t.email, t.hash, t.role, suspended], function (err) {
+       
+        const sql = 'INSERT INTO users( id, name, email, hash, role, suspended,date_suspension ) VALUES ( NULL, ?, ?, ?, ?, ? ,?)';
+        db.run(sql, [t.name, t.email, t.hash, t.role, t.suspended,t.date_suspension], function (err) {
             if (err) {
                 reject(err);
 
@@ -39,7 +39,8 @@ exports.getAllUsers = () => {
                 email: e.email,
                 hash: e.hash,
                 role: e.role, 
-                suspended: e.suspended
+                suspended: e.suspended,
+                date_suspension:e.date_suspension
             }));
             resolve(o);
         });
@@ -58,7 +59,7 @@ exports.getUser = (email, password) => {
                 resolve(false);
             }
             else {
-                const user = { id: row.id, username: row.email, name: row.name, role: row.role, suspended: row.suspended };
+                const user = { id: row.id, username: row.email, name: row.name, role: row.role, suspended: row.suspended, date_suspension:row.date_suspension };
                 bcrypt.compare(password, row.hash).then(result => {
                     if (result)
                         resolve(user); 
@@ -80,7 +81,7 @@ exports.getUserById = (id) => {
             else if (row === undefined)
                 resolve({ error: 'User not found.' });
             else {
-                const user = { id: row.id, username: row.email, name: row.name, role: row.role, suspended: row.suspended }
+                const user = { id: row.id, username: row.email, name: row.name, role: row.role, suspended: row.suspended,date_suspension: row.date_suspension }
                 resolve(user);
             }
         });
@@ -122,7 +123,7 @@ exports.suspension = async (id) => {
   
     return new Promise((resolve, reject) => {
       const sql =
-        'UPDATE users SET id=?, name=?, email=?, hash=?, role=?, suspended=? WHERE id=?';
+        'UPDATE users SET id=?, name=?, email=?, hash=?, role=?, suspended=?,date_suspension=? WHERE id=?';
       db.run(
         sql,
         [
@@ -132,7 +133,9 @@ exports.suspension = async (id) => {
           test.hash,
           test.role,
           1,
-          id,
+          test.date_suspension,
+          id
+          
         ],
         function (err) {
           if (err) {
@@ -160,3 +163,32 @@ exports.getProviderIDfromUserID = (user_id) => {
         });
     });
 }
+//update a booked item
+exports.change = async (item) => {
+
+
+    return new Promise((resolve, reject) => {
+      const sql =
+        'UPDATE users SET id=?, name=?, email=?, hash=?, role=?, suspended=?, date_suspension=? WHERE id=? ';
+      db.run(
+        sql,
+        [
+          item.id,
+          item.name,
+          item.email,
+          item.hash,
+          item.role,
+          item.suspended,
+          item.date_suspension,
+          item.id
+        ],
+        function (err) {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(item);
+        }
+      );
+    });
+  };
