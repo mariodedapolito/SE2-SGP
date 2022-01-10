@@ -81,7 +81,7 @@ function PickupOrders(props) {
                             .surname
                         : 'Unknown'}
                     </td>
-                    <td className="align-middle">{sum.toFixed(2)}€</td>
+                    <td className="align-middle">{sum}€</td>
                     <td className="align-middle">
                       {dayjs(s.date + ' ' + s.time).format(
                         'ddd, MMM D, YYYY HH:mm'
