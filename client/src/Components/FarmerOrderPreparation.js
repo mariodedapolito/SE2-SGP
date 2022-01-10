@@ -109,9 +109,9 @@ function FarmerOrderPreparation(props) {
           Order preparation
         </span>
         <h5 className="d-block mx-auto mb-5 text-center text-muted">
-          Select the items which you have prepared for shipping.
+          Select the items which the client has ordered & payed that you have prepared for shipping to the SPG warehouse.
           <br />
-          After selecting all the items you can ship the order.
+          Any additional order that was left pending and that will be payed by the client during this Shipping Window will be shown here.
         </h5>
         <div className="container">
           <div className="row">
