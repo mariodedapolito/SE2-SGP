@@ -37,18 +37,35 @@ function FarmerOrderPreparation(props) {
       const previousWeek = getPreviousWeek().week_number;
       const previousWeekYear = getPreviousWeek().year;
 
-      const prods = (
-        await API.getOrderedProductsForProvider(
-          previousWeek,
-          previousWeekYear
-        )
-      ).map((p) => ({ ...p, prepared: 0 }));
-      setBookedProducts(prods);
+      let orders = props.orders.filter(o => o.state === 'booked' && o.farmer_state === 'confirmed' && (props.products.find(p => p.id === o.product_id).week === previousWeek && props.products.find(p => p.id === o.product_id).year === previousWeekYear));
+      let orders_collapsed = [];
+      for (const o of orders) {
+        if (orders_collapsed.find(order => order.product_id === o.product_id)) {
+          orders_collapsed.find(order => order.product_id === o.product_id).order_quantity += o.order_quantity;
+          orders_collapsed.find(order => order.product_id === o.product_id).orderPrice += o.orderPrice;
+        }
+        else {
+          orders_collapsed.push(o);
+        }
+      }
+
+      let orders_collapsed_formatted = [];
+      for (let o of orders_collapsed) {
+        if (props.products.find(p => p.id === o.product_id)) {
+          const prod = props.products.find(p => p.id === o.product_id);
+          console.log(prod);
+          orders_collapsed_formatted.push({ id: prod.id, name: prod.name, tot_quantity: o.order_quantity, unit: prod.unit, prepared: 0 });
+        }
+      }
+
+      console.log(orders_collapsed_formatted);
+
+      setBookedProducts(orders_collapsed_formatted);
       setRefreshData(false);
       setShowLoading(false);
     };
     getBookedOrders();
-  }, [refreshData, props.time.date, props.time.hour]);
+  }, [refreshData, props.time.date, props.time.hour, props.orders]);
 
   /*Set order status as farmer-shipped*/
   useEffect(() => {
@@ -56,12 +73,19 @@ function FarmerOrderPreparation(props) {
       return;
     }
     const shipItems = async () => {
-      const shippedIDs = bookedProducts
-        .filter((p) => p.prepared === 1)
-        .map((p) => p.id);
-      await API.setProductsAsFarmerShipped(shippedIDs);
-      setRefreshData(true);
-      setItemsShippedAlert({ variant: 'success', msg: 'All the selected items were marked as prepared and shipped to the warehouse' })
+      try {
+        const shippedIDs = bookedProducts
+          .filter((p) => p.prepared === 1)
+          .map((p) => p.id);
+        await API.setProductsAsFarmerShipped(shippedIDs);
+        setBookedProducts((prods) => (prods.filter(p => p.prepared === 0)))
+        setItemsShippedAlert({ variant: 'success', msg: 'All the selected items were marked as prepared and shipped to the warehouse' });
+        props.setRecharged(true);
+        setConfirmShipment(false);
+      }
+      catch (error) {
+        setItemsShippedAlert({ variant: 'danger', msg: 'Oops! The items could not be prepared. Please try again.' });
+      }
     };
     shipItems();
   }, [confirmShipment]);
@@ -182,7 +206,7 @@ function FarmerOrderPreparation(props) {
                                     })
                                   }
                                 >
-                                  Confirm prepared & shipped to warehouse
+                                  Confirm prepared & shipped
                                 </button>
                               )}
                               {product.prepared === 1 && (

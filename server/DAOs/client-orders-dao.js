@@ -169,8 +169,6 @@ exports.prepared = async (order_id, product_name) => {
 
 
 exports.changeState = async (id, state) => {
-
-
   return new Promise((resolve, reject) => {
     const sql =
       'UPDATE orders SET state=? WHERE order_id=? ';
@@ -191,6 +189,26 @@ exports.changeState = async (id, state) => {
   });
 };
 
+exports.changeStateOnce = async (id, state) => {
+  return new Promise((resolve, reject) => {
+    const sql =
+      'UPDATE orders SET state=? WHERE id=? ';
+    db.run(
+      sql,
+      [
+        state,
+        id
+      ],
+      function (err) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(null);
+      }
+    );
+  });
+};
 
 // insert a new order
 exports.insert_order = async (client_id, totalorderprice) => {
@@ -304,11 +322,13 @@ exports.setOrderAsWarehousePrepared = (product_id) => {
 
 exports.getBookedOrders = (provider_id, year, week_number) => {
   return new Promise((resolve, reject) => {
-    const sql =
-      'SELECT products.product_id AS productID, products.product_name, SUM(order_quantity) AS TotQty, products.product_unit ' +
-      'FROM products, orders ' +
-      'WHERE products.provider_id=? AND products.year=? AND products.week_number=? AND products.product_id=orders.product_id AND orders.state="booked" AND orders.farmer_state="confirmed" ' +
-      'GROUP BY products.product_id, products.product_name, products.product_unit';
+    console.log(provider_id);
+    console.log(year);
+    console.log(week_number);
+    const state = "booked";
+    const farmer_state = "confirmed";
+    const sql = 'SELECT products.product_id AS productID, products.product_name, SUM(order_quantity) AS TotQty, products.product_unit FROM products, orders WHERE products.provider_id=? AND products.year=? AND products.week_number=? AND products.product_id=orders.product_id GROUP BY products.product_id, products.product_name, products.product_unit ';
+
     db.all(sql, [provider_id, year, week_number], (err, rows) => {
       if (err) {
         reject(err);

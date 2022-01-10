@@ -21,7 +21,8 @@ exports.getAllProducts = () => {
       if (err) {
         reject(err);
       }
-      const products = rows.map((p) => ({
+      console.log(rows)
+;      const products = rows.map((p) => ({
         id: p.product_id,
         name: p.product_name,
         description: p.product_description,

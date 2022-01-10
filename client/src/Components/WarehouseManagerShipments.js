@@ -40,15 +40,18 @@ function WarehouseManagerShipments(props) {
     const loadOrders = async () => {
       setLoading(true);
       const prods = await API.getAllProducts();
+
       setProducts(prods);
 
       const previousWeek = getPreviousWeek().week_number;
       const previousWeekYear = getPreviousWeek().year;
 
+
       let orders = (await API.getAllOrders()).
         filter(o => o.farmer_state === 'farmer-shipped'
-          && prods.find((p) => (p.id === o.product_id).week === previousWeek)
-          && prods.find((p) => (p.id === o.product_id).year === previousWeekYear));
+          && o.state === 'booked'
+          && prods.find((p) => (p.id === o.product_id)).week === previousWeek
+          && prods.find((p) => (p.id === o.product_id)).year === previousWeekYear).map(o => ({ ...o, provider_id: prods.find((p) => (p.id === o.product_id)).providerId }));
 
       /* filter orders if provider selected from dropdown */
       if (providerFilterID !== -1) {
@@ -136,13 +139,15 @@ function FarmerShippedOrderTable(props) {
 
   const [receivedID, setReceivedID] = useState(null);
 
+  console.log(props.providerOrd);
+
   useEffect(() => {
     if (receivedID === null) {
       return;
     }
     const updateOrderState = async () => {
       try {
-        await API.updateStateFarmer(receivedID.order_id, receivedID.product_id, 'received');
+        await API.updateStateOnce(receivedID.id, 'received');
         const productName = props.products.find((p) => (p.id === receivedID.product_id)) ? capitalizeEachFirstLetter(props.products.find((p) => (p.id === receivedID.product_id)).name) : "Unkown product";
         props.setReceivedAlert({ msg: productName + " from order #" + receivedID.order_id + " were successfully received.", variant: "success" });
       }
@@ -203,7 +208,7 @@ function FarmerShippedOrderTable(props) {
                 {s.order_quantity} {props.products.find((p) => (p.id === s.product_id)) ? props.products.find((p) => (p.id === s.product_id)).unit : ""}
               </td>
               <td className="align-middle">
-                <Button variant="success" onClick={() => { setReceivedID({ order_id: s.order_id, product_id: s.product_id }); }}>
+                <Button variant="success" onClick={() => { setReceivedID({ order_id: s.order_id, id: s.id, product_id: s.product_id }); }}>
                   <BoxSeam /> Confirm received
                 </Button>
               </td>

@@ -556,6 +556,20 @@ app.put('/api/modifyState', async (req, res) => {
 });
 
 // PUT update state
+app.put('/api/modifyStateOnce', async (req, res) => {
+  ordersDao
+    .changeStateOnce(req.body.id, req.body.state)
+    .then(() => {
+      res.status(200).json('ok');
+      return res;
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json(error);
+    });
+});
+
+// PUT update state
 app.put('/api/modifyStateFarmer', async (req, res) => {
   warehouseDao
     .changeStateFarmer(req.body.id, req.body.product_id, req.body.state)

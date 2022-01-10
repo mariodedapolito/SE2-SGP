@@ -188,7 +188,7 @@ function FarmerRegistration(props) {
     <>
 
       <div className="d-block mx-auto my-5 w-75">
-        {loading && <Spinner animation="grow" />}
+        {loading && <div className='d-block text-center'><Spinner animation="grow" /></div>}
         {!loading && applicationSent &&
           <Alert show={true} variant="success">
             <Alert.Heading>Application status</Alert.Heading>
@@ -210,7 +210,7 @@ function FarmerRegistration(props) {
         {!loading && !applicationSent && <>
           <div className="d-block text-center border border-secondary rounded-3 shadow w-100">
             <span className="d-block text-center mt-3 mb-5 display-2">Farmer application form</span>
-            <Form onSubmit={handleSubmit} className="m-3">
+            <Form onSubmit={(event) => handleSubmit(event)} className="m-3">
               {/*Personal information*/}
               <h4 className="text-start mb-3">Your data</h4>
               <Row>

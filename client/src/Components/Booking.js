@@ -566,7 +566,7 @@ function Booking(props) {
         </Row>
       </>
     );
-  }
+  }  
 
   return (
     <>

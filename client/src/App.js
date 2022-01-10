@@ -213,6 +213,7 @@ function App() {
     const getAllProducts = async () => {
       await API.getAllProducts()
         .then((res) => {
+          console.log(res);
           setProducts(res);
         })
         .catch((err) => {
@@ -880,7 +881,7 @@ function App() {
             exact
             render={() =>
               logged ? (
-                <FarmerOrderPreparation time={time} />
+                <FarmerOrderPreparation time={time} orders={orders} products={products} setRecharged={updateRech} />
               ) : (
                 <Redirect to="/login" />
               )

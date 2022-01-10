@@ -314,8 +314,6 @@ function ApplicationInspector(props) {
       return;
     }
     const update = async () => {
-      setUpdateApplication('');
-
       if (updateApplication === 'accept') {
         const response = await API.acceptFarmerApplication(
           props.application.id
@@ -347,6 +345,7 @@ function ApplicationInspector(props) {
           });
         }
       }
+      setUpdateApplication('');
       props.setInspectApplication(null);
       if (props.pendingOnly) {
         props.setRefreshPendingApplications(true);
@@ -560,7 +559,7 @@ function ApplicationInspector(props) {
               type="button"
               size="lg"
               className="mx-2 mb-2"
-              onClick={() => props.setInspectApplication(null)}
+              onClick={(event) => { event.preventDefault(); event.stopPropagation(); props.setInspectApplication(null) }}
             >
               Finish inspection and go back
             </Button>
@@ -570,7 +569,7 @@ function ApplicationInspector(props) {
                 type="button"
                 size="lg"
                 className="mx-2 mb-2"
-                onClick={() => setUpdateApplication('accept')}
+                onClick={(event) => { event.preventDefault(); event.stopPropagation(); setUpdateApplication('accept'); }}
               >
                 Accept appplication
               </Button>

@@ -25,48 +25,46 @@ function PickupListEmployee(props) {
     }
     setUpdateOrders(false);
 
-    const previousWeek = getPreviousWeek().week_number;
-    const previousWeekYear = getPreviousWeek().year;
+    const getOrds = async () => {
 
-    const condensedOrders = new Map();
+      const previousWeek = getPreviousWeek().week_number;
+      const previousWeekYear = getPreviousWeek().year;
 
-    props.orders.filter(o => o.state === 'received'
-      && o.pickup === 1
-      && props.products.find((p) => (p.id === o.product_id).week === previousWeek)
-      && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear))
-      .forEach((order) => {
-        if (!condensedOrders.has(order.order_id)) {
-          condensedOrders.set(order.order_id, { order_complete: true, order_array: new Array() });
-        }
-        condensedOrders.get(order.order_id).order_array.push(order);
+      const condensedOrders = new Map();
+
+      (await API.getAllOrders()).filter(o => o.pickup === 1 && (o.state !== 'prepared' && o.state !== 'shipped' && o.state!=='delivered')
+        && props.products.find((p) => (p.id === o.product_id)).week === previousWeek
+        && props.products.find((p) => (p.id === o.product_id)).year === previousWeekYear)
+        .forEach((order) => {
+          if (!condensedOrders.has(order.order_id)) {
+            condensedOrders.set(order.order_id, { order_received: true, order_array: new Array() });
+          }
+          condensedOrders.get(order.order_id).order_array.push(order);
+        });
+
+      condensedOrders.forEach((order_obj) => {
+        const order_array = order_obj.order_array;
+        order_array.forEach((order) => {
+          if (order.state !== 'received') {
+            order_obj.order_received = false;
+          }
+        });
       });
+      setOrdersMap(condensedOrders);
 
-    // condensedOrders.forEach((order_obj) => {
-    //   let deleteOrderFlag = false;
-    //   const order_array = order_obj.order_array;
-    //   order_array.forEach((order) => {
-    //     if (order.pickup === 0 || order.state !== 'received' || order.state === 'prepared' || order.state === 'shipped' || order.state === 'delivered') {
-    //       deleteOrderFlag = true;
-    //     }
-    //     if (order.farmer_state !== 'received') {
-    //       order_obj.order_complete = false;
-    //     }
-    //   });
-    //   if (deleteOrderFlag) {
-    //     condensedOrders.delete(order_array[0].order_id);
-    //   }
-    // });
-    setOrdersMap(condensedOrders);
-
-    const ords = [];
-    condensedOrders.forEach((order_obj) => {
-      let sum = 0;
-      order_obj.order_array.forEach((order) => {
-        sum += order.OrderPrice;
+      const ords = [];
+      condensedOrders.forEach((order_obj) => {
+        let sum = 0;
+        order_obj.order_array.forEach((order) => {
+          sum += order.OrderPrice;
+        });
+        ords.push({ order_id: order_obj.order_array[0].order_id, client_id: order_obj.order_array[0].client_id, sum: sum, date: order_obj.order_array[0].date, time: order_obj.order_array[0].time, order_received: order_obj.order_received })
       });
-      ords.push({ order_id: order_obj.order_array[0].order_id, client_id: order_obj.order_array[0].client_id, sum: sum, date: order_obj.order_array[0].date, time: order_obj.order_array[0].time, order_complete: order_obj.order_complete })
-    });
-    setOrders(ords);
+      setOrders(ords);
+    }
+
+    getOrds();
+
   }, [props.time.date, updateOrders])
 
   useEffect(() => {
@@ -86,7 +84,7 @@ function PickupListEmployee(props) {
       setUpdateOrders(true);
     }
     updateOrderPrepared();
-  }, [prepare])
+  }, [prepare]);
 
   const capitalizeEachFirstLetter = (str) => {
     return str
@@ -142,7 +140,7 @@ function PickupListEmployee(props) {
                   </span>
                 </td>
                 <td className="align-middle">
-                  <Button variant="success" disabled={!s.order_complete} onClick={() => { setPrepare(true); setPrepareID(s.order_id); }}>
+                  <Button variant="success" disabled={!s.order_received} onClick={() => { setPrepare(true); setPrepareID(s.order_id); }}>
                     <BoxSeam /> Confirm preparation
                   </Button>
                 </td>
@@ -162,6 +160,11 @@ function PickupListEmployee(props) {
             )}
           </tbody>
         </table>
+        {orders.length === 0 && (
+          <div className='d-block text-center my-3'>
+            There are no orders to be prepared for pick-up.
+          </div>
+        )}
       </div>
 
 
@@ -199,7 +202,12 @@ function PickupListEmployee(props) {
                     {priceIcon} {s.OrderPrice.toFixed(2)}€
                   </div>
                 </div>
-                {s.farmer_state === "farmer-shipped" &&
+                {s.state === 'received' &&
+                  <div className="d-block text-center">
+                    <small className='text-success'>The product was received by the warehouse</small>
+                  </div>
+                }
+                {s.farmer_state === "farmer-shipped" && s.state !== 'received' &&
                   <div className="d-block text-center">
                     <small className='text-danger'>This product was shipped by the farmer but has not been received yet</small>
                   </div>

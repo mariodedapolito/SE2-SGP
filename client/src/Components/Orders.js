@@ -39,7 +39,7 @@ function Orders(props) {
   }, [props.orderModified])
 
   const currWeekNumber = dayjs(props.time.date).week();
-  let m = props.orders.filter(x => x.client_id === props.clientid && (props.products.find(p => p.id === x.product_id).week === currWeekNumber || props.products.find(p => p.id === x.product_id).week === currWeekNumber - 1)).map(s => s.order_id).filter(onlyUnique);
+  let m = props.orders.filter(x => x.client_id === props.clientid).map(s => s.order_id).filter(onlyUnique);
   m.reverse();
 
   const modifyOrderAvailable = (productID) => {
@@ -202,9 +202,9 @@ function ProductList(props) {
       return;
     }
 
-    if (modifyOrderAvailable) {
+    if (modifyOrderAvailable()) {
       const currentWeekNumber = dayjs(props.time.date).week();
-      props.orders.filter((o) => (o.order_id === props.id && props.products.find(p => p.id === o.product_id).week === currentWeekNumber)).forEach(o => {
+      props.orders.filter((o) => (o.order_id === props.id)).forEach(o => {
         if (o.state !== 'booked' || o.farmer_state !== null) {
           setAllowModify(false);
           return;
@@ -464,7 +464,7 @@ function OrderStatus(props) {
         orderStatus.farmer.shipped = true;
         orderStatus.warehouse.received = true;
         orderStatus.warehouse.prepared = true;
-        orderStatus.delivery.picked_up = true;
+        orderStatus.delivery.delivered = true;
         orderStatus.order_completed = true;
         orderStatus.num_steps = 5;
       }

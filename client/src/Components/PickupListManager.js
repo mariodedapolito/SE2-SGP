@@ -25,55 +25,61 @@ function PickupListManager(props) {
     if (!updateOrders) {
       return;
     }
-    setUpdateOrders(false);
 
-    const previousWeek = getPreviousWeek().week_number;
-    const previousWeekYear = getPreviousWeek().year;
+    const getOrders = async () => {
 
-    const condensedOrders = new Map();
+      setUpdateOrders(false);
 
-    props.orders.filter(o => o.pickup === 1
-      && props.products.find((p) => (p.id === o.product_id).week === previousWeek)
-      && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear))
-      .forEach((order) => {
-        if (!condensedOrders.has(order.order_id)) {
-          condensedOrders.set(order.order_id, { order_prepared: false, order_delivered: false, order_array: new Array() });
-        }
-        condensedOrders.get(order.order_id).order_array.push(order);
+      const previousWeek = getPreviousWeek().week_number;
+      const previousWeekYear = getPreviousWeek().year;
+
+      const condensedOrders = new Map();
+
+
+      (await API.getAllOrders()).filter(o => o.pickup === 1
+        && props.products.find((p) => (p.id === o.product_id)).week === previousWeek
+        && props.products.find((p) => (p.id === o.product_id)).year === previousWeekYear)
+        .forEach((order) => {
+          if (!condensedOrders.has(order.order_id)) {
+            condensedOrders.set(order.order_id, { order_prepared: false, order_delivered: false, order_array: new Array() });
+          }
+          condensedOrders.get(order.order_id).order_array.push(order);
+        });
+
+      condensedOrders.forEach((order_obj) => {
+        const order_array = order_obj.order_array;
+        order_array.forEach((order) => {
+          if (order.state === 'prepared') {
+            order_obj.order_prepared = true;
+          }
+          if (order.farmer_state === 'delivered') {
+            order_obj.order_delivered = true;
+          }
+        });
       });
+      setOrdersMap(condensedOrders);
 
-    condensedOrders.forEach((order_obj) => {
-      const order_array = order_obj.order_array;
-      order_array.forEach((order) => {
-        if (order.farmer_state === 'prepared') {
-          order_obj.order_prepared = true;
-        }
-        if (order.farmer_state === 'delivered') {
-          order_obj.order_delivered = true;
-        }
+      const ords = [];
+      condensedOrders.forEach((order_obj) => {
+        let sum = 0;
+        order_obj.order_array.forEach((order) => {
+          sum += order.OrderPrice;
+        });
+        console.log(order_obj);
+        ords.push({
+          order_id: order_obj.order_array[0].order_id,
+          client_id: order_obj.order_array[0].client_id,
+          sum: sum,
+          date: order_obj.order_array[0].date,
+          time: order_obj.order_array[0].time,
+          order_delivered: order_obj.order_delivered,
+          order_prepared: order_obj.order_prepared
+        })
       });
-    });
-    setOrdersMap(condensedOrders);
+      setOrders(ords);
+    }
 
-    const ords = [];
-    condensedOrders.forEach((order_obj) => {
-      let sum = 0;
-      order_obj.order_array.forEach((order) => {
-        sum += order.OrderPrice;
-      });
-      ords.push({
-        order_id: order_obj.order_array[0].order_id,
-        client_id: order_obj.order_array[0].client_id,
-        sum: sum,
-        date: order_obj.order_array[0].date,
-        time: order_obj.order_array[0].time,
-        farmer_shipped: order_obj.farmer_shipped,
-        warehouse_received: order_obj.warehouse_received,
-        order_prepared: order_obj.order_prepared,
-        order_not_shipped: order_obj.order_not_shipped
-      })
-    });
-    setOrders(ords);
+    getOrders();
   }, [props.time.date, props.orders.length])
 
   const getPreviousWeek = () => {
@@ -290,7 +296,7 @@ function OrderStatus(props) {
         orderStatus.farmer.shipped = true;
         orderStatus.warehouse.received = true;
         orderStatus.warehouse.prepared = true;
-        orderStatus.delivery.picked_up = true;
+        orderStatus.delivery.delivered = true;
         orderStatus.order_completed = true;
         orderStatus.num_steps = 5;
       }

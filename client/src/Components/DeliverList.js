@@ -72,6 +72,7 @@ function DeliverList(props) {
         for (const a of array2) {
           await API.updateDelivered(handoutOrderID, a);
         }
+        props.setRecharged(true);
         setActionAlert({
           variant: 'success',
           msg: 'Order #' + handoutOrderID + ' was successfully handed out.',
@@ -192,6 +193,16 @@ function DeliverList(props) {
     return true;
   }
 
+  const checkOrderDelivered = (order_id) => {
+    const orderArray = props.orders.filter(o => o.order_id === order_id);
+    for (const order of orderArray) {
+      if (order.state !== 'delivered') {
+        return false;
+      }
+    }
+    return true;
+  }
+
   const checkOrderPaymentPending = (order_id) => {
     const orderArray = props.orders.filter(o => o.order_id === order_id);
     for (const order of orderArray) {
@@ -206,7 +217,7 @@ function DeliverList(props) {
     const orderArray = props.orders.filter(o => o.order_id === order_id);
     const currDate = dayjs(props.time.date + ' ' + props.time.hour);
     for (const order of orderArray) {
-      if (order.pickup === 1 && currDate.isSameOrAfter(order.date + ' ' + order.time)) {
+      if (order.pickup === 1 && order.state!=='delivered' && currDate.isSameOrAfter(order.date + ' ' + order.time)) {
         return true;
       }
     }
@@ -346,25 +357,21 @@ function DeliverList(props) {
                       {/* Order delivery time */}
                       {dayjs(time.date + ' ' + time.hour).isSameOrAfter(
                         s.date + ' ' + s.time
-                      ) &&
-                        s.pickup === 1 && (
-                          <td className="text-danger align-middle">
-                            {dayjs(s.date + ' ' + s.time).format(
-                              'ddd, MMM D, YYYY HH:mm'
-                            )}{' '}
-                            (not picked up)
-                          </td>
-                        )}
-                      {(!dayjs(time.date + ' ' + time.hour).isSameOrAfter(
-                        s.date + ' ' + s.time
-                      ) ||
-                        s.pickup === 0) && (
-                          <td className="align-middle">
-                            {dayjs(s.date + ' ' + s.time).format(
-                              'ddd, MMM D, YYYY HH:mm'
-                            )}
-                          </td>
-                        )}
+                      ) && (!checkOrderDelivered) &&
+                        s.pickup === 1 ? (
+                        <td className="text-danger align-middle">
+                          {dayjs(s.date + ' ' + s.time).format(
+                            'ddd, MMM D, YYYY HH:mm'
+                          )}{' '}
+                          (not picked up)
+                        </td>
+                      ) : (
+                        <td className="align-middle">
+                          {dayjs(s.date + ' ' + s.time).format(
+                            'ddd, MMM D, YYYY HH:mm'
+                          )}
+                        </td>
+                      )}
 
                       {/* Action buttons */}
                       <td>
@@ -986,7 +993,7 @@ function OrderStatus(props) {
         orderStatus.farmer.shipped = true;
         orderStatus.warehouse.received = true;
         orderStatus.warehouse.prepared = true;
-        orderStatus.delivery.picked_up = true;
+        orderStatus.delivery.delivered = true;
         orderStatus.order_completed = true;
         orderStatus.num_steps = 5;
       }
