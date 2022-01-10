@@ -185,7 +185,7 @@ function DeliverList(props) {
   const checkOrderReadyForPickup = (order_id) => {
     const orderArray = props.orders.filter(o => o.order_id === order_id);
     for (const order of orderArray) {
-      if (order.pickup !== 1 || order.state === 'prepared') {
+      if (order.pickup !== 1 || order.state !== 'prepared') {
         return false;
       }
     }

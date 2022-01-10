@@ -51,7 +51,7 @@
   color: #66915c !important;
   font-weight: 700 !important;
 }
-.list-group-item:last-of-type{
+.list-group-item-rounded{
   border-bottom-left-radius: 25px !important;
   border-bottom-right-radius: 25px !important;
 }

@@ -57,7 +57,7 @@ function Frontpage(props) {
               <h5 className="lead my-auto">{userIcon} Clients</h5>
             </div>
             <ul className="list-group list-group-flush">
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Client area</div>
                 <div className="d-inline">
                   <button
@@ -118,7 +118,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">My orders</div>
                 <div className="d-inline">
                   <button
@@ -153,7 +153,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Want to work with us?</div>
                 <div className="d-inline">
                   <button
@@ -229,7 +229,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">My bookings</div>
                 <div className="d-inline">
                   <button
@@ -277,7 +277,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Delivery personnel</div>
                 <div className="d-inline">
                   <button
@@ -325,7 +325,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Place order for client</div>
                 <div className="d-inline">
                   <button
@@ -375,7 +375,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Manage farmer shipments</div>
                 <div className="d-inline">
                   <button
@@ -412,7 +412,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Manage order preparation</div>
                 <div className="d-inline">
                   <button
@@ -449,7 +449,7 @@ function Frontpage(props) {
                   </button>
                 </div>
               </li>
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <div className="d-inline my-auto">Manage order preparation</div>
                 <div className="d-inline">
                   <button
@@ -482,7 +482,7 @@ function Frontpage(props) {
                   {getUserAccountType()} account
                 </div>
               </li>
-              <li className="list-group-item text-center">
+              <li className="list-group-item list-group-item-rounded text-center">
                 <button
                   className="btn btn-outline-secondary w-100"
                   onClick={() => {
@@ -536,7 +536,7 @@ function Frontpage(props) {
                   do you already know our team?
                 </p>
               </li>
-              <li className="list-group-item">
+              <li className="list-group-item list-group-item-rounded">
                 <p className="text-center">
                   <b>WHAT DO WE DO?</b>
                 </p>
@@ -561,7 +561,7 @@ function Frontpage(props) {
               </h5>
             </div>
             <ul className="list-group list-group-flush">
-              <li className="list-group-item d-flex justify-content-between">
+              <li className="list-group-item list-group-item-rounded d-flex justify-content-between">
                 <img
                   className="d-block w-100 rounded"
                   alt="Map location"
