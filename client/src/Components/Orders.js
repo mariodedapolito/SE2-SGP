@@ -388,6 +388,9 @@ function OrderStatus(props) {
       else if (item.state === 'booked' && item.farmer_state === null) {
         orderStatusLocal = getOrderStatus('booked', type);
       }
+      else if (item.state === 'booked' && item.farmer_state === 'confirmed') {
+        orderStatusLocal = getOrderStatus('booked', type);
+      }
       else if (item.state === 'booked' && item.farmer_state === 'farmer-shipped') {
         orderStatusLocal = getOrderStatus('farmer-shipped', type);
       }

@@ -321,7 +321,7 @@ function App() {
       setUserRole(user.role);
       setUserMail(user.username);
       setUserName(user.name);
-      
+
       if (user.suspended === 0) {
         setSuspended(0);
       }
@@ -343,11 +343,11 @@ function App() {
 
       if (user.role === 'client') {
         if (user.suspended === 0)
-        return <Redirect to="/client" />;
-        else 
-        return <Redirect to="/suspended-client" />;
-      } 
-        else if (user.role === 'employee') {
+          return <Redirect to="/client" />;
+        else
+          return <Redirect to="/suspended-client" />;
+      }
+      else if (user.role === 'employee') {
         return <Redirect to="/employee" />;
       } else if (user.role === 'farmer') {
         return <Redirect to="/farmer" />;
@@ -361,6 +361,7 @@ function App() {
         return <Redirect to="/manager" />;
       }
     } catch (err) {
+      console.log(err);
       setMessage('Oops! Could not perform login. Please try again later.');
     }
   };
@@ -737,6 +738,7 @@ function App() {
                   products={products}
                   clients={clients}
                   time={time}
+                  setRecharged={updateRech}
                 />
               ) : (
                 <Redirect to="/login" />
@@ -949,14 +951,14 @@ function App() {
                   clientid={userid}
                   orders={orders}
                   time={time}
-                  suspended = {suspended}
+                  suspended={suspended}
                 />
               ) : (
                 <Redirect to="/login" />
               )
             }
           />
-          
+
           <Route
             path="/see-pickups"
             exact

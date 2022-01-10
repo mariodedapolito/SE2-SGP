@@ -30,33 +30,33 @@ function PickupListEmployee(props) {
 
     const condensedOrders = new Map();
 
-    props.orders.filter(o => props.products.find((p) => (p.id === o.product_id).week === previousWeek) && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear)).forEach((order) => {
-      if (!condensedOrders.has(order.order_id)) {
-        condensedOrders.set(order.order_id, { order_complete: true, order_array: new Array() });
-      }
-      condensedOrders.get(order.order_id).order_array.push(order);
-    });
-
-    console.log(condensedOrders);
-
-    condensedOrders.forEach((order_obj) => {
-      let deleteOrderFlag = false;
-      const order_array = order_obj.order_array;
-      order_array.forEach((order) => {
-        if (order.pickup === 0 || order.state === 'pending' || order.state === 'prepared' || order.state === 'shipped' || order.state === 'delivered') {
-          deleteOrderFlag = true;
+    props.orders.filter(o => o.state === 'received'
+      && o.pickup === 1
+      && props.products.find((p) => (p.id === o.product_id).week === previousWeek)
+      && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear))
+      .forEach((order) => {
+        if (!condensedOrders.has(order.order_id)) {
+          condensedOrders.set(order.order_id, { order_complete: true, order_array: new Array() });
         }
-        if (order.farmer_state !== 'received') {
-          order_obj.order_complete = false;
-        }
+        condensedOrders.get(order.order_id).order_array.push(order);
       });
-      if (deleteOrderFlag) {
-        condensedOrders.delete(order_array[0].order_id);
-      }
-    });
-    setOrdersMap(condensedOrders);
 
-    console.log(condensedOrders);
+    // condensedOrders.forEach((order_obj) => {
+    //   let deleteOrderFlag = false;
+    //   const order_array = order_obj.order_array;
+    //   order_array.forEach((order) => {
+    //     if (order.pickup === 0 || order.state !== 'received' || order.state === 'prepared' || order.state === 'shipped' || order.state === 'delivered') {
+    //       deleteOrderFlag = true;
+    //     }
+    //     if (order.farmer_state !== 'received') {
+    //       order_obj.order_complete = false;
+    //     }
+    //   });
+    //   if (deleteOrderFlag) {
+    //     condensedOrders.delete(order_array[0].order_id);
+    //   }
+    // });
+    setOrdersMap(condensedOrders);
 
     const ords = [];
     condensedOrders.forEach((order_obj) => {
@@ -73,20 +73,19 @@ function PickupListEmployee(props) {
     if (!prepare) {
       return;
     }
-    const updateOrders = async () => {
+    const updateOrderPrepared = async () => {
       try {
         setPrepare(false);
-        let array2 = props.orders.filter(x => x.order_id === prepareID).map(x => x.product_name);
-        for (const a of array2) {
-          await API.updateState(prepareID, 'prepared');
-        }
+        await API.updateState(prepareID, 'prepared');
+        props.setRecharged(true);
         props.setPrepareAlert({ msg: "Order #" + prepareID + " was successfully prepared for pick-up.", variant: "success" });
-      } catch (err) {
+      }
+      catch (err) {
         props.setPrepareAlert({ msg: "Oops! Something went wrong and the order could not be prepared.", variant: "danger" });
       }
       setUpdateOrders(true);
     }
-    updateOrders();
+    updateOrderPrepared();
   }, [prepare])
 
   const capitalizeEachFirstLetter = (str) => {
@@ -138,9 +137,8 @@ function PickupListEmployee(props) {
                 </td>
                 <td className="align-middle">{s.sum.toFixed(2)}€</td>
                 <td className="align-middle">
-                  <span className={dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date + " " + s.time, 'year') && "text-danger"}>
+                  <span>
                     {dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}
-                    {dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date + " " + s.time, 'year') && " (Late)"}
                   </span>
                 </td>
                 <td className="align-middle">

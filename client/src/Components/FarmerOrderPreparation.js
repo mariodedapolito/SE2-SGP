@@ -37,20 +37,6 @@ function FarmerOrderPreparation(props) {
       const previousWeek = getPreviousWeek().week_number;
       const previousWeekYear = getPreviousWeek().year;
 
-      /*const timeWindowValid = checkShipmentTimeWindow();
-      if (!timeWindowValid) {
-        setShipmentWindowValidity(false);
-      } else {
-        setShipmentWindowValidity(true);
-      }*/
-
-      /*const checkItemsAlreadyShipped = await API.getProviderShipmentStatus(
-        previousWeek.year,
-        previousWeek.week_number
-      );
-      if (checkItemsAlreadyShipped) {
-        setItemsAlreadyShipped(true);
-      }*/
       const prods = (
         await API.getOrderedProductsForProvider(
           previousWeek,
@@ -89,19 +75,6 @@ function FarmerOrderPreparation(props) {
       week_number: dayjs(previousWeekDate).week(),
     };
   };
-
-  /*const checkShipmentTimeWindow = () => {
-    const dayOfWeek = dayjs(props.time.date).day();
-    //if not sunday,monday or tuesday window is expired
-    if (dayOfWeek !== 0 && dayOfWeek !== 1 && dayOfWeek !== 2) {
-      return false;
-    }
-    //sunday only from 23.00 onwards
-    if (dayOfWeek === 0 && dayjs('01/01/2021 ' + props.time.hour).hour() < 23) {
-      return false;
-    }
-    return true;
-  };*/
 
   const checkShipmentCorrectness = () => {
     let noOrderPreparedFlag = true;
@@ -144,50 +117,6 @@ function FarmerOrderPreparation(props) {
           <div className="row">
             <div className="col-lg-2" />
             <div className="col-lg-8">
-              {/*!showLoading && !shipmentWindowValidity && !itemsAlreadyShipped && (
-                <Alert show={true} variant="danger">
-                  <Alert.Heading>
-                    Item shipment windows terminated
-                  </Alert.Heading>
-                  <p>
-                    This shipment window terminated and you cannot ship orders.
-                    <br />
-                    Next shipping window is from Sunday 23.00 until next Tuesday
-                    23.59.
-                  </p>
-                  <hr />
-                  <div className="d-flex justify-content-end">
-                    <Link to="/farmer">
-                      <button className="btn insideAlert">
-                        Back to Farmer Area
-                      </button>
-                    </Link>
-                  </div>
-                </Alert>
-              )*/}
-              {/*!showLoading &&
-                shipmentWindowValidity &&
-                bookedProducts.length === 0 &&
-                itemsAlreadyShipped && (
-                  <Alert show={itemsAlreadyShipped} variant="success">
-                    <Alert.Heading>Item shipment status</Alert.Heading>
-                    <p>
-                      You have shipped all your orders!
-                      <br />
-                      You have successfully shipped all the booked products. If
-                      any other order is placed during this shipment window it
-                      will appear in this page.
-                    </p>
-                    <hr />
-                    <div className="d-flex justify-content-end">
-                      <Link to="/farmer">
-                        <Button variant="outline-success">
-                          Back to Farmer Area
-                        </Button>
-                      </Link>
-                    </div>
-                  </Alert>
-                )*/}
               {itemsShippedAlert && (
                 <Alert
                   variant={itemsShippedAlert.variant}
@@ -258,7 +187,7 @@ function FarmerOrderPreparation(props) {
                               )}
                               {product.prepared === 1 && (
                                 <span className="d-block text-center text-success">
-                                  {checkIcon} Prepared & shipped
+                                  {checkIcon} Marked as prepared
                                 </span>
                               )}
                             </div>

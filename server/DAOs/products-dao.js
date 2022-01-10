@@ -163,7 +163,7 @@ exports.getProviderAvailableProducts = (provider_id, year, week_number) => {
   return new Promise((resolve, reject) => {
     console.log(provider_id, year, week_number);
     const sql =
-      'SELECT * FROM products WHERE products.provider_id=? AND products.year=? AND products.week_number=?';
+      'SELECT * FROM products WHERE products.provider_id=? AND products.year=? AND products.week_number=? AND products.product_confirmed=0';
     db.all(sql, [provider_id, year, week_number], (err, rows) => {
       if (err) {
         reject(err);
@@ -182,7 +182,7 @@ exports.getProviderAvailableProducts = (provider_id, year, week_number) => {
           providerId: p.provider_id,
           year: p.year,
           week: p.week_number,
-          status: p.product_status,
+          status: p.product_status
         }));
       }
       resolve(products);
@@ -246,6 +246,20 @@ exports.confirmExpectedProduct = (product_id) => {
         return;
       }
       resolve(this.lastID); // changed from resolve(exports.getTask(this.lastID) because of error "not found" (wrong lastID)
+    });
+  });
+};
+
+exports.markProductAsConfirmed = (product_id) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'UPDATE products SET product_confirmed=1 WHERE product_id=?';
+    db.run(sql, [product_id], function (err) {
+      if (err) {
+        console.log(err);
+        reject(err);
+        return;
+      }
+      resolve(true);
     });
   });
 };

@@ -6,8 +6,6 @@ function WarehouseManagerOrders(props) {
 
   const [prepareAlert, setPrepareAlert] = useState(false);
 
-  let b = 1;
-
   return (
     <div className="row">
       <span className="d-block text-center mt-5 mb-2 display-1">
@@ -35,7 +33,7 @@ function WarehouseManagerOrders(props) {
           products={props.products}
           time={props.time}
           setPrepareAlert={setPrepareAlert}
-          b={b} />
+           />
       </div>
       <div className="col-lg-2"></div>
     </div>

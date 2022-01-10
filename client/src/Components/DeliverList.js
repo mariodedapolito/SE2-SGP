@@ -144,6 +144,9 @@ function DeliverList(props) {
         } else if (item.state === 'booked') {
           orderStatusLocal = 'Payment completed';
           num_steps = 1;
+        } else if (item.state === 'booked' && item.farmer_state === 'confirmed') {
+          orderStatusLocal = 'Payment completed';
+          num_steps = 1;
         } else if (
           item.state === 'booked' &&
           item.farmer_state === 'farmer-shipped'
@@ -178,6 +181,61 @@ function DeliverList(props) {
     setShowClient(x);
     setShowContact(x);
   };
+
+  const checkOrderReadyForPickup = (order_id) => {
+    const orderArray = props.orders.filter(o => o.order_id === order_id);
+    for (const order of orderArray) {
+      if (order.pickup !== 1 || order.state === 'prepared') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const checkOrderPaymentPending = (order_id) => {
+    const orderArray = props.orders.filter(o => o.order_id === order_id);
+    for (const order of orderArray) {
+      if (order.state === 'pending') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const checkOrderPickupIsLate = (order_id) => {
+    const orderArray = props.orders.filter(o => o.order_id === order_id);
+    const currDate = dayjs(props.time.date + ' ' + props.time.hour);
+    for (const order of orderArray) {
+      if (order.pickup === 1 && currDate.isSameOrAfter(order.date + ' ' + order.time)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const checkOrderPickupIn24h = (order_id) => {
+    const orderArray = props.orders.filter(o => o.order_id === order_id);
+    const currDate = dayjs(props.time.date + ' ' + props.time.hour);
+    for (const order of orderArray) {
+      const pickupDate = dayjs(order.date + ' ' + order.time);
+      if (order.pickup === 1 && currDate.isSameOrBefore(order.date + ' ' + order.time) && pickupDate.diff(currDate, 'hour') < 24) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  const checkOrderContactClient = (order_id) => {
+    const orderArray = props.orders.filter(o => o.order_id === order_id);
+    const currDate = dayjs(props.time.date + ' ' + props.time.hour);
+    for (const order of orderArray) {
+      if (order.pickup === 0 || currDate.isSameOrBefore(order.date + ' ' + order.time)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   return (
     <>
       <span className="d-block text-center mt-5 mb-2 display-2">
@@ -189,16 +247,17 @@ function DeliverList(props) {
       </h5>
       <Container fluid>
         <Row>
-          {actionAlert && (
-            <Alert
-              variant={actionAlert.variant}
-              className="my-3 mx-2"
-              dismissible={true}
-              onClose={() => setActionAlert(null)}
-            >
-              {actionAlert.msg}
-            </Alert>
-          )}
+          {/* action performed alert */
+            actionAlert && (
+              <Alert
+                variant={actionAlert.variant}
+                className="my-3 mx-2"
+                dismissible={true}
+                onClose={() => setActionAlert(null)}
+              >
+                {actionAlert.msg}
+              </Alert>
+            )}
           <Table
             striped
             bordered
@@ -222,13 +281,7 @@ function DeliverList(props) {
             </thead>
             <tbody>
               {props.orders.map((s) => {
-                if (!m.find((x) => parseInt(x) === parseInt(s.order_id))) {
-                  return (
-                    <td key={s.id} style={{ display: 'none' }}>
-                      {' '}
-                    </td>
-                  );
-                } else {
+                if (m.find((x) => parseInt(x) === parseInt(s.order_id))) {
                   let id1 = m[m.length - 1];
                   let array = props.orders
                     .filter((x) => x.order_id === id1)
@@ -241,7 +294,10 @@ function DeliverList(props) {
                   m.pop();
                   return (
                     <tr key={s.id}>
+                      {/* Order ID */}
                       <td className="align-middle"> {s.order_id}</td>
+
+                      {/* Client name */}
                       <td className="align-middle">
                         {
                           props.clients.find((c) => c.client_id === s.client_id)
@@ -252,6 +308,8 @@ function DeliverList(props) {
                             .surname
                         }{' '}
                       </td>
+
+                      {/* Show order products modal */}
                       <td className="align-middle">
                         <Button
                           variant="link"
@@ -263,7 +321,11 @@ function DeliverList(props) {
                           Show ordered products
                         </Button>
                       </td>
+
+                      {/* Order price */}
                       <td className="align-middle">{sum}€</td>
+
+                      {/* Show order status modal */}
                       <td className="align-middle">
                         <Button
                           variant="link"
@@ -275,9 +337,13 @@ function DeliverList(props) {
                           {getOrderStatus(s.order_id)}
                         </Button>
                       </td>
+
+                      {/* Order type (delivery/pickup) */}
                       <td className="align-middle">
                         {s.pickup === 0 ? 'Delivery' : 'Pick up'}
                       </td>
+
+                      {/* Order delivery time */}
                       {dayjs(time.date + ' ' + time.hour).isSameOrAfter(
                         s.date + ' ' + s.time
                       ) &&
@@ -299,46 +365,52 @@ function DeliverList(props) {
                             )}
                           </td>
                         )}
+
+                      {/* Action buttons */}
                       <td>
-                        {s.state === 'prepared' && s.pickup === 1 && (
-                          <Button
-                            variant="success"
-                            className="d-block my-1 mx-2 w-100"
-                            onClick={() => {
-                              setHandoutOrderID(s.order_id);
-                            }}
-                          >
-                            Hand-out order
-                          </Button>
-                        )}
-                        {s.state === 'pending' && (
-                          <Button
-                            variant="secondary"
-                            className="d-block my-1 mx-2 w-100"
-                            onClick={() => {
-                              setShowClient(true);
-                              setClient(s.client_id);
-                            }}
-                          >
-                            Notify order pending
-                          </Button>
-                        )}
-                        {s.state === 'pending' && (
-                          <Button
-                            variant="secondary"
-                            className="d-block my-1 mx-2 w-100"
-                            onClick={() => {
-                              setShowPaymentModal(true);
-                              setId(s.order_id);
-                            }}
-                          >
-                            Complete order payment
-                          </Button>
-                        )}
-                        {dayjs(time.date + ' ' + time.hour).isSameOrAfter(
-                          s.date + ' ' + s.time
-                        ) &&
-                          s.pickup === 1 && (
+                        {/* Hand-out order button */
+                          checkOrderReadyForPickup(s.order_id) && (
+                            <Button
+                              variant="success"
+                              className="d-block my-1 mx-2 w-100"
+                              onClick={() => {
+                                setHandoutOrderID(s.order_id);
+                              }}
+                            >
+                              Hand-out order
+                            </Button>
+                          )
+                        }
+
+                        {/* Notify pending + complete payment buttons */
+                          checkOrderPaymentPending(s.order_id) && (
+                            <>
+                              <Button
+                                variant="secondary"
+                                className="d-block my-1 mx-2 w-100"
+                                onClick={() => {
+                                  setShowClient(true);
+                                  setClient(s.client_id);
+                                }}
+                              >
+                                Notify order pending
+                              </Button>
+                              <Button
+                                variant="success"
+                                className="d-block my-1 mx-2 w-100"
+                                onClick={() => {
+                                  setShowPaymentModal(true);
+                                  setId(s.order_id);
+                                }}
+                              >
+                                Complete order payment
+                              </Button>
+                            </>
+                          )
+                        }
+
+                        {/* Notify Late for pickup button */
+                          checkOrderPickupIsLate(s.order_id) && (
                             <Button
                               variant="secondary"
                               className="d-block my-1 mx-2 w-100"
@@ -356,49 +428,11 @@ function DeliverList(props) {
                             >
                               Notify missed pick-up
                             </Button>
-                          )}
-                        {!dayjs(time.date + ' ' + time.hour).isSameOrAfter(
-                          s.date + ' ' + s.time
-                        ) ||
-                          (s.pickup === 0 && (
-                            <Button
-                              variant="primary"
-                              className="d-block my-1 mx-2 w-100"
-                              onClick={() => {
-                                setShowContact(true);
-                                setClient(s.client_id);
-                                setContactType(0);
-                                if (
-                                  Math.ceil(
-                                    Math.abs(
-                                      new Date(s.date) - new Date(time.date)
-                                    ) /
-                                    (1000 * 60 * 60 * 24)
-                                  ) <= 1
-                                ) {
-                                  setShouldBeNotified(1);
-                                } else {
-                                  setShouldBeNotified(0);
-                                }
+                          )
+                        }
 
-                                setPickupDate((prevState3) => ({
-                                  ...prevState3,
-                                  date: s.date,
-                                  hour: s.time,
-                                }));
-                              }}
-                            >
-                              Contact client
-                            </Button>
-                          ))}
-                        {s.pickup === 1 &&
-                          dayjs(time.date + ' ' + time.hour).isSameOrBefore(
-                            s.date + ' ' + s.time
-                          ) &&
-                          dayjs(s.date + ' ' + s.time).diff(
-                            time.date + ' ' + time.hour,
-                            'hour'
-                          ) < 24 && (
+                        {/* Notify pickup in the next 24h button */
+                          checkOrderPickupIn24h(s.order_id) && (
                             <Button
                               variant="dark"
                               className="d-block my-1 mx-2 w-100"
@@ -429,7 +463,42 @@ function DeliverList(props) {
                             >
                               Notify pick-up in the next 24h
                             </Button>
-                          )}
+                          )
+                        }
+
+                        {/* Contact client button */
+                          checkOrderContactClient(s.order_id) && (
+                            <Button
+                              variant="primary"
+                              className="d-block my-1 mx-2 w-100"
+                              onClick={() => {
+                                setShowContact(true);
+                                setClient(s.client_id);
+                                setContactType(0);
+                                if (
+                                  Math.ceil(
+                                    Math.abs(
+                                      new Date(s.date) - new Date(time.date)
+                                    ) /
+                                    (1000 * 60 * 60 * 24)
+                                  ) <= 1
+                                ) {
+                                  setShouldBeNotified(1);
+                                } else {
+                                  setShouldBeNotified(0);
+                                }
+
+                                setPickupDate((prevState3) => ({
+                                  ...prevState3,
+                                  date: s.date,
+                                  hour: s.time,
+                                }));
+                              }}
+                            >
+                              Contact client
+                            </Button>
+                          )
+                        }
                       </td>
                     </tr>
                   );
@@ -440,51 +509,52 @@ function DeliverList(props) {
         </Row>
       </Container>
 
-      {showPaymentModal && id !== -1 && (
-        <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Client wallet balance</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className='d-block text-center'>
-              <h2>{props.clients.find(c => (c.client_id === (props.orders.find(o => o.order_id === id).client_id))).name + ' '
-                + props.clients.find(c => (c.client_id === (props.orders.find(o => o.order_id === id).client_id))).surname}</h2>
-            </div>
-            <div className="d-block text-center my-3">
-              <h4 className="d-inline-block text-muted me-3">
-                Available wallet balance
-              </h4>
-              <h1 className="d-inline-block">
-                {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget.toFixed(2)}
-                €
-              </h1>
-            </div>
-            <div className="d-block text-center my-3">
-              <h4 className="d-inline-block text-muted me-3">
-                Total order price
-              </h4>
-              <h1 className="d-inline-block">
-                {props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))).toFixed(2)}
-                €
-              </h1>
-            </div>
-            {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget < props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))) && (
-              <div className="d-block text-danger text-center my-auto">
-                {dangerIcon} The client wallet balance is not enough to complete the payment of this order.<br />
-                Please top-up the client wallet and then confirm the payment.
+      {/* Complete pending order payment modal */
+        showPaymentModal && id !== -1 && (
+          <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Client wallet balance</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div className='d-block text-center'>
+                <h2>{props.clients.find(c => (c.client_id === (props.orders.find(o => o.order_id === id).client_id))).name + ' '
+                  + props.clients.find(c => (c.client_id === (props.orders.find(o => o.order_id === id).client_id))).surname}</h2>
               </div>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="danger" onClick={() => setShowPaymentModal(false)}>
-              Close
-            </Button>
-            <Button variant="success" disabled={props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget < props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice)))} onClick={() => { console.log('set true'); setPayOrder(true) }}>
-              Confirm order payment
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
+              <div className="d-block text-center my-3">
+                <h4 className="d-inline-block text-muted me-3">
+                  Available wallet balance
+                </h4>
+                <h1 className="d-inline-block">
+                  {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget.toFixed(2)}
+                  €
+                </h1>
+              </div>
+              <div className="d-block text-center my-3">
+                <h4 className="d-inline-block text-muted me-3">
+                  Total order price
+                </h4>
+                <h1 className="d-inline-block">
+                  {props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))).toFixed(2)}
+                  €
+                </h1>
+              </div>
+              {props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget < props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice))) && (
+                <div className="d-block text-danger text-center my-auto">
+                  {dangerIcon} The client wallet balance is not enough to complete the payment of this order.<br />
+                  Please top-up the client wallet and then confirm the payment.
+                </div>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="danger" onClick={() => setShowPaymentModal(false)}>
+                Close
+              </Button>
+              <Button variant="success" disabled={props.clients.find(c => c.client_id === props.orders.find(o => o.order_id === id).client_id).budget < props.orders.filter(o => o.order_id === id).reduce((a, b) => (parseFloat(a.OrderPrice) + parseFloat(b.OrderPrice)))} onClick={() => { console.log('set true'); setPayOrder(true) }}>
+                Confirm order payment
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        )}
 
       <Finestra
         show={show}
@@ -519,6 +589,7 @@ function DeliverList(props) {
   );
 }
 
+/* order product list modal */
 function Finestra(props) {
   const capitalizeEachFirstLetter = (str) => {
     return str
@@ -575,6 +646,7 @@ function Finestra(props) {
   );
 }
 
+/* insufficient balance modal*/
 function ClientModal(props) {
   const [mailerState, setMailerState] = useState({
     email: '',
@@ -691,6 +763,7 @@ function ClientModal(props) {
   );
 }
 
+/* contact client modal */
 function ContactModal(props) {
   const { contactType, pickUp, notify } = props;
   const [mailerState, setMailerState] = useState({
@@ -827,6 +900,7 @@ function ContactModal(props) {
   );
 }
 
+/* order status modal */
 function OrderStatus(props) {
   const [status, setStatus] = useState(null);
 
@@ -846,10 +920,9 @@ function OrderStatus(props) {
           orderStatusLocal = getOrderStatus('pending', type);
         } else if (item.state === 'booked' && item.farmer_state === null) {
           orderStatusLocal = getOrderStatus('booked', type);
-        } else if (
-          item.state === 'booked' &&
-          item.farmer_state === 'farmer-shipped'
-        ) {
+        } else if (item.state === 'booked' && item.farmer_state === 'confirmed') {
+          orderStatusLocal = getOrderStatus('booked', type);
+        } else if (item.state === 'booked' && item.farmer_state === 'farmer-shipped') {
           orderStatusLocal = getOrderStatus('farmer-shipped', type);
         } else if (item.state === 'received') {
           orderStatusLocal = getOrderStatus('received', type);

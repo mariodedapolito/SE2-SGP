@@ -45,21 +45,17 @@ function WarehouseManagerShipments(props) {
       const previousWeek = getPreviousWeek().week_number;
       const previousWeekYear = getPreviousWeek().year;
 
-      let orders = (await API.getAllOrders()).filter(o => props.products.find((p) => (p.id === o.product_id).week === previousWeek) && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear));
+      let orders = (await API.getAllOrders()).
+        filter(o => o.farmer_state === 'farmer-shipped'
+          && prods.find((p) => (p.id === o.product_id).week === previousWeek)
+          && prods.find((p) => (p.id === o.product_id).year === previousWeekYear));
 
-      orders = orders.filter((order) => (order.farmer_state === 'farmer-shipped'));
-
-      let orders_joined = [];
-      for (let order of orders) {
-        const provider_id = prods.find((p) => (p.id === order.product_id)).providerId;
-        orders_joined.push({ ...order, provider_id: provider_id });
-      }
-
+      /* filter orders if provider selected from dropdown */
       if (providerFilterID !== -1) {
-        orders_joined = orders_joined.filter((order) => (order.provider_id === providerFilterID));
+        orders.filter(o => prods.find((p) => (p.id === o.product_id).providerId === providerFilterID));
       }
 
-      setProviderOrders(orders_joined);
+      setProviderOrders(orders);
       setUpdate(false);
       setLoading(false);
     }
@@ -140,15 +136,13 @@ function FarmerShippedOrderTable(props) {
 
   const [receivedID, setReceivedID] = useState(null);
 
-  let farmerState = 'received';
-
   useEffect(() => {
     if (receivedID === null) {
       return;
     }
     const updateOrderState = async () => {
       try {
-        await API.updateStateFarmer(receivedID.order_id, receivedID.product_id, farmerState);
+        await API.updateStateFarmer(receivedID.order_id, receivedID.product_id, 'received');
         const productName = props.products.find((p) => (p.id === receivedID.product_id)) ? capitalizeEachFirstLetter(props.products.find((p) => (p.id === receivedID.product_id)).name) : "Unkown product";
         props.setReceivedAlert({ msg: productName + " from order #" + receivedID.order_id + " were successfully received.", variant: "success" });
       }

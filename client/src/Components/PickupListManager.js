@@ -32,38 +32,26 @@ function PickupListManager(props) {
 
     const condensedOrders = new Map();
 
-    props.orders.filter(o => props.products.find((p) => (p.id === o.product_id).week === previousWeek) && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear)).forEach((order) => {
-      if (!condensedOrders.has(order.order_id)) {
-        condensedOrders.set(order.order_id, { order_not_shipped: false, order_prepared: false, farmer_shipped: false, warehouse_received: false, order_array: new Array() });
-      }
-      condensedOrders.get(order.order_id).order_array.push(order);
-    });
+    props.orders.filter(o => o.pickup === 1
+      && props.products.find((p) => (p.id === o.product_id).week === previousWeek)
+      && props.products.find((p) => (p.id === o.product_id).year === previousWeekYear))
+      .forEach((order) => {
+        if (!condensedOrders.has(order.order_id)) {
+          condensedOrders.set(order.order_id, { order_prepared: false, order_delivered: false, order_array: new Array() });
+        }
+        condensedOrders.get(order.order_id).order_array.push(order);
+      });
 
     condensedOrders.forEach((order_obj) => {
-      let deleteOrderFlag = false;
       const order_array = order_obj.order_array;
       order_array.forEach((order) => {
-        if (order.pickup === 0 || order.state !== 'booked') {
-          deleteOrderFlag = true;
-        }
-        if (order.farmer_state === 'farmer-shipped') {
-          order_obj.farmer_shipped = true;
-        }
-        else if (!order_obj.farmer_shipped && order.farmer_state === 'received') {
-          order_obj.warehouse_received = true;
-        }
-        else if (!order_obj.farmer_shipped && !order_obj.warehouse_received && order.farmer_state === 'prepared') {
+        if (order.farmer_state === 'prepared') {
           order_obj.order_prepared = true;
         }
-        else {
-          if (!order_obj.farmer_shipped && !order_obj.warehouse_received && !order_obj.order_prepared) {
-            order_obj.order_not_shipped = true;
-          }
+        if (order.farmer_state === 'delivered') {
+          order_obj.order_delivered = true;
         }
       });
-      if (deleteOrderFlag) {
-        condensedOrders.delete(order_array[0].order_id);
-      }
     });
     setOrdersMap(condensedOrders);
 
@@ -86,27 +74,7 @@ function PickupListManager(props) {
       })
     });
     setOrders(ords);
-  }, [props.time.date, updateOrders])
-
-  useEffect(() => {
-    if (!prepare) {
-      return;
-    }
-    const updateOrders = async () => {
-      try {
-        setPrepare(false);
-        let array2 = props.orders.filter(x => x.order_id === prepareID).map(x => x.product_name);
-        for (const a of array2) {
-          await API.updateState(prepareID, 'prepared');
-        }
-        props.setPrepareAlert({ msg: "Order #" + prepareID + " was successfully prepared for pick-up.", variant: "success" });
-      } catch (err) {
-        props.setPrepareAlert({ msg: "Oops! Something went wrong and the order could not be prepared.", variant: "danger" });
-      }
-      setUpdateOrders(true);
-    }
-    updateOrders();
-  }, [prepare])
+  }, [props.time.date, props.orders.length])
 
   const getPreviousWeek = () => {
     //every time get previous week
@@ -127,7 +95,6 @@ function PickupListManager(props) {
 
   const handleClose = (x) => {
     setShow(x);
-
   }
 
   return (
@@ -141,7 +108,7 @@ function PickupListManager(props) {
               <th>Products list</th>
               <th>Total</th>
               <th>Pick-up date</th>
-              <th>State</th>
+              <th>Order state</th>
               <th></th>
             </tr>
           </thead>
@@ -157,14 +124,14 @@ function PickupListManager(props) {
                 </td>
                 <td className="align-middle">{s.sum.toFixed(2)}€</td>
                 <td className="align-middle">
-                  <span className={dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date + " " + s.time, 'year') && "text-danger"}>
+                  <span>
                     {dayjs(s.date + " " + s.time).format("ddd, MMM D, YYYY HH:mm")}
-                    {dayjs(props.time.date + " " + props.time.hour).isSameOrAfter(s.date + " " + s.time, 'year') && " (Late)"}
                   </span>
                 </td>
                 <td className="align-middle">
-                  {s.order_prepared && <span className="text-success fw-bold">Ready for pick-up</span>}
-                  {!s.order_prepared && <span className="text-danger fw-bold">Not ready for pick-up</span>}
+                  {s.order_delivered && <span className="text-success fw-bold">Order delivered & completed</span>}
+                  {!s.order_delivered && s.order_prepared && <span className="text-success fw-bold">Ready for pick-up</span>}
+                  {!s.order_delivered && !s.order_prepared && <span className="text-danger fw-bold">Not ready for pick-up</span>}
                 </td>
                 <td>
                   <Button variant="success" className="d-block my-1 mx-2 w-100" onClick={() => { setShowOrderStatus(true); setId(s.order_id); }}>
@@ -233,8 +200,6 @@ function OrderStatus(props) {
     let min = 1000;
     let orderStatus = null;
 
-    console.log(props.orders.filter((o) => (o.order_id === props.id)));
-
     props.orders.filter((o) => (o.order_id === props.id)).forEach((item) => {
 
       const type = item.pickup === 0 ? 'delivery' : 'pick-up';
@@ -247,6 +212,9 @@ function OrderStatus(props) {
         orderStatusLocal = getOrderStatus('pending', type);
       }
       else if (item.state === 'booked' && item.farmer_state === null) {
+        orderStatusLocal = getOrderStatus('booked', type);
+      }
+      else if (item.state === 'booked' && item.farmer_state === 'confirmed') {
         orderStatusLocal = getOrderStatus('booked', type);
       }
       else if (item.state === 'booked' && item.farmer_state === 'farmer-shipped') {

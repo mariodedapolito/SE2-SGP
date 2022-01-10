@@ -1145,19 +1145,15 @@ app.put('/api/farmerConfirm/:product_id', async (req, res) => {
     return;
   }
 
-  const provider_id = await dbt.getProviderIDfromUserID(req.user.id);
-  productsDAO
-    .confirmExpectedProduct(
-      req.params.product_id
-    )
-    .then(() => {
-      res.status(200).json('ok');
-      return res;
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json(error);
-    });
+  try {
+    await productsDAO.confirmExpectedProduct(req.params.product_id);
+    await productsDAO.markProductAsConfirmed(req.params.product_id);
+    return res.status(200).json('ok');
+  }
+  catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
 });
 
 //farmer mark product unavailable
