@@ -123,9 +123,8 @@ function Booking(props) {
             .slice(idx * 3, idx * 3 + 3);
         });
         setProductRows(productsRows);
-      }
-      /* buying products as client or staff */
-      else if (props.purchasing) {
+      } else if (props.purchasing) {
+        /* buying products as client or staff */
         let res = await API.getAllConfirmedProducts(
           getPurchasingWeek(props.time).year,
           getPurchasingWeek(props.time).week_number
@@ -143,16 +142,18 @@ function Booking(props) {
             .slice(idx * 3, idx * 3 + 3);
         });
         setProductRows(productsRows);
-      }
-      /* swapping item from order */
-      else if (props.orderChangeItem && props.orderChangeItemID !== -1) {
-        const order = props.orders.find(o => o.id === props.orderChangeItemID);
-        const prod_week = props.prods.find(p => p.id === order.product_id).week;
-        const prod_year = props.prods.find(p => p.id === order.product_id).year;
-        let res = await API.getAllConfirmedProducts(
-          prod_year,
-          prod_week
+      } else if (props.orderChangeItem && props.orderChangeItemID !== -1) {
+        /* swapping item from order */
+        const order = props.orders.find(
+          (o) => o.id === props.orderChangeItemID
         );
+        const prod_week = props.prods.find(
+          (p) => p.id === order.product_id
+        ).week;
+        const prod_year = props.prods.find(
+          (p) => p.id === order.product_id
+        ).year;
+        let res = await API.getAllConfirmedProducts(prod_year, prod_week);
         setProducts(res);
         /* filter products already in the client order - used when client modifies order */
         const orderID = props.orders.find(
@@ -174,16 +175,18 @@ function Booking(props) {
             .slice(idx * 3, idx * 3 + 3);
         });
         setProductRows(productsRows);
-      }
-      /* adding new item to order */
-      else if (props.orderAddItem && props.orderAddItemID !== -1) {
-        const order = props.orders.find(o => o.order_id === props.orderAddItemID);
-        const prod_week = props.prods.find(p => p.id === order.product_id).week;
-        const prod_year = props.prods.find(p => p.id === order.product_id).year;
-        let res = await API.getAllConfirmedProducts(
-          prod_year,
-          prod_week
+      } else if (props.orderAddItem && props.orderAddItemID !== -1) {
+        /* adding new item to order */
+        const order = props.orders.find(
+          (o) => o.order_id === props.orderAddItemID
         );
+        const prod_week = props.prods.find(
+          (p) => p.id === order.product_id
+        ).week;
+        const prod_year = props.prods.find(
+          (p) => p.id === order.product_id
+        ).year;
+        let res = await API.getAllConfirmedProducts(prod_year, prod_week);
         setProducts(res);
         /* filter products already in the client order - used when client modifies order */
         const orderProducts = props.orders
@@ -233,7 +236,6 @@ function Booking(props) {
 
   /* Product filters useEffect */
   useEffect(() => {
-
     let prods = products;
 
     prods.forEach((p) => {
@@ -335,7 +337,11 @@ function Booking(props) {
     props.setCartItems(cart);
     props.setCartUpdated(true);
     props.setAuthAlert(null);
-    props.setCartAlert({ variant: 'success', msg: qty + ' ' + prod.unit + ' of ' + prod.name + ' was added to your cart.' });
+    props.setCartAlert({
+      variant: 'success',
+      msg:
+        qty + ' ' + prod.unit + ' of ' + prod.name + ' was added to your cart.',
+    });
     setTimeout(() => {
       props.setCartAlert(null);
     }, 10000);
@@ -404,15 +410,15 @@ function Booking(props) {
                     {productline.quantity > 0 &&
                       props.browsing &&
                       productline.quantity +
-                      ' ' +
-                      productline.unit +
-                      ' expected'}
+                        ' ' +
+                        productline.unit +
+                        ' expected'}
                     {productline.quantity > 0 &&
                       !props.browsing &&
                       productline.quantity +
-                      ' ' +
-                      productline.unit +
-                      ' left in stock'}
+                        ' ' +
+                        productline.unit +
+                        ' left in stock'}
                     {productline.quantity <= 0 && (
                       <span className="fw-bold text-danger">Out of stock</span>
                     )}
@@ -566,7 +572,37 @@ function Booking(props) {
         </Row>
       </>
     );
-  }  
+  }
+  const bookingAvailable = () => {
+    //Saturday
+    if (dayjs(props.time.date).day() === 6) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 9) {
+        //Before SAT 9AM -> not available
+        return false;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return true;
+      }
+    }
+    //Sunday
+    else if (dayjs(props.time.date).day() === 0) {
+      if (dayjs('01/01/2021 ' + props.time.hour).hour() < 23) {
+        //Before SUN 11PM -> available
+        return true;
+      }
+      //After SAT 9AM -> available
+      else {
+        //next week = week + 2
+        return false;
+      }
+    }
+    //from Monday up to Saturday 9am -> declaring for this week
+    else {
+      return false;
+    }
+  };
 
   return (
     <>
@@ -578,10 +614,12 @@ function Booking(props) {
           <h5 className="d-block mx-auto mb-5 text-center text-muted">
             These are the expected products by the farmers. They are not yet
             purchasable
-          </h5>)}
+          </h5>
+        )}
         {props.purchasing && props.userRole === 'employee' && (
           <h5 className="d-block mx-auto mb-5 text-center text-muted">
-            Choose the client and then choose below the products you want to book for the selected client
+            Choose the client and then choose below the products you want to
+            book for the selected client
           </h5>
         )}
         {props.purchasing && props.userRole === 'client' && (
@@ -701,6 +739,30 @@ function Booking(props) {
           <YouAreNotLoggedScreen />
         )}
       </Container>
+      {!bookingAvailable() && (
+        <Modal
+          show={true}
+          dismissible={false}
+          backdrop="static"
+          keyboard={false}
+        >
+          <Modal.Body>
+            The purchasing window is available from:{' '}
+            <b>Satuday 09 AM until Sunday 11 PM</b>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (props.userRole === 'employee') history.push('/employee');
+                else history.push('/client');
+              }}
+            >
+              Understood
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
 
       <Modal
         size="lg"
@@ -1108,8 +1170,8 @@ function ItemChangeModal(props) {
         {oldItem &&
           newItem &&
           buyQuantity * newItem.price >
-          props.clients.find((c) => c.client_id === props.clientid).budget +
-          oldItem.buyQty * oldItem.price && (
+            props.clients.find((c) => c.client_id === props.clientid).budget +
+              oldItem.buyQty * oldItem.price && (
             <Alert variant="danger" className="mt-4">
               <div className="d-block text-center">
                 <h3 className="lead">
@@ -1380,8 +1442,8 @@ function ItemAddModal(props) {
         {props.oldID !== -1 &&
           newItem &&
           buyQuantity * newItem.price >
-          props.clients.find((c) => c.client_id === props.clientid)
-            .budget && (
+            props.clients.find((c) => c.client_id === props.clientid)
+              .budget && (
             <Alert variant="danger" className="mt-4">
               <div className="d-block text-center">
                 <h3 className="lead">

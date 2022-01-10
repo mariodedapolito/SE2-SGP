@@ -4,8 +4,7 @@ async function getAllClients() {
   if (response.ok) {
     const responseBody = await response.json();
     return responseBody;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -50,7 +49,12 @@ function addMissedPickup(S) {
             })
             .catch((err) => {
               reject({
-                errors: [{ param: 'Application', msg: 'Cannot insert a missed pickup' }],
+                errors: [
+                  {
+                    param: 'Application',
+                    msg: 'Cannot insert a missed pickup',
+                  },
+                ],
               });
             });
         }
@@ -69,10 +73,9 @@ function addMissedPickup(S) {
 async function getAllUsers() {
   const response = await fetch('/api/users');
   if (response.ok) {
-    const responseUsersBody = await response.json()
-    return await responseUsersBody
-  }
-  else {
+    const responseUsersBody = await response.json();
+    return await responseUsersBody;
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -82,10 +85,9 @@ async function getAllUsers() {
 async function getAllOrders() {
   const response = await fetch('/api/orders');
   if (response.ok) {
-    const responseAllOrders = await response.json()
+    const responseAllOrders = await response.json();
     return responseAllOrders;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -94,10 +96,9 @@ async function getAllOrders() {
 async function getAllProducts() {
   const response = await fetch('/api/products');
   if (response.ok) {
-    const responseAllProducts = await response.json()
+    const responseAllProducts = await response.json();
     return responseAllProducts;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -107,8 +108,7 @@ async function getProviderDeliveredOrders(id) {
   const response = await fetch(`/api/provider-orders/${id}`);
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -124,8 +124,7 @@ async function updateDelivered(id, product_name) {
   });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -141,8 +140,7 @@ async function updateWHPrepared(id, product_name) {
   });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -157,13 +155,12 @@ async function updateState(id, state) {
     },
     body: JSON.stringify({
       id: id,
-      state: state
+      state: state,
     }),
-  })
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -200,13 +197,12 @@ async function updateSuspension(id, suspension) {
     },
     body: JSON.stringify({
       id: id,
-      suspension: suspension
+      suspension: suspension,
     }),
-  })
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -228,44 +224,58 @@ async function updateStateFarmer(id, product_id, state) {
   console.log(response);
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
 }
 
-
 //GET all confirmed products + readme OK
 async function getAllConfirmedProducts(year, week) {
-  const responseAllConfirmedProducts = await fetch('/api/products/confirmed/' + year + '/' + week);
+  const responseAllConfirmedProducts = await fetch(
+    '/api/products/confirmed/' + year + '/' + week
+  );
   if (responseAllConfirmedProducts.ok) {
     return await responseAllConfirmedProducts.json();
   } else {
-    let errAllConfirmedProducts = { status: responseAllConfirmedProducts.status, errObj: await responseAllConfirmedProducts.json() };
+    let errAllConfirmedProducts = {
+      status: responseAllConfirmedProducts.status,
+      errObj: await responseAllConfirmedProducts.json(),
+    };
     throw errAllConfirmedProducts; // An object with the error coming from the server
   }
 }
 
 //GET all expected products + readme ok
 async function getAllExpectedProducts(year, week) {
-  const responseAllExpectedProducts = await fetch('/api/products/expected/' + year + '/' + week);
+  const responseAllExpectedProducts = await fetch(
+    '/api/products/expected/' + year + '/' + week
+  );
   if (responseAllExpectedProducts.ok) {
-    const responseAllExpectedProductsBody = await responseAllExpectedProducts.json();
-    return responseAllExpectedProductsBody
+    const responseAllExpectedProductsBody =
+      await responseAllExpectedProducts.json();
+    return responseAllExpectedProductsBody;
   } else {
-    let errAllExpectedProducts = { status: responseAllExpectedProducts.status, errObj: await responseAllExpectedProducts.json() };
+    let errAllExpectedProducts = {
+      status: responseAllExpectedProducts.status,
+      errObj: await responseAllExpectedProducts.json(),
+    };
     throw errAllExpectedProducts; // An object with the error coming from the server
   }
 }
 
 //GET all products in the booked or pending state of a certain provider + readme ok
 async function getOrderedProductsForProvider(year, week) {
-  const responseOrderedProductsForProvider = await fetch('/api/products/ordered/' + year + '/' + week);
+  const responseOrderedProductsForProvider = await fetch(
+    '/api/products/ordered/' + year + '/' + week
+  );
   if (responseOrderedProductsForProvider.ok) {
     return await responseOrderedProductsForProvider.json();
   } else {
-    let errOrderedProductsForProvider = { status: responseOrderedProductsForProvider.status, errObj: await responseOrderedProductsForProvider.json() };
+    let errOrderedProductsForProvider = {
+      status: responseOrderedProductsForProvider.status,
+      errObj: await responseOrderedProductsForProvider.json(),
+    };
     throw errOrderedProductsForProvider; // An object with the error coming from the server
   }
 }
@@ -278,22 +288,31 @@ async function getProviderShipmentStatus(year, week) {
   if (responseProviderShipmentStatus.ok) {
     return await responseProviderShipmentStatus.json();
   } else {
-    let errProviderShipmentStatus = { status: responseProviderShipmentStatus.status, errObj: await responseProviderShipmentStatus.json() };
+    let errProviderShipmentStatus = {
+      status: responseProviderShipmentStatus.status,
+      errObj: await responseProviderShipmentStatus.json(),
+    };
     throw errProviderShipmentStatus; // An object with the error coming from the server
   }
 }
 
 //POST all products IDs that were shipped + readme ok
 async function setProductsAsFarmerShipped(productIDS) {
-  const responseSetProductAsFarmerShipped = await fetch('/api/orders/farmershipped', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(productIDS), // Conversion in JSON format
-  });
+  const responseSetProductAsFarmerShipped = await fetch(
+    '/api/orders/farmershipped',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productIDS), // Conversion in JSON format
+    }
+  );
   if (responseSetProductAsFarmerShipped.ok) {
     return await responseSetProductAsFarmerShipped.json();
   } else {
-    let errSetProductAsFarmerShipped = { status: responseSetProductAsFarmerShipped.status, errObj: await responseSetProductAsFarmerShipped.json() };
+    let errSetProductAsFarmerShipped = {
+      status: responseSetProductAsFarmerShipped.status,
+      errObj: await responseSetProductAsFarmerShipped.json(),
+    };
     throw errSetProductAsFarmerShipped; // An object with the error coming from the server
   }
 }
@@ -304,7 +323,10 @@ async function getProductById(product_id) {
   if (responseProductById.ok) {
     return await responseProductById.json();
   } else {
-    let errProductById = { status: responseProductById.status, errObj: await responseProductById.json() };
+    let errProductById = {
+      status: responseProductById.status,
+      errObj: await responseProductById.json(),
+    };
     throw errProductById; // An object with the error coming from the server
   }
 }
@@ -315,7 +337,10 @@ async function getAllCategories() {
   if (responseAllCategories.ok) {
     return await responseAllCategories.json();
   } else {
-    let errAllCategories = { status: responseAllCategories.status, errObj: await responseAllCategories.json() };
+    let errAllCategories = {
+      status: responseAllCategories.status,
+      errObj: await responseAllCategories.json(),
+    };
     throw errAllCategories; // An object with the error coming from the server
   }
 }
@@ -326,7 +351,10 @@ async function getAllProviders() {
   if (responseAllProviders.ok) {
     return await responseAllProviders.json();
   } else {
-    let errAllProviders = { status: responseAllProviders.status, errObj: await responseAllProviders.json() };
+    let errAllProviders = {
+      status: responseAllProviders.status,
+      errObj: await responseAllProviders.json(),
+    };
     throw errAllProviders; // An object with the error coming from the server
   }
 }
@@ -392,7 +420,6 @@ async function setNotificationasSent(products) {
   }
 }
 
-
 //Check if provider has already confirmed product availability for given year and week of year + readme ok
 async function getProviderConfirmationStatus(year, week_number) {
   const response = await fetch(
@@ -406,7 +433,7 @@ async function getProviderConfirmationStatus(year, week_number) {
   }
 }
 
-//GET provider expected products + readme ok 
+//GET provider expected products + readme ok
 async function getProviderAvailableProducts(year, week_number) {
   const response = await fetch(
     '/api/products/provider/available/' + year + '/' + week_number
@@ -419,7 +446,7 @@ async function getProviderAvailableProducts(year, week_number) {
   }
 }
 
-//POST array of expected products + readme ok 
+//POST array of expected products + readme ok
 async function declareAvailability(products, year, week) {
   const response = await fetch('/api/products/expected/' + year + '/' + week, {
     method: 'POST',
@@ -534,11 +561,10 @@ async function updateQuantity(product_id, quantity) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ id: product_id, quantity: quantity }),
-  })
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -565,11 +591,10 @@ async function addClient(client) {
       email: client.email,
       hash: client.hash,
     }),
-  })
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -581,8 +606,7 @@ async function getAllPaymentMethods() {
   if (response.ok) {
     const responseBody = await response.json();
     return responseBody;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -605,11 +629,10 @@ async function addTransaction(tr) {
       time: tr.time,
       status: 1,
     }),
-  })
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -617,17 +640,19 @@ async function addTransaction(tr) {
 
 // Increase balance of clients
 async function increaseBalance(amount, clientId) {
-  const response = await fetch('/api/clients/update/balance/' + clientId + '/' + amount, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({}),
-  })
+  const response = await fetch(
+    '/api/clients/update/balance/' + clientId + '/' + amount,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    }
+  );
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -639,12 +664,11 @@ async function confirmExpectedProducts(product, year, week) {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-    }
-  })
+    },
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -655,12 +679,11 @@ async function setUnavailableProducts(product, year, week) {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-    }
-  })
+    },
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -678,9 +701,11 @@ async function logIn(credentials) {
   if (responseLogIn.ok) {
     const user = await responseLogIn.json();
     return user;
-  }
-  else {
-    let err = { status: responseLogIn.status, errObj: await responseLogIn.json() };
+  } else {
+    let err = {
+      status: responseLogIn.status,
+      errObj: await responseLogIn.json(),
+    };
     throw err; // An object with the error coming from the server
   }
 }
@@ -695,8 +720,7 @@ async function getUserInfo() {
   const response = await fetch('/api/sessions/current');
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -720,8 +744,7 @@ async function addUser(S) {
 
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -749,12 +772,11 @@ async function addOrder(S) {
       time: S.time,
       pickup: S.pickup,
     }),
-  })
+  });
   console.log(response);
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -816,8 +838,7 @@ const submitEmail = async (e) => {
     //   alert('Message failed to send');
     // }
     return resData;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -834,12 +855,11 @@ const sendTelegramNotificationOnSaturday = async () => {
     method: 'POST',
     headers: {
       'Content-type': 'application/json',
-    }
-  })
+    },
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -858,19 +878,19 @@ const sendTelegramTopUpNotification = async (client, transaction) => {
       'Content-type': 'application/json',
     },
     body: JSON.stringify({
+      clientid: client.client_id,
       balance: client.budget,
       telegramId: client.telegramId,
       name: client.name,
       surname: client.surname,
       amount: transaction.amount,
       date: transaction.date,
-      time: transaction.time
+      time: transaction.time,
     }),
   });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -880,29 +900,31 @@ const sendTelegramTopUpNotification = async (client, transaction) => {
   //   console.log(resData);
   // });
 };
-
 
 /// send telegram notification on Saturday at 09:00
-const sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10 = async () => {
-  const response = await fetch('/api/SendTelegramNotificationForInsufficientBalance', {
-    method: 'POST',
-    headers: {
-      'Content-type': 'application/json',
+const sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10 =
+  async () => {
+    const response = await fetch(
+      '/api/SendTelegramNotificationForInsufficientBalance',
+      {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+        },
+      }
+    );
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let err = { status: response.status, errObj: await response.json() };
+      throw err; // An object with the error coming from the server
     }
-  });
-  if (response.ok) {
-    return await response.json();
-  }
-  else {
-    let err = { status: response.status, errObj: await response.json() };
-    throw err; // An object with the error coming from the server
-  }
-  // .then((res) => res.json())
-  // .then(async (res) => {
-  //   const resData = await res;
-  //   console.log(resData);
-  // });
-};
+    // .then((res) => res.json())
+    // .then(async (res) => {
+    //   const resData = await res;
+    //   console.log(resData);
+    // });
+  };
 
 const sendTelegramOrderStateNotification = async (clientId, state) => {
   const response = await fetch('/api/orderStateConfirmation', {
@@ -912,7 +934,7 @@ const sendTelegramOrderStateNotification = async (clientId, state) => {
     },
     body: JSON.stringify({
       clientId: clientId,
-      state: state
+      state: state,
     }),
   })
     .then((res) => res.json())
@@ -946,11 +968,10 @@ async function updateItem(order) {
       time: order.time,
       pickup: order.pickup,
     }),
-  })
+  });
   if (response.ok) {
     return await response.json();
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -961,9 +982,11 @@ async function getAllDeliverers() {
   const responseGetAllDeliverers = await fetch('/api/deliverers');
   if (responseGetAllDeliverers.ok) {
     return await responseGetAllDeliverers.json();
-  }
-  else {
-    let err = { status: responseGetAllDeliverers.status, errObj: await responseGetAllDeliverers.json() };
+  } else {
+    let err = {
+      status: responseGetAllDeliverers.status,
+      errObj: await responseGetAllDeliverers.json(),
+    };
     throw err; // An object with the error coming from the server
   }
 }
@@ -974,8 +997,7 @@ async function getDeliverableOrders(city) {
   if (response.ok) {
     const responseBody = await response.json();
     return responseBody;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -992,15 +1014,13 @@ async function getDelivererByMail(id) {
   }
 }
 
-
 //GET ->retrieve all deliverers
 async function getOrderAndClientData() {
   const response = await fetch('/api/orders/pickup/clientorder');
   if (response.ok) {
     const responseBody = await response.json();
     return responseBody;
-  }
-  else {
+  } else {
     let err = { status: response.status, errObj: await response.json() };
     throw err; // An object with the error coming from the server
   }
@@ -1065,7 +1085,7 @@ const API = {
   sendTelegramNotificationAboutInsufficientBalanceEveryDayAt10,
   getAllMissedPickups,
   addMissedPickup,
-  sendTelegramOrderStateNotification
+  sendTelegramOrderStateNotification,
 };
 
 export default API;
