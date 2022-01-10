@@ -571,11 +571,11 @@ app.put('/api/modifyStateFarmer', async (req, res) => {
 
 //PUT to update a user as suspended
 app.put(
-  '/api/users/:id',
+  '/api/users/updateSuspension',
 
   async (req, res) => {
     try {
-      await usersDao.suspension(req.params.id);
+      await usersDao.suspension(req.params.id, req.params.suspension);
       res.status(200).json('Update Completed!');
     } catch (err) {
       res.status(503).json({

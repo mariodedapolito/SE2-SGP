@@ -169,6 +169,27 @@ async function updateState(id, state) {
   }
 }
 
+//update user suspension value
+async function updateSuspension(id, suspension) {
+  const response = await fetch(`/api/updateSuspension`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: id,
+      suspension: suspension
+    }),
+  })
+  if (response.ok) {
+    return await response.json();
+  }
+  else {
+    let err = { status: response.status, errObj: await response.json() };
+    throw err; // An object with the error coming from the server
+  }
+}
+
 //update farmer state of a product of an order
 async function updateStateFarmer(id, product_id, state) {
   const response = await fetch(`/api/modifyStateFarmer`, {
@@ -1007,6 +1028,7 @@ const API = {
   getProviderDeliveredOrders,
   getAllUsers,
   updateState,
+  updateSuspension,
   updateItem,
   updateStateFarmer,
   getAllDeliverers,
