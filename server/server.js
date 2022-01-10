@@ -571,7 +571,7 @@ app.put('/api/modifyStateFarmer', async (req, res) => {
 
 //PUT to update a user as suspended
 app.put(
-  '/api/users/updateSuspension',
+  '/api/updateSuspension',
 
   async (req, res) => {
     try {
