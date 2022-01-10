@@ -404,7 +404,7 @@ function Cart(props) {
                 {orderAlert.msg}
                 {orderAlert.variant === 'success' && (
                   <div className='d-block text-end'>
-                    {props.userRole === 'client' && <Button variant='outline-success' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}
+                    {props.userRole === 'client' && <Button variant='outline-light' onClick={() => (history.push("/orders"))}>Go to My orders</Button>}
                   </div>
                 )}
               </Alert>
